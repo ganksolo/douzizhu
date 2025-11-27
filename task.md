@@ -53,8 +53,13 @@
     - [x] Add Turn Indicator (Breathing Light) <!-- id: 49 -->
     - [x] Download and integrate sound assets <!-- id: 50 -->
 
-- [ ] Phase 8: Advanced Interaction & Theming <!-- id: 51 -->
+- [x] Phase 8: Advanced Interaction & Theming <!-- id: 51 -->
     - [x] Implement Drag-to-Select in `PlayerHand` <!-- id: 52 -->
     - [x] Implement Smart Hint System (`findBestMove`) <!-- id: 53 -->
     - [x] Implement Theme System (Classic, Tech, Wood) <!-- id: 54 -->
     - [x] Add Settings Menu for Theme Switching <!-- id: 55 -->
+
+- [x] Fix 1: Spatial Layout - Separate Play Areas <!-- id: 56 -->
+    - [x] Create 4 play area containers (Bottom, Right, Top, Left) <!-- id: 57 -->
+    - [x] Map playerId to position and render cards accordingly <!-- id: 58 -->
+    - [x] Ensure old cards clear when new player plays <!-- id: 59 -->

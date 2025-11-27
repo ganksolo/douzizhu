@@ -28,6 +28,9 @@ This project is a fully functional, browser-based implementation of the popular 
   - Green felt table background (Classic theme).
   - High-quality card visuals with suit colors and symbols.
   - Role icons (Crown for Landlord, User for Peasants).
+- **Spatial Layout**:
+  - **4 Separate Play Areas**: Each player's played cards appear at their position (Bottom, Right, Top, Left).
+  - Clear visual indication of who played which cards.
 - **Animations (Framer Motion)**:
   - **Shuffling**: Rotating deck animation.
   - **Dealing**: Cards fly to players one by one.
@@ -44,7 +47,7 @@ This project is a fully functional, browser-based implementation of the popular 
 ### 4. Technical Architecture
 - **State Management**: Custom `useGameLoop` hook manages the complex game state machine.
 - **Component Structure**:
-  - `GameTable`: Main container and layout.
+  - `GameTable`: Main container and layout with position-based play areas.
   - `PlayerHand`: Renders cards for each player, handling layout and drag selection.
   - `Card`: Reusable, animated card component.
   - `GameOverModal`: Reusable modal for game results.

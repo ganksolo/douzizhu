@@ -237,7 +237,7 @@ export function GameTable() {
                 )}
             </div>
 
-            {/* Center Area */}
+            {/* Center Area - Bottom Cards Only */}
             <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 flex flex-col items-center gap-8 z-10">
                 {/* Bottom Cards */}
                 <div className="flex gap-2 p-3 bg-black/40 backdrop-blur-md rounded-xl border border-white/10 shadow-xl">
@@ -247,32 +247,78 @@ export function GameTable() {
                         <div className="text-white/50 text-sm font-medium">Bottom Cards</div>
                     )}
                 </div>
+            </div>
 
-                {/* Last Played Cards */}
-                <div className="min-h-[160px] flex items-center justify-center">
-                    <AnimatePresence mode="wait">
-                        {lastPlayedCards ? (
-                            <motion.div
-                                key={lastPlayedCards.playerId} // Key change triggers animation
-                                initial={{ scale: 0.8, opacity: 0, y: 20 }}
-                                animate={{ scale: 1.1, opacity: 1, y: 0 }}
-                                exit={{ scale: 0.8, opacity: 0, y: -20 }}
-                                transition={{ type: 'spring', stiffness: 300, damping: 20 }}
-                                className="flex -space-x-8"
-                            >
-                                {lastPlayedCards.cards.map(card => <Card key={card.id} card={card} />)}
-                            </motion.div>
-                        ) : (
-                            <motion.div
-                                initial={{ opacity: 0 }}
-                                animate={{ opacity: 1 }}
-                                className="text-white/50 text-lg font-medium italic"
-                            >
-                                {phase === 'BIDDING' ? 'Bidding Phase...' : phase === 'DEALING' ? 'Dealing...' : 'Waiting for play...'}
-                            </motion.div>
-                        )}
-                    </AnimatePresence>
-                </div>
+            {/* Play Area - Bottom (Player 0 - User) */}
+            <div className="absolute bottom-32 left-1/2 transform -translate-x-1/2 z-10">
+                <AnimatePresence mode="wait">
+                    {lastPlayedCards && lastPlayedCards.playerId === players[0]?.id ? (
+                        <motion.div
+                            key={lastPlayedCards.playerId}
+                            initial={{ scale: 0.8, opacity: 0, y: 20 }}
+                            animate={{ scale: 1, opacity: 1, y: 0 }}
+                            exit={{ scale: 0.8, opacity: 0, y: -20 }}
+                            transition={{ type: 'spring', stiffness: 300, damping: 20 }}
+                            className="flex -space-x-8"
+                        >
+                            {lastPlayedCards.cards.map(card => <Card key={card.id} card={card} />)}
+                        </motion.div>
+                    ) : null}
+                </AnimatePresence>
+            </div>
+
+            {/* Play Area - Right (Player 1 - AI 1) */}
+            <div className="absolute right-32 top-1/2 transform -translate-y-1/2 z-10">
+                <AnimatePresence mode="wait">
+                    {lastPlayedCards && lastPlayedCards.playerId === players[1]?.id ? (
+                        <motion.div
+                            key={lastPlayedCards.playerId}
+                            initial={{ scale: 0.8, opacity: 0, x: 20 }}
+                            animate={{ scale: 1, opacity: 1, x: 0 }}
+                            exit={{ scale: 0.8, opacity: 0, x: 20 }}
+                            transition={{ type: 'spring', stiffness: 300, damping: 20 }}
+                            className="flex -space-x-6"
+                        >
+                            {lastPlayedCards.cards.map(card => <Card key={card.id} card={card} small />)}
+                        </motion.div>
+                    ) : null}
+                </AnimatePresence>
+            </div>
+
+            {/* Play Area - Top (Player 2 - AI 2) */}
+            <div className="absolute top-32 left-1/2 transform -translate-x-1/2 z-10">
+                <AnimatePresence mode="wait">
+                    {lastPlayedCards && lastPlayedCards.playerId === players[2]?.id ? (
+                        <motion.div
+                            key={lastPlayedCards.playerId}
+                            initial={{ scale: 0.8, opacity: 0, y: -20 }}
+                            animate={{ scale: 1, opacity: 1, y: 0 }}
+                            exit={{ scale: 0.8, opacity: 0, y: 20 }}
+                            transition={{ type: 'spring', stiffness: 300, damping: 20 }}
+                            className="flex -space-x-6"
+                        >
+                            {lastPlayedCards.cards.map(card => <Card key={card.id} card={card} small />)}
+                        </motion.div>
+                    ) : null}
+                </AnimatePresence>
+            </div>
+
+            {/* Play Area - Left (Player 3 - AI 3) */}
+            <div className="absolute left-32 top-1/2 transform -translate-y-1/2 z-10">
+                <AnimatePresence mode="wait">
+                    {lastPlayedCards && lastPlayedCards.playerId === players[3]?.id ? (
+                        <motion.div
+                            key={lastPlayedCards.playerId}
+                            initial={{ scale: 0.8, opacity: 0, x: -20 }}
+                            animate={{ scale: 1, opacity: 1, x: 0 }}
+                            exit={{ scale: 0.8, opacity: 0, x: -20 }}
+                            transition={{ type: 'spring', stiffness: 300, damping: 20 }}
+                            className="flex -space-x-6"
+                        >
+                            {lastPlayedCards.cards.map(card => <Card key={card.id} card={card} small />)}
+                        </motion.div>
+                    ) : null}
+                </AnimatePresence>
             </div>
 
             {/* Bottom Player (Human) */}
