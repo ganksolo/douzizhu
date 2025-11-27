@@ -1,0 +1,60 @@
+# Task: 4-Player Dou Dizhu
+
+- [x] Project Initialization <!-- id: 0 -->
+    - [x] Initialize Vite + React + TypeScript project <!-- id: 1 -->
+    - [x] Install and configure Tailwind CSS <!-- id: 2 -->
+- [x] Core Data Models (`types.ts`) <!-- id: 3 -->
+    - [x] Define `Suit` and `Rank` <!-- id: 4 -->
+    - [x] Define `Card` interface <!-- id: 5 -->
+    - [x] Define `Player` interface <!-- id: 6 -->
+- [x] Poker Engine (`deck.ts`) <!-- id: 7 -->
+    - [x] Implement `createDeck` (108 cards) <!-- id: 8 -->
+    - [x] Implement `shuffleDeck` (Fisher-Yates) <!-- id: 9 -->
+    - [x] Implement `dealCards` (4 players, 8 bottom cards) <!-- id: 10 -->
+- [x] Basic UI (`App.tsx`) <!-- id: 11 -->
+    - [x] Display player hand counts <!-- id: 12 -->
+    - [x] Display bottom cards <!-- id: 13 -->
+- [x] Phase 2: Game Logic (`rules.ts`) <!-- id: 14 -->
+    - [x] Define `HandType` enum <!-- id: 15 -->
+    - [x] Implement `getHandType` (Single, Pair, Triple, Straight, Bomb, Rocket, etc.) <!-- id: 16 -->
+    - [x] Implement `getHandValue` (Weight calculation) <!-- id: 17 -->
+    - [x] Implement `canBeat` (Comparison logic) <!-- id: 18 -->
+    - [x] Add test buttons in `App.tsx` <!-- id: 19 -->
+- [x] Phase 3: Game UI & Interaction <!-- id: 20 -->
+    - [x] Create `Card` component (Visuals, Selection state) <!-- id: 21 -->
+    - [x] Create `PlayerHand` component (Layout, Interaction) <!-- id: 22 -->
+    - [x] Create `GameTable` component (4-player layout, Center area) <!-- id: 23 -->
+    - [x] Implement State Management (Turn, Last Played) <!-- id: 24 -->
+    - [x] Implement "Play" & "Pass" logic with validation <!-- id: 25 -->
+- [x] Phase 4: Game Flow Refinement <!-- id: 26 -->
+    - [x] Update `types.ts` with `GamePhase` <!-- id: 27 -->
+    - [x] Create `useGameLoop` hook <!-- id: 28 -->
+        - [x] Implement State (Phase, Bidding, Pass Count) <!-- id: 29 -->
+        - [x] Implement Bidding Logic <!-- id: 30 -->
+        - [x] Implement Turn Flow (Pass Count check) <!-- id: 31 -->
+        - [x] Implement Win Condition <!-- id: 32 -->
+    - [x] Update `GameTable` to use `useGameLoop` <!-- id: 33 -->
+    - [x] Add UI for Bidding and Game Over <!-- id: 34 -->
+- [x] Phase 5: Rule-based AI <!-- id: 35 -->
+    - [x] Create `ai.ts` with decision logic <!-- id: 36 -->
+        - [x] Implement `findMoves` (Find valid hands to beat target) <!-- id: 37 -->
+        - [x] Implement `aiAction` (Lead vs Follow logic) <!-- id: 38 -->
+    - [x] Integrate AI into `useGameLoop` <!-- id: 39 -->
+- [x] Phase 6: Visual Polish & Animation <!-- id: 40 -->
+    - [x] Install `framer-motion` and `lucide-react` <!-- id: 41 -->
+    - [x] Enhance `Card` component (Styles, Animations) <!-- id: 42 -->
+    - [x] Enhance `GameTable` UI (Background, Player Highlight, Icons) <!-- id: 43 -->
+    - [x] Create `GameOverModal` with animations <!-- id: 44 -->
+
+- [x] Phase 7: Immersive Animations & Sound <!-- id: 45 -->
+    - [x] Create `SoundManager` (utils/sound.ts) <!-- id: 46 -->
+    - [x] Implement Shuffling & Dealing Animation <!-- id: 47 -->
+    - [x] Implement Play Card Animation (Scale/Fly) <!-- id: 48 -->
+    - [x] Add Turn Indicator (Breathing Light) <!-- id: 49 -->
+    - [x] Download and integrate sound assets <!-- id: 50 -->
+
+- [ ] Phase 8: Advanced Interaction & Theming <!-- id: 51 -->
+    - [x] Implement Drag-to-Select in `PlayerHand` <!-- id: 52 -->
+    - [x] Implement Smart Hint System (`findBestMove`) <!-- id: 53 -->
+    - [x] Implement Theme System (Classic, Tech, Wood) <!-- id: 54 -->
+    - [x] Add Settings Menu for Theme Switching <!-- id: 55 -->
