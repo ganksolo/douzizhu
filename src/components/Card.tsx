@@ -32,18 +32,18 @@ export function Card({ card, onClick, isBack, small }: CardProps) {
 
     return (
         <motion.div
-            layout
             initial={{ scale: 0.8, opacity: 0 }}
             animate={{
                 scale: 1,
                 opacity: 1,
                 y: card.isSelected ? -24 : 0
             }}
+            whileHover={{ y: card.isSelected ? -34 : -10 }}
             transition={{ type: 'spring', stiffness: 300, damping: 20 }}
             onClick={() => onClick?.(card)}
             className={twMerge(
                 clsx(
-                    'relative bg-white rounded-lg shadow-md border border-gray-300 select-none flex flex-col items-center justify-between overflow-hidden',
+                    'relative bg-white rounded-lg shadow-md border border-gray-300 select-none flex flex-col items-center justify-between overflow-hidden transition-transform duration-200 ease-out',
                     small ? 'w-10 h-14 text-xs' : 'w-24 h-36 text-xl',
                     onClick ? 'cursor-pointer hover:shadow-lg' : '',
                     isBack ? 'bg-blue-800 border-blue-900' : ''

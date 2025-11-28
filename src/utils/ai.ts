@@ -2,6 +2,88 @@ import type { Card } from '../types';
 import { getCardValue } from './rules';
 import type { HandType } from './rules';
 
+// AI Decision Reasoning
+export type AIReason =
+    | 'BOMB_PRESERVE'     // Avoided breaking bomb
+    | 'BLOCK_LANDLORD'    // Peasant blocking landlord
+    | 'HELP_TEAMMATE'     // Peasant helping teammate
+    | 'ENDGAME_DUMP'      // Endgame aggressive mode
+    | 'NORMAL_PLAY'       // Standard move
+    | 'PASS';             // No valid move
+
+export interface AIDecision {
+    cards: Card[] | null;
+    reason: AIReason;
+    score?: number;
+}
+
+// Evaluate hand strength (0-100)
+export const evaluateHand = (hand: Card[]): number => {
+    if (hand.length === 0) return 0;
+
+    let score = 0;
+    const groups = groupCardsByValue(hand);
+
+    // Count bombs and rockets
+    const bombCount = countBombs(hand);
+    score += bombCount * 25; // Bombs are very valuable
+
+    // Count pairs and triples
+    for (const [value, cards] of groups) {
+        if (cards.length >= 4) {
+            score += 20; // Bomb
+        } else if (cards.length === 3) {
+            score += 10; // Triple
+        } else if (cards.length === 2) {
+            score += 5; // Pair
+        }
+
+        // High value cards
+        if (value >= 13) score += 3; // 2s and jokers
+        else if (value >= 11) score += 2; // A, K
+    }
+
+    // Penalize having too many cards
+    score -= hand.length * 0.5;
+
+    return Math.min(100, Math.max(0, score));
+};
+
+// Check if cards form a bomb or rocket
+export const isBomb = (cards: Card[]): boolean => {
+    if (cards.length === 4) {
+        const jokers = cards.filter(c => c.suit === 'joker');
+        if (jokers.length === 4) return true; // Rocket
+
+        const value = getCardValue(cards[0]);
+        return cards.every(c => getCardValue(c) === value); // 4 of a kind
+    }
+    return false;
+};
+
+// Count number of bombs in hand
+export const countBombs = (hand: Card[]): number => {
+    const groups = groupCardsByValue(hand);
+    let count = 0;
+
+    for (const cards of groups.values()) {
+        if (cards.length >= 4) {
+            count++;
+        }
+    }
+
+    // Check for rocket (4 jokers)
+    const jokers = hand.filter(c => c.suit === 'joker');
+    if (jokers.length === 4) count++;
+
+    return count;
+};
+
+// Check if in endgame (< 5 cards)
+export const isEndgame = (hand: Card[]): boolean => {
+    return hand.length < 5;
+};
+
 // Helper to group cards by value
 const groupCardsByValue = (hand: Card[]) => {
     const groups = new Map<number, Card[]>();
@@ -48,7 +130,6 @@ const findHands = (
             }
         }
     }
-    // TODO: Add support for other types like Straight, TripleWithSingle, etc.
 
     return validHands;
 };
@@ -66,49 +147,24 @@ export const findMoves = (
 ): Card[][] => {
     const moves: Card[][] = [];
 
-    // If Lead (target is null), return some basic moves
     if (!target) {
-        // Try to find smallest Single
-        moves.push(...findHands(hand, 'Single', 1));
-        // Try to find smallest Pair
-        moves.push(...findHands(hand, 'Pair', 2));
-        // Try to find smallest Triple
-        moves.push(...findHands(hand, 'Triple', 3));
-        // Try to find smallest Bomb
-        moves.push(...findHands(hand, 'Bomb', 4));
-
-        // Check Rocket
+        moves.push(...findHands(hand, 'Single', 0));
+        moves.push(...findHands(hand, 'Pair', 0));
+        moves.push(...findHands(hand, 'Triple', 0));
+        moves.push(...findHands(hand, 'Bomb', 0));
         const rocket = findRocket(hand);
         if (rocket) moves.push(rocket);
-
         return moves;
     }
 
-    // If Follow
-    // 1. Try to beat with same type
     if (target.type !== 'Rocket') {
         moves.push(...findHands(hand, target.type, target.value));
     }
 
-    // 2. Try to beat with Bomb (if target is not Bomb or Rocket)
     if (target.type !== 'Bomb' && target.type !== 'Rocket') {
         moves.push(...findHands(hand, 'Bomb', 0));
     }
 
-    // 3. If target is Bomb, beat with bigger Bomb
-    if (target.type === 'Bomb') {
-        // Already handled by step 1 (findHands with minVal)
-        // But we also need to check for longer bombs? 
-        // Standard rules: Bomb length doesn't matter for rank, only value? 
-        // Actually usually 4-bomb < 5-bomb etc. or just value.
-        // Our rules.ts says: length > current.length OR (length == current.length AND value > current.value)
-
-        // Find longer bombs
-        // For simplicity, let's just stick to 4-card bombs for now in findHands.
-        // If we want to support variable length bombs, we need more complex logic.
-    }
-
-    // 4. Beat with Rocket
     const rocket = findRocket(hand);
     if (rocket) moves.push(rocket);
 
@@ -121,43 +177,78 @@ export const getHint = (
 ): Card[] | null => {
     const moves = findMoves(hand, lastPlayedCards);
     if (moves.length === 0) return null;
-
-    // Simple heuristic: return the first (smallest) valid move
-    // findMoves already sorts by value usually (if implemented that way), or we can sort here.
-    // Our findMoves implementation returns moves in order of type, but not strictly sorted by value across types.
-    // However, for a specific type, it iterates sortedValues.
-
-    // If we want the "best" hint, usually it's the smallest valid play.
-    // Since findMoves returns arrays of cards, we can sort by the value of the first card?
-    // Or just return the first one found.
     return moves[0];
 };
 
+// Enhanced AI Action with Strategy
 export const aiAction = (
     hand: Card[],
-    lastPlayedCards: { cards: Card[]; type: any } | null
-): Card[] | null => {
+    lastPlayedCards: { cards: Card[]; type: any } | null,
+    playerRole?: 'landlord' | 'peasant',
+    nextPlayerRole?: 'landlord' | 'peasant'
+): AIDecision => {
     const target = lastPlayedCards ? lastPlayedCards.type : null;
-    const possibleMoves = findMoves(hand, target);
+    let possibleMoves = findMoves(hand, target);
 
-    if (possibleMoves.length === 0) return null;
-
-    // Strategy:
-    // If Lead: Play smallest hand (Single > Pair > Triple)
-    // If Follow: Play smallest winning hand
-
-    // Since findMoves returns sorted by value (ascending), the first one is usually the smallest.
-    // But we mixed types for Lead.
-
-    if (!target) {
-        // Prefer playing Singles or Pairs to clear hand?
-        // Let's just pick the very first valid move found.
-        // Our findMoves pushes Singles, then Pairs, etc.
-        // So it will prefer Singles.
-        return possibleMoves[0];
+    // No valid moves
+    if (possibleMoves.length === 0) {
+        return { cards: null, reason: 'PASS' };
     }
 
-    // For Follow, findMoves returns same-type moves first, then Bombs.
-    // We want the smallest same-type move.
-    return possibleMoves[0];
+    const endgame = isEndgame(hand);
+    const bombsAvailable = countBombs(hand);
+
+    // STRATEGY 1: Bomb Preservation (unless endgame or necessary)
+    if (!endgame && bombsAvailable > 0) {
+        const nonBombMoves = possibleMoves.filter(cards => !isBomb(cards));
+
+        if (nonBombMoves.length > 0) {
+            possibleMoves = nonBombMoves;
+            console.log('[AI Strategy] Preserving bombs for later');
+        } else {
+            console.log('[AI Strategy] Using bomb - no other option');
+        }
+    }
+
+    // STRATEGY 2: Peasant Cooperation
+    if (playerRole === 'peasant' && nextPlayerRole) {
+        if (nextPlayerRole === 'landlord') {
+            // Block landlord with stronger cards
+            const strongMoves = possibleMoves.slice(Math.floor(possibleMoves.length / 2));
+            if (strongMoves.length > 0) {
+                console.log('[AI Strategy] Blocking landlord with strong cards');
+                return {
+                    cards: strongMoves[strongMoves.length - 1],
+                    reason: 'BLOCK_LANDLORD',
+                    score: evaluateHand(hand)
+                };
+            }
+        } else {
+            // Help teammate with weaker cards
+            console.log('[AI Strategy] Helping teammate with weak cards');
+            return {
+                cards: possibleMoves[0],
+                reason: 'HELP_TEAMMATE',
+                score: evaluateHand(hand)
+            };
+        }
+    }
+
+    // STRATEGY 3: Endgame Aggression
+    if (endgame) {
+        console.log('[AI Strategy] Endgame mode - aggressive play');
+        return {
+            cards: possibleMoves[0],
+            reason: 'ENDGAME_DUMP',
+            score: evaluateHand(hand)
+        };
+    }
+
+    // STRATEGY 4: Normal Play
+    console.log('[AI Strategy] Normal play - smallest valid move');
+    return {
+        cards: possibleMoves[0],
+        reason: 'NORMAL_PLAY',
+        score: evaluateHand(hand)
+    };
 };

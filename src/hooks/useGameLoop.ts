@@ -5,7 +5,7 @@ import { canBeat, getHandType } from '../utils/rules';
 import { aiAction } from '../utils/ai';
 import { soundManager } from '../utils/sound';
 
-export function useGameLoop() {
+export function useGameLoop(onError?: (message: string, type?: 'error' | 'warning') => void) {
     const [phase, setPhase] = useState<GamePhase>('DEALING');
     const [players, setPlayers] = useState<Player[]>([]);
     const [bottomCards, setBottomCards] = useState<Card[]>([]);
@@ -145,14 +145,14 @@ export function useGameLoop() {
         const handType = getHandType(selectedCards);
 
         if (!handType) {
-            alert('Invalid hand type.');
+            onError?.('Invalid hand type.', 'error');
             return;
         }
 
         // Validation
         if (lastPlayedCards && lastPlayedCards.playerId !== player.id) {
             if (!canBeat(lastPlayedCards.cards, selectedCards)) {
-                alert('Cannot beat last played cards.');
+                onError?.('Cannot beat last played cards.', 'error');
                 return;
             }
         }
@@ -204,9 +204,10 @@ export function useGameLoop() {
     const handlePass = () => {
         if (phase !== 'PLAYING') return;
 
-        // Cannot pass if you are the leader (last played is null or self)
-        if (!lastPlayedCards || lastPlayedCards.playerId === players[currentTurn].id) {
-            alert('You cannot pass when you are the leader.');
+        const currentPlayer = players[currentTurn];
+        // Cannot pass if you are the leader (no one has played yet or you played last)
+        if (!lastPlayedCards || lastPlayedCards.playerId === currentPlayer.id) {
+            onError?.('You cannot pass when you are the leader.', 'warning');
             return;
         }
 
@@ -222,24 +223,34 @@ export function useGameLoop() {
         setCurrentTurn((prev) => (prev + 1) % 4);
     };
 
-    // AI Logic Effect
     useEffect(() => {
         if (phase === 'GAME_OVER') return;
 
         const currentPlayer = players[currentTurn];
-        if (!currentPlayer || !currentPlayer.isAI) return;
+        if (!currentPlayer) return;
+
+        // Skip if not AI and not auto-play enabled
+        if (!currentPlayer.isAI && !currentPlayer.isAutoPlay) return;
 
         const timer = setTimeout(() => {
             if (phase === 'BIDDING') {
-                // Random bid 0-3
                 const bid = Math.floor(Math.random() * 4);
                 handleBid(bid);
             } else if (phase === 'PLAYING') {
-                // AI Play Logic
-                const cardsToPlay = aiAction(currentPlayer.hand, lastPlayedCards && lastPlayedCards.playerId !== currentPlayer.id ? lastPlayedCards : null);
+                // Determine next player's role for cooperation strategy
+                const nextPlayer = players[(currentTurn + 1) % 4];
+                const nextPlayerRole = nextPlayer?.role;
 
-                if (cardsToPlay) {
-                    handlePlay(cardsToPlay);
+                // AI Play Logic with enhanced strategy
+                const decision = aiAction(
+                    currentPlayer.hand,
+                    lastPlayedCards && lastPlayedCards.playerId !== currentPlayer.id ? lastPlayedCards : null,
+                    currentPlayer.role,
+                    nextPlayerRole
+                );
+
+                if (decision.cards) {
+                    handlePlay(decision.cards);
                 } else {
                     handlePass();
                 }

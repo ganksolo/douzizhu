@@ -9,8 +9,16 @@ import { GameOverModal } from './GameOverModal';
 import { getHint } from '../utils/ai';
 import { soundManager } from '../utils/sound';
 import { themes, type Theme } from '../utils/theme';
+import { useToast } from '../contexts/ToastContext';
+import { SoundToggle } from './SoundToggle';
+import { DebugOverlay } from './DebugOverlay';
+import type { AIReason } from '../utils/ai';
+import { Bot, BotOff } from 'lucide-react';
 
 export function GameTable() {
+    const toast = useToast();
+    const [aiReasons] = useState<Record<string, { reason: AIReason; timestamp: number }>>({});
+
     const {
         phase,
         players,
@@ -26,7 +34,7 @@ export function GameTable() {
         handlePlay,
         handlePass,
         setPlayers,
-    } = useGameLoop();
+    } = useGameLoop((message, type) => toast.show(message, type || 'error'));
 
     const [currentTheme, setCurrentTheme] = useState<Theme>('classic');
     const [showSettings, setShowSettings] = useState(false);
@@ -46,6 +54,17 @@ export function GameTable() {
 
     useEffect(() => {
         startGame();
+    }, []);
+
+    // Initialize sound on mount (after user has loaded page)
+    useEffect(() => {
+        // Initialize sound manager after a short delay to ensure user interaction
+        const initSound = async () => {
+            await soundManager.initialize();
+        };
+        // Delay to allow for user interaction
+        const timer = setTimeout(initSound, 500);
+        return () => clearTimeout(timer);
     }, []);
 
     // Sound Effects
@@ -77,22 +96,23 @@ export function GameTable() {
         });
     };
 
+    const resetHandSelection = () => {
+        setPlayers((prevPlayers) => {
+            const newPlayers = [...prevPlayers];
+            const humanHand = newPlayers[0].hand.map((card) => ({ ...card, isSelected: false }));
+            newPlayers[0] = { ...newPlayers[0], hand: humanHand };
+            return newPlayers;
+        });
+    };
+
     const handleSelectionChange = (selectedCardIds: string[], _isAdditive: boolean = false) => {
         if (currentTurn !== 0 || phase !== 'PLAYING') return;
 
         setPlayers((prevPlayers) => {
             const newPlayers = [...prevPlayers];
             const humanHand = newPlayers[0].hand.map((card) => {
-                if (selectedCardIds.includes(card.id)) {
-                    return { ...card, isSelected: true };
-                }
                 // If not additive (new selection), deselect others. 
-                // If additive (e.g. Ctrl+Click or just dragging over new ones?), usually drag select replaces selection or adds to it.
-                // Standard file explorer: Drag replaces selection unless Ctrl is held.
-                // Let's go with: Drag selects these cards. If we want to be fancy, we can check modifier keys later.
-                // For now, let's make it simple: The passed IDs become selected. Others become unselected?
-                // Or maybe just "Select these".
-                // Let's try: "Set selection to exactly these IDs".
+                // Let's make it simple: The passed IDs become selected.
                 return { ...card, isSelected: selectedCardIds.includes(card.id) };
             });
             newPlayers[0] = { ...newPlayers[0], hand: humanHand };
@@ -103,31 +123,59 @@ export function GameTable() {
     const onPlayClick = () => {
         const selectedCards = players[0].hand.filter((c) => c.isSelected);
         if (selectedCards.length === 0) {
-            alert('Please select cards to play.');
+            toast.show('Please select cards to play.', 'warning');
             return;
         }
         handlePlay(selectedCards);
+        // Reset selection after play (though hand will change, it's safer)
+        // Actually handlePlay updates the hand by removing cards.
+        // The remaining cards should naturally be unselected unless we preserved state incorrectly.
+        // But let's force reset to be sure.
+        resetHandSelection();
     };
 
     const onHintClick = () => {
         if (!players[0]) return;
-        // Fix: lastPlayedCards might be null, but getHint expects { type, value } | null.
-        // lastPlayedCards from useGameLoop is { cards: Card[], type: HandType, value: number, playerId: string } | null
-        // We need to pass the whole object or just type/value?
-        // getHint signature: (hand: Card[], lastPlayedCards: { type: HandType; value: number } | null)
-        // The object from useGameLoop matches the shape required (it has type and value).
-        // TS might complain about extra properties if strict, but usually it's fine.
-        // Wait, the error said: Property 'value' is missing in type '{ cards: Card[]; playerId: string; type: any; }'
-        // It seems useGameLoop's lastPlayedCards doesn't have 'value'?
-        // Let's check useGameLoop.ts.
 
-        const hint = getHint(players[0].hand, lastPlayedCards as any); // Cast for now to fix lint if type mismatch exists
+        // Reset selection first
+        resetHandSelection();
+
+        // Use a timeout to allow state update before applying hint? 
+        // No, setState batching might make it tricky.
+        // Better: Calculate hint and set selection directly in one go.
+        // But resetHandSelection uses setPlayers, and handleSelectionChange uses setPlayers.
+        // If we call both, React batches them.
+        // Let's just calculate hint and set that as the *only* selection.
+
+        const hint = getHint(players[0].hand, lastPlayedCards as any);
         if (hint) {
             const hintIds = hint.map(c => c.id);
             handleSelectionChange(hintIds, false);
         } else {
-            // No move possible, maybe suggest pass?
+            toast.show('No valid move found.', 'info');
         }
+    };
+
+    const onPassClick = () => {
+        handlePass();
+        resetHandSelection();
+    };
+
+    const toggleAutoPlay = () => {
+        setPlayers((prev) => {
+            const newPlayers = [...prev];
+            if (newPlayers[0]) {
+                newPlayers[0] = {
+                    ...newPlayers[0],
+                    isAutoPlay: !newPlayers[0].isAutoPlay
+                };
+                toast.show(
+                    newPlayers[0].isAutoPlay ? 'Auto-play enabled' : 'Auto-play disabled',
+                    newPlayers[0].isAutoPlay ? 'success' : 'info'
+                );
+            }
+            return newPlayers;
+        });
     };
 
     if (players.length === 0 && !isShuffling) return <div>Loading...</div>;
@@ -337,7 +385,7 @@ export function GameTable() {
                         <>
                             <button onClick={onPlayClick} className="px-6 py-2 rounded-full text-white font-bold shadow-lg transition-transform active:scale-95 bg-blue-600 hover:bg-blue-500">Play</button>
                             <button onClick={onHintClick} className="px-6 py-2 rounded-full text-white font-bold shadow-lg transition-transform active:scale-95 bg-green-600 hover:bg-green-500">Hint</button>
-                            <button onClick={handlePass} className="px-6 py-2 rounded-full text-white font-bold shadow-lg transition-transform active:scale-95 bg-gray-600 hover:bg-gray-500">Pass</button>
+                            <button onClick={onPassClick} className="px-6 py-2 rounded-full text-white font-bold shadow-lg transition-transform active:scale-95 bg-gray-600 hover:bg-gray-500">Pass</button>
                         </>
                     )}
                 </div>
@@ -369,6 +417,28 @@ export function GameTable() {
                     />
                 )}
             </AnimatePresence>
+
+            {/* Sound Toggle Button */}
+            <SoundToggle />
+
+            {/* Auto-Play Toggle Button */}
+            <button
+                onClick={toggleAutoPlay}
+                className="fixed bottom-4 left-4 z-50 p-3 rounded-full bg-black/60 hover:bg-black/80 text-white transition-colors backdrop-blur-sm flex items-center gap-2"
+                title={players[0]?.isAutoPlay ? 'Disable auto-play' : 'Enable auto-play'}
+            >
+                {players[0]?.isAutoPlay ? (
+                    <>
+                        <BotOff className="w-6 h-6" />
+                        <span className="text-xs">AI ON</span>
+                    </>
+                ) : (
+                    <Bot className="w-6 h-6" />
+                )}
+            </button>
+
+            {/* Debug Overlay */}
+            <DebugOverlay players={players} aiReasons={aiReasons} />
         </div>
     );
 }

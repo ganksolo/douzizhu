@@ -63,3 +63,48 @@
     - [x] Create 4 play area containers (Bottom, Right, Top, Left) <!-- id: 57 -->
     - [x] Map playerId to position and render cards accordingly <!-- id: 58 -->
     - [x] Ensure old cards clear when new player plays <!-- id: 59 -->
+
+- [x] Fix 2: Replace Alert with Toast/Dialog System <!-- id: 60 -->
+    - [x] Create Toast component and useToast hook <!-- id: 61 -->
+    - [x] Create GameDialog component <!-- id: 62 -->
+    - [x] Replace all alert() calls <!-- id: 63 -->
+    - [x] Update documentation <!-- id: 64 -->
+
+- [x] Fix 3: Sound Preloading & Autoplay <!-- id: 65 -->
+    - [x] Enhance SoundManager with proper preloading <!-- id: 66 -->
+    - [x] Add initialize() method for autoplay policy <!-- id: 67 -->
+    - [x] Create SoundToggle button component <!-- id: 68 -->
+    - [x] Update documentation <!-- id: 69 -->
+
+- [x] Phase 9: AI Strategy Upgrade & Debugging <!-- id: 70 -->
+    - [x] Rewrite aiAction with advanced heuristics <!-- id: 71 -->
+      - [x] Bomb preservation logic <!-- id: 72 -->
+      - [x] Peasant cooperation strategy <!-- id: 73 -->
+      - [x] Endgame aggressive mode <!-- id: 74 -->
+    - [x] Add auto-play functionality for player <!-- id: 75 -->
+    - [x] Create DebugOverlay component <!-- id: 76 -->
+      - [x] Show AI hands (face-up) <!-- id: 77 -->
+      - [x] Display AI reasoning logs <!-- id: 78 -->
+      - [x] Show hand evaluation scores <!-- id: 79 -->
+    - [x] Update documentation <!-- id: 80 -->
+    - [x] Update documentation <!-- id: 80 -->
+
+- [x] Fix 4: UI/UX Polish - Hand Interaction & Animation <!-- id: 90 -->
+    - [x] Implement `resetHandSelection` logic <!-- id: 91 -->
+      - [x] Reset on Pass <!-- id: 92 -->
+      - [x] Reset on Play <!-- id: 93 -->
+      - [x] Reset before Hint <!-- id: 94 -->
+    - [x] Fix Card Hover Animation <!-- id: 95 -->
+      - [x] Remove scaling, use translateY <!-- id: 96 -->
+      - [x] Add smooth transitions <!-- id: 97 -->
+      - [x] Prevent layout overflow <!-- id: 98 -->
+
+- [ ] Phase 10: Scoring System & Persistence <!-- id: 81 -->
+    - [ ] Implement ScoreManager (utils/score.ts) <!-- id: 82 -->
+    - [ ] Update useGameLoop for score tracking <!-- id: 83 -->
+      - [ ] Track multipliers (bombs, rockets) <!-- id: 84 -->
+      - [ ] Detect Spring / Anti-Spring <!-- id: 85 -->
+      - [ ] Calculate final scores <!-- id: 86 -->
+    - [ ] Implement Data Persistence (localStorage) <!-- id: 87 -->
+    - [ ] Create ResultModal with visual effects <!-- id: 88 -->
+    - [ ] Update documentation <!-- id: 89 -->

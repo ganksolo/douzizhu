@@ -1,32 +1,40 @@
-# Fix 1: Spatial Layout - Separate Play Areas
+# Fix 4: UI/UX Polish - Hand Interaction & Animation
 
 ## Goal Description
-Fix the visual confusion where all played cards render at the bottom of the screen. Each player's played cards should appear near their position on the table.
+Fix persistent card selection issues and improve card hover animations to prevent layout jitter and overflow.
+
+## Issues Identified
+1. **Selection State Bug**: Cards remain selected after Play, Pass, or Hint actions.
+2. **Animation Jitter**: Card hover effect uses scaling which causes layout shifts and overflow.
 
 ## Proposed Changes
 
-### GameTable Layout
+### Selection State Management
 #### [MODIFY] [src/components/GameTable.tsx](file:///Users/jiayulong/Documents/Games/doudizhu/src/components/GameTable.tsx)
-- Remove central "Last Played Cards" area
-- Create 4 separate play area containers:
-  - **Bottom (Player 0 - User)**: `bottom-32`, centered horizontally
-  - **Right (Player 1 - AI 1)**: `right-32`, centered vertically
-  - **Top (Player 2 - AI 2)**: `top-32`, centered horizontally
-  - **Left (Player 3 - AI 3)**: `left-32`, centered vertically
-- Map `lastPlayedCards.playerId` to corresponding position
-- Use smaller cards (`small` prop) for side positions to fit better
-- AnimatePresence with `mode="wait"` ensures clean transitions
+- Implement `resetHandSelection()` helper function.
+- Call `resetHandSelection()` in:
+  - `onPassClick`
+  - `onPlayClick` (after successful play)
+  - `onHintClick` (before applying hint)
 
-## Implementation Details
-- Each play area checks `lastPlayedCards.playerId === players[X].id`
-- Only one play area renders at a time (the current player's)
-- Exit animations trigger when a new player plays
-- Horizontal spacing adjusted for side positions (`-space-x-6` vs `-space-x-8`)
+### Card Animation & Layout
+#### [MODIFY] [src/components/Card.tsx](file:///Users/jiayulong/Documents/Games/doudizhu/src/components/Card.tsx)
+- Update `whileHover` animation:
+  - Remove `scale`
+  - Use `y: -15` (translateY)
+- Ensure transitions are smooth (`duration-200 ease-out`).
+
+#### [MODIFY] [src/components/PlayerHand.tsx](file:///Users/jiayulong/Documents/Games/doudizhu/src/components/PlayerHand.tsx)
+- Review container styles to ensure `overflow-x: visible` but constrained width.
+- Adjust card overlap logic if necessary (though CSS fix might be enough).
 
 ## Verification Plan
 ### Manual Verification
-- **Player 0 plays**: Cards appear at bottom-center
-- **AI 1 plays**: Cards appear at right-center (vertical middle)
-- **AI 2 plays**: Cards appear at top-center
-- **AI 3 plays**: Cards appear at left-center (vertical middle)
-- **Transitions**: Old cards fade out smoothly when new player plays
+1. **Selection Reset**:
+   - Select cards -> Click Pass -> Verify all deselected.
+   - Select cards -> Click Play -> Verify remaining cards deselected.
+   - Select cards -> Click Hint -> Verify only hint cards selected.
+2. **Animation**:
+   - Hover over cards -> Verify they move UP, not OUT.
+   - Verify no horizontal scrollbar appears during hover.
+   - Verify smooth transition.

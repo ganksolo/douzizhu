@@ -31,6 +31,7 @@ export interface Player {
     hand: Card[];
     role: 'landlord' | 'peasant';
     isAI: boolean;
+    isAutoPlay?: boolean; // Enable AI for human player
 }
 
 export type GamePhase = 'DEALING' | 'BIDDING' | 'PLAYING' | 'GAME_OVER';

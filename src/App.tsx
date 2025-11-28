@@ -1,7 +1,12 @@
 import { GameTable } from './components/GameTable';
+import { ToastProvider } from './contexts/ToastContext';
 
 function App() {
-  return <GameTable />;
+  return (
+    <ToastProvider>
+      <GameTable />
+    </ToastProvider>
+  );
 }
 
 export default App;
