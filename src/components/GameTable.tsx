@@ -187,7 +187,7 @@ export function GameTable() {
     };
 
     return (
-        <div className="relative w-full h-screen overflow-hidden flex flex-col font-sans" style={{ backgroundColor: 'var(--table-bg)', color: 'var(--text-color)' }}>
+        <div className="relative w-full h-screen overflow-hidden flex flex-col font-sans" style={{ backgroundImage: 'var(--table-bg)', color: 'var(--text-color)' }}>
             {/* Settings Button */}
             <button
                 onClick={() => setShowSettings(!showSettings)}

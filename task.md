@@ -112,3 +112,25 @@
 - [x] Fix 5: Smart Hint System <!-- id: 90 -->
     - [x] Fix `getHint` argument bug in `GameTable.tsx` <!-- id: 91 -->
     - [x] Enhance `getHint` in `ai.ts` to prioritize complex hands (Straights, Triples, Pairs) during free play <!-- id: 92 -->
+
+- [/] Phase 11: State Machine & Event Bus Architecture (v2.0) <!-- id: 100 -->
+    - [x] Core Infrastructure <!-- id: 101 -->
+        - [x] EventBus implementation <!-- id: 102 -->
+        - [x] GameStateEnum definition <!-- id: 103 -->
+        - [x] GameAction types <!-- id: 104 -->
+    - [x] State Machine System <!-- id: 105 -->
+        - [x] BaseState abstract class <!-- id: 106 -->
+        - [x] GameContext state manager <!-- id: 107 -->
+        - [x] StateFactory <!-- id: 108 -->
+    - [x] Concrete State Implementations <!-- id: 109 -->
+        - [x] InitState <!-- id: 110 -->
+        - [x] ShufflingState <!-- id: 111 -->
+        - [x] DealingState <!-- id: 112 -->
+        - [x] CallLandlordState <!-- id: 113 -->
+        - [x] ShowBottomState <!-- id: 114 -->
+        - [x] PlayingState <!-- id: 115 -->
+        - [x] RoundEndState <!-- id: 116 -->
+    - [x] React Integration <!-- id: 117 -->
+        - [x] useGameEngine hook <!-- id: 118 -->
+        - [x] Demo component <!-- id: 119 -->
+        - [ ] Migrate GameTable (future) <!-- id: 120 -->
