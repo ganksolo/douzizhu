@@ -150,3 +150,10 @@
     - [x] Testing <!-- id: 142 -->
         - [x] PatternDetector tests <!-- id: 143 -->
         - [x] MoveComparator tests <!-- id: 144 -->
+
+- [x] Phase 13: Monorepo Restructure <!-- id: 150 -->
+    - [x] Create directory structure <!-- id: 151 -->
+    - [x] Move frontend files <!-- id: 152 -->
+    - [x] Create backend placeholder <!-- id: 153 -->
+    - [x] Update root documentation <!-- id: 154 -->
+    - [x] Verify frontend build <!-- id: 155 -->
