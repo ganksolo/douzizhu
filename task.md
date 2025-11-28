@@ -134,3 +134,19 @@
         - [x] useGameEngine hook <!-- id: 118 -->
         - [x] Demo component <!-- id: 119 -->
         - [ ] Migrate GameTable (future) <!-- id: 120 -->
+
+- [x] Phase 12: Pure Functional Rules Engine <!-- id: 130 -->
+    - [x] Core Type System <!-- id: 131 -->
+        - [x] HandType enum <!-- id: 132 -->
+        - [x] AnalysisResult interface <!-- id: 133 -->
+    - [x] Pattern Detection <!-- id: 134 -->
+        - [x] PatternDetector.analyze() <!-- id: 135 -->
+        - [x] Single/Pair/Trio detection <!-- id: 136 -->
+        - [x] Chain detection <!-- id: 137 -->
+        - [x] Airplane detection <!-- id: 138 -->
+    - [x] Validation & Comparison <!-- id: 139 -->
+        - [x] MoveValidator <!-- id: 140 -->
+        - [x] MoveComparator <!-- id: 141 -->
+    - [x] Testing <!-- id: 142 -->
+        - [x] PatternDetector tests <!-- id: 143 -->
+        - [x] MoveComparator tests <!-- id: 144 -->

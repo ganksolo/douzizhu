@@ -94,19 +94,57 @@ To play on other devices in your local network:
 
 ## 📂 Project Structure
 
-```
 src/
 ├── components/     # UI Components (GameTable, Card, PlayerHand, etc.)
-├── hooks/          # Game Logic Hooks (useGameLoop)
+├── hooks/          # Game Logic Hooks (useGameLoop, useGameEngine)
 ├── utils/          # Core Logic
-│   ├── rules.ts    # Hand validation and comparison
+│   ├── rules.ts    # Hand validation and comparison (v1.0)
 │   ├── ai.ts       # AI strategy and decision making
 │   ├── deck.ts     # Deck generation and shuffling
 │   ├── score.ts    # Scoring and persistence
 │   └── sound.ts    # Audio management
+├── engine/         # v2.0 State Machine (Phase 11)
+│   ├── EventBus.ts
+│   ├── GameStateEnum.ts
+│   └── StateMachine/
+├── rules/          # v2.0 Pure Functional Rules Engine (Phase 12)
+│   ├── PatternDetector.ts
+│   ├── MoveValidator.ts
+│   └── MoveComparator.ts
 ├── contexts/       # Global Contexts (Toast)
 └── types.ts        # TypeScript definitions
 ```
+
+## 👨‍💻 For Developers
+
+### Architecture Documentation
+This project includes detailed technical documentation for developers:
+
+- **[Phase 11: State Machine & Event Bus](./docs/PHASE11_ARCHITECTURE.md)**
+  - v2.0 FSM-based game engine
+  - Event-driven architecture
+  - React integration with `useGameEngine` hook
+  - Migration strategy from v1.0
+
+- **[Phase 12: Pure Functional Rules Engine](./docs/PHASE12_RULES_ENGINE.md)**
+  - Pattern detection algorithms (11 hand types)
+  - Move validation and comparison
+  - Comprehensive test suite (47+ tests)
+  - Pure functional, stateless design
+
+See [docs/README.md](./docs/README.md) for a complete documentation index.
+
+### Testing
+```bash
+npm test        # Run all tests
+npm run test:ui # Open Vitest UI
+```
+
+### Key Design Principles
+- **Separation of Concerns**: Game logic decoupled from UI
+- **Type Safety**: Full TypeScript coverage
+- **Testability**: Pure functions, comprehensive tests
+- **Extensibility**: Designed for future features (multiplayer, wild cards)
 
 ## 📄 License
 
