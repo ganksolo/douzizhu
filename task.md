@@ -99,12 +99,16 @@
       - [x] Add smooth transitions <!-- id: 97 -->
       - [x] Prevent layout overflow <!-- id: 98 -->
 
-- [ ] Phase 10: Scoring System & Persistence <!-- id: 81 -->
-    - [ ] Implement ScoreManager (utils/score.ts) <!-- id: 82 -->
-    - [ ] Update useGameLoop for score tracking <!-- id: 83 -->
-      - [ ] Track multipliers (bombs, rockets) <!-- id: 84 -->
-      - [ ] Detect Spring / Anti-Spring <!-- id: 85 -->
-      - [ ] Calculate final scores <!-- id: 86 -->
-    - [ ] Implement Data Persistence (localStorage) <!-- id: 87 -->
-    - [ ] Create ResultModal with visual effects <!-- id: 88 -->
-    - [ ] Update documentation <!-- id: 89 -->
+- [x] Phase 10: Scoring System & Persistence <!-- id: 81 -->
+    - [x] Implement ScoreManager (utils/score.ts) <!-- id: 82 -->
+    - [x] Update useGameLoop for score tracking <!-- id: 83 -->
+      - [x] Track multipliers (bombs, rockets) <!-- id: 84 -->
+      - [x] Detect Spring / Anti-Spring <!-- id: 85 -->
+      - [x] Calculate final scores <!-- id: 86 -->
+    - [x] Implement Data Persistence (localStorage) <!-- id: 87 -->
+    - [x] Create ResultModal with visual effects <!-- id: 88 -->
+    - [x] Update documentation <!-- id: 89 -->
+
+- [x] Fix 5: Smart Hint System <!-- id: 90 -->
+    - [x] Fix `getHint` argument bug in `GameTable.tsx` <!-- id: 91 -->
+    - [x] Enhance `getHint` in `ai.ts` to prioritize complex hands (Straights, Triples, Pairs) during free play <!-- id: 92 -->

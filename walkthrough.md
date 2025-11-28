@@ -16,7 +16,27 @@ This project is a fully functional, browser-based implementation of the popular 
   - **Playing Phase**: Turn-based play with validation.
   - **Win Condition**: The game ends when any player runs out of cards.
 
-### 2. Enhanced AI Opponents
+### 2. Scoring & Persistence
+- **Advanced Scoring System**:
+  - **Base Score**: Determined by the bidding phase (1, 2, or 3).
+  - **Multipliers**:
+    - **Bombs**: Each bomb doubles the score (*2).
+    - **Rocket**: Doubles the score (*2).
+    - **Spring**: Landlord wins without peasants playing any cards (*2).
+  - **Distribution**:
+    - Landlord wins: Receives score from all 3 peasants.
+    - Landlord loses: Pays score to all 3 peasants.
+- **Detailed Result Screen**:
+  - **Victory/Defeat Visuals**:
+    - **Victory**: Golden trophy, falling coins animation, warm gradient.
+    - **Defeat**: Gray sad face, rain animation, cool tones.
+  - **Score Breakdown**: Shows base score, bomb count, spring bonus, and total multiplier.
+  - **Score Change**: Clearly shows points won or lost (e.g., +120, -60).
+- **Data Persistence**:
+  - Automatically saves total score, win/loss record, and match history to `localStorage`.
+  - Stats persist across page reloads.
+
+### 3. Enhanced AI Opponents
 - **Advanced Strategy AI**: Three AI players with sophisticated decision-making.
 - **Bomb Preservation**: AI avoids breaking bombs unless in endgame or when necessary.
 - **Peasant Cooperation**:
@@ -26,7 +46,7 @@ This project is a fully functional, browser-based implementation of the popular 
 - **Hand Evaluation**: AI scores hands (0-100) based on bombs, pairs, triples, and high cards.
 - **Console Logging**: AI decisions logged with reasoning (BOMB_PRESERVE, BLOCK_LANDLORD, etc.).
 
-### 3. User Interface & Experience
+### 4. User Interface & Experience
 - **Immersive Design**:
   - Green felt table background (Classic theme).
   - High-quality card visuals with suit colors and symbols.
@@ -49,36 +69,21 @@ This project is a fully functional, browser-based implementation of the popular 
   - **Sound Toggle**: Bottom-right button to enable/disable sounds with visual feedback.
 - **Advanced Interaction**:
   - **Drag-to-Select**: Click and drag to select multiple cards at once.
-  - **Smart Hint**: "Hint" button automatically selects the best cards to play (resets previous selection).
+  - **Smart Hint**: 
+    - Automatically selects the best cards to play.
+    - **Intelligent Free Play**: Prioritizes Straights, Triples, and Pairs over Singles when leading.
+    - **Context Aware**: Correctly identifies opponent's hand type (e.g., won't suggest weak bombs against Rockets).
   - **Auto-Play Mode**: Toggle button (bottom-left) to enable AI control for human player.
 - **Theming**:
   - **Settings Menu**: Toggle between Classic (Green), Tech (Dark Blue), and Wood (Amber) themes.
 
-### 4. Developer Tools
+### 5. Developer Tools
 - **Debug Overlay** (Press `Ctrl+D` / `Cmd+D`):
   - Toggle visibility of AI debugging information.
   - **AI Hand View**: Face-up display of all 3 AI players' hands.
   - **Hand Scores**: Real-time evaluation scores (0-100) for each AI.
   - **AI Reasoning**: Last action reasoning for each AI (colored badges).
   - Compact, scrollable overlay in top-left corner.
-
-### 5. Technical Architecture
-- **State Management**: Custom `useGameLoop` hook manages the complex game state machine.
-- **Component Structure**:
-  - `GameTable`: Main container and layout with position-based play areas.
-  - `PlayerHand`: Renders cards for each player, handling layout and drag selection.
-  - `Card`: Reusable, animated card component.
-  - `GameOverModal`: Reusable modal for game results.
-  - `SoundToggle`: Sound control button with ready indicator.
-  - `DebugOverlay`: Developer debugging overlay with AI insights.
-- **Contexts**:
-  - `ToastContext`: Global toast notification system with auto-dismiss.
-- **Utils**:
-  - `deck.ts`: Deck generation and manipulation.
-  - `rules.ts`: Core game logic and validation.
-  - `ai.ts`: Enhanced AI with bomb preservation, cooperation, endgame strategies, and hand evaluation.
-  - `sound.ts`: Audio management with preloading and autoplay handling.
-  - `theme.ts`: Theme configuration.
 
 ## How to Play
 1. **Start**: The game starts with a shuffling and dealing animation.

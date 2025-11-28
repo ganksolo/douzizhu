@@ -1,73 +1,113 @@
-# React + TypeScript + Vite
+# 🂡 4-Player Dou Dizhu (Landlord)
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+A modern, fully functional, browser-based implementation of the popular Chinese card game **Dou Dizhu (Landlord)**. Designed for 4 players (1 Human vs 3 AI) with a focus on polished UI/UX, smooth animations, and advanced AI strategy.
 
-Currently, two official plugins are available:
+![License](https://img.shields.io/badge/license-MIT-blue.svg)
+![React](https://img.shields.io/badge/React-18-blue)
+![TypeScript](https://img.shields.io/badge/TypeScript-5-blue)
+![TailwindCSS](https://img.shields.io/badge/TailwindCSS-3-38bdf8)
+![Vite](https://img.shields.io/badge/Vite-5-646cff)
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+## ✨ Features
 
-## React Compiler
+### 🎮 Core Gameplay
+- **4-Player Rules**: Standard double-deck (108 cards) rules. One Landlord vs Three Peasants.
+- **Complete Rule Engine**: Supports all hand types (Singles, Pairs, Triples, Straights, Bombs, Rockets, Airplanes, etc.).
+- **Game Flow**: Smooth transitions from Shuffling -> Dealing -> Bidding -> Playing -> Scoring.
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+### 🤖 Advanced AI
+- **Smart Strategy**: AI opponents use sophisticated logic, not just random moves.
+- **Cooperation**: Peasant AIs work together to block the Landlord or help teammates.
+- **Bomb Preservation**: AI intelligently saves bombs for critical moments.
+- **Endgame Aggression**: AI switches to aggressive dumping mode when hand size is low.
 
-## Expanding the ESLint configuration
+### 🎨 Polished UI/UX
+- **Immersive Design**: Classic green felt table, high-quality card assets, and role indicators.
+- **Smooth Animations**: Powered by `framer-motion` for dealing, playing, and winning effects.
+- **Smart Interaction**:
+    - **Drag-to-Select**: Intuitive card selection.
+    - **Smart Hint**: One-click best move suggestion (prioritizes Straights/Triples).
+    - **Auto-Play**: Let the AI take over your turn if you need a break.
+- **Themes**: Switch between Classic (Green), Tech (Dark Blue), and Wood (Amber) styles.
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+### 💰 Scoring & Persistence
+- **Robust Scoring**: Automatically calculates base scores, bombs, rockets, and Spring/Anti-Spring multipliers.
+- **Data Persistence**: Saves your total score, win rate, and match history to `localStorage`.
+- **Visual Results**: Beautiful victory/defeat screens with detailed score breakdowns.
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+### 🛠 Developer Tools
+- **Debug Overlay**: Press `Ctrl+D` to see AI hands, real-time evaluation scores, and decision reasoning.
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
+## 🚀 Getting Started
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+### Prerequisites
+- Node.js (v16 or higher)
+- npm or yarn
+
+### Installation
+
+1.  Clone the repository:
+    ```bash
+    git clone https://github.com/yourusername/doudizhu.git
+    cd doudizhu
+    ```
+
+2.  Install dependencies:
+    ```bash
+    npm install
+    ```
+
+3.  Start the development server:
+    ```bash
+    npm run dev
+    ```
+
+4.  Open your browser and visit `http://localhost:5173`.
+
+### Network Access
+To play on other devices in your local network:
+1.  Ensure your computer and device are on the same Wi-Fi.
+2.  Run `npm run dev`.
+3.  Look for the `Network` URL in the terminal (e.g., `http://192.168.1.5:5173`).
+
+## 🕹 How to Play
+
+1.  **Bidding**: At the start, choose to bid 1, 2, or 3 points to become the Landlord. The highest bidder wins.
+    -   **Landlord**: Plays alone against the other 3. Wins if they empty their hand first.
+    -   **Peasants**: Work together. If *any* peasant empties their hand, the peasant team wins.
+2.  **Playing**:
+    -   Select cards by clicking or dragging.
+    -   Click **Play** to submit your hand.
+    -   Click **Pass** if you cannot beat the current hand.
+    -   Use **Hint** for assistance.
+3.  **Winning**: The game ends immediately when a player runs out of cards.
+
+## 🏗 Tech Stack
+
+-   **Frontend Framework**: React 18
+-   **Language**: TypeScript
+-   **Styling**: Tailwind CSS
+-   **Animations**: Framer Motion
+-   **Build Tool**: Vite
+-   **Icons**: Lucide React
+-   **State Management**: React Hooks (Custom `useGameLoop`)
+
+## 📂 Project Structure
+
+```
+src/
+├── components/     # UI Components (GameTable, Card, PlayerHand, etc.)
+├── hooks/          # Game Logic Hooks (useGameLoop)
+├── utils/          # Core Logic
+│   ├── rules.ts    # Hand validation and comparison
+│   ├── ai.ts       # AI strategy and decision making
+│   ├── deck.ts     # Deck generation and shuffling
+│   ├── score.ts    # Scoring and persistence
+│   └── sound.ts    # Audio management
+├── contexts/       # Global Contexts (Toast)
+└── types.ts        # TypeScript definitions
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+## 📄 License
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
-
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.

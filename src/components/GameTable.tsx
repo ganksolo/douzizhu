@@ -29,6 +29,7 @@ export function GameTable() {
         winnerId,
         cardsDealt,
         isShuffling,
+        gameResult,
         startGame,
         handleBid,
         handlePlay,
@@ -147,7 +148,7 @@ export function GameTable() {
         // If we call both, React batches them.
         // Let's just calculate hint and set that as the *only* selection.
 
-        const hint = getHint(players[0].hand, lastPlayedCards as any);
+        const hint = getHint(players[0].hand, lastPlayedCards ? lastPlayedCards.type : null);
         if (hint) {
             const hintIds = hint.map(c => c.id);
             handleSelectionChange(hintIds, false);
@@ -413,6 +414,7 @@ export function GameTable() {
                     <GameOverModal
                         winnerName={players.find(p => p.id === winnerId)?.name || 'Unknown'}
                         isWinner={winnerId === players[0].id}
+                        result={gameResult}
                         onRestart={startGame}
                     />
                 )}

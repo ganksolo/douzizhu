@@ -175,6 +175,27 @@ export const getHint = (
     hand: Card[],
     lastPlayedCards: { type: HandType; value: number } | null
 ): Card[] | null => {
+    // If free play, prioritize complex hands
+    if (!lastPlayedCards) {
+        // Try to find Straights first
+        const straights = findHands(hand, 'Straight', 0);
+        if (straights.length > 0) return straights[straights.length - 1]; // Longest straight? Or smallest? Let's pick longest.
+
+        // Try Triples
+        const triples = findHands(hand, 'Triple', 0);
+        if (triples.length > 0) return triples[0];
+
+        // Try Pairs
+        const pairs = findHands(hand, 'Pair', 0);
+        if (pairs.length > 0) return pairs[0];
+
+        // Fallback to Singles
+        const singles = findHands(hand, 'Single', 0);
+        if (singles.length > 0) return singles[0];
+
+        return null;
+    }
+
     const moves = findMoves(hand, lastPlayedCards);
     if (moves.length === 0) return null;
     return moves[0];
