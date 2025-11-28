@@ -38,18 +38,24 @@ This project is a fully functional, browser-based implementation of the popular 
 
 ### 3. Enhanced AI Opponents
 - **Advanced Strategy AI**: Three AI players with sophisticated decision-making.
+- **Hand Analysis**: AI decomposes hand into Bombs, Triples, Pairs, and Singles to plan moves.
+- **Smart Leading**: Prioritizes playing complex hands (Straights, Airplanes, Triples) over Singles.
+- **Smart Following**: 
+  - Tries to match the played type without breaking valuable combos.
+  - Prioritizes dumping "useless" singles.
 - **Bomb Preservation**: AI avoids breaking bombs unless in endgame or when necessary.
 - **Peasant Cooperation**:
   - Blocks landlord with strong cards when landlord is next player.
   - Helps teammates with weak cards when teammate is next player.
 - **Endgame Aggression**: When < 5 cards remaining, AI enters aggressive mode to empty hand.
-- **Hand Evaluation**: AI scores hands (0-100) based on bombs, pairs, triples, and high cards.
-- **Console Logging**: AI decisions logged with reasoning (BOMB_PRESERVE, BLOCK_LANDLORD, etc.).
 
 ### 4. User Interface & Experience
 - **Immersive Design**:
   - Green felt table background (Classic theme).
   - High-quality card visuals with suit colors and symbols.
+  - **Refined Card UI**: 
+    - **Smart Scaling**: Small cards (AI/Bottom) scale down the center pattern to avoid overlap, while keeping corner numbers readable.
+    - **Distinct Jokers**: Black Joker is now gray, Red Joker remains red, making them easy to distinguish.
   - Role icons (Crown for Landlord, User for Peasants).
 - **Spatial Layout**:
   - **4 Separate Play Areas**: Each player's played cards appear at their position (Bottom, Right, Top, Left).
@@ -72,7 +78,7 @@ This project is a fully functional, browser-based implementation of the popular 
   - **Smart Hint**: 
     - Automatically selects the best cards to play.
     - **Intelligent Free Play**: Prioritizes Straights, Triples, and Pairs over Singles when leading.
-    - **Context Aware**: Correctly identifies opponent's hand type (e.g., won't suggest weak bombs against Rockets).
+    - **Context Aware**: Correctly identifies opponent's hand type.
   - **Auto-Play Mode**: Toggle button (bottom-left) to enable AI control for human player.
 - **Theming**:
   - **Settings Menu**: Toggle between Classic (Green), Tech (Dark Blue), and Wood (Amber) themes.

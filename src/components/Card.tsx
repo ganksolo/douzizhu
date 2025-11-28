@@ -27,7 +27,14 @@ const suitSymbols: Record<string, string> = {
 };
 
 export function Card({ card, onClick, isBack, small }: CardProps) {
-    const colorClass = suitColors[card.suit] || 'text-black';
+    const isBlackJoker = card.rank === 'black_joker';
+    const isRedJoker = card.rank === 'red_joker';
+
+    // Determine color
+    let colorClass = suitColors[card.suit] || 'text-black';
+    if (isBlackJoker) colorClass = 'text-gray-600'; // Grey for Black Joker
+    if (isRedJoker) colorClass = 'text-red-600';   // Red for Red Joker
+
     const symbol = suitSymbols[card.suit];
 
     return (
@@ -55,24 +62,29 @@ export function Card({ card, onClick, isBack, small }: CardProps) {
                     <div className="w-full h-full opacity-20 bg-[radial-gradient(circle,_#ffffff_1px,_transparent_1px)] bg-[length:8px_8px]"></div>
                 </div>
             ) : (
-                <>
+                <div className="w-full h-full relative">
                     {/* Top Left */}
-                    <div className={clsx('absolute top-1 left-1 flex flex-col items-center leading-none', colorClass)}>
-                        <span className="font-bold">{card.rank === 'black_joker' ? 'J' : card.rank === 'red_joker' ? 'J' : card.rank === '10' ? '10' : card.rank[0].toUpperCase()}</span>
-                        <span className="text-sm">{symbol}</span>
+                    <div className={clsx('absolute top-0.5 left-0.5 flex flex-col items-center leading-none', colorClass)}>
+                        <span className="font-bold">{isBlackJoker ? 'J' : isRedJoker ? 'J' : card.rank === '10' ? '10' : card.rank[0].toUpperCase()}</span>
+                        {!small && <span className={clsx("text-sm", isBlackJoker && "grayscale opacity-70")}>{symbol}</span>}
                     </div>
 
-                    {/* Center Big Symbol */}
-                    <div className={clsx('text-4xl', colorClass)}>
+                    {/* Center Big Symbol - Scaled down for small cards */}
+                    <div className={clsx(
+                        'absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 flex items-center justify-center',
+                        colorClass,
+                        small ? 'text-2xl scale-75' : 'text-4xl',
+                        isBlackJoker && 'grayscale opacity-70'
+                    )}>
                         {symbol}
                     </div>
 
                     {/* Bottom Right (Rotated) */}
-                    <div className={clsx('absolute bottom-1 right-1 flex flex-col items-center leading-none rotate-180', colorClass)}>
-                        <span className="font-bold">{card.rank === 'black_joker' ? 'J' : card.rank === 'red_joker' ? 'J' : card.rank === '10' ? '10' : card.rank[0].toUpperCase()}</span>
-                        <span className="text-sm">{symbol}</span>
+                    <div className={clsx('absolute bottom-0.5 right-0.5 flex flex-col items-center leading-none rotate-180', colorClass)}>
+                        <span className="font-bold">{isBlackJoker ? 'J' : isRedJoker ? 'J' : card.rank === '10' ? '10' : card.rank[0].toUpperCase()}</span>
+                        {!small && <span className={clsx("text-sm", isBlackJoker && "grayscale opacity-70")}>{symbol}</span>}
                     </div>
-                </>
+                </div>
             )}
         </motion.div>
     );
