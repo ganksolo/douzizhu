@@ -4,6 +4,19 @@ This directory contains technical documentation for the game's architecture and 
 
 ## Documents
 
+### [api_spec.md](./api_spec.md)
+**Backend API Specification**
+
+Complete API documentation for backend implementation:
+- REST API endpoints (Auth, Users, Rooms, Games, Leaderboard)
+- WebSocket protocol for real-time gameplay
+- Data models and database schema
+- Error handling and security considerations
+
+**Status**: Ready for Backend Development
+
+---
+
 ### [PHASE11_ARCHITECTURE.md](./PHASE11_ARCHITECTURE.md)
 **State Machine & Event Bus Architecture (v2.0)**
 

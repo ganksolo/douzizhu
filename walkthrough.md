@@ -135,3 +135,39 @@ npm run build
 
 **Status**: ✅ Monorepo restructure complete and verified
 **Date**: 2025-11-28
+
+---
+
+# Backend Infrastructure Setup - Walkthrough
+
+## Overview
+Initialized the NestJS backend and established connections to MySQL and Redis.
+
+## Steps Executed
+
+### 1. Project Initialization
+- Created `backend/` directory with NestJS CLI
+- Configured TypeScript and ESLint
+- Created `.env` and `.env.example` for configuration
+
+### 2. Database Integration
+- **MySQL**: Installed `typeorm` and `mysql2`. Configured `TypeOrmModule` in `app.module.ts`.
+- **Redis**: Installed `cache-manager` and `ioredis`. Configured `CacheModule` for global caching.
+
+### 3. Verification
+- Created `/health` endpoint in `HealthController`
+- Verified MySQL connection (created `doudizhu` database)
+- Verified Redis connection (read/write test)
+
+## Test Results
+```json
+{
+  "status": "ok",
+  "services": {
+    "database": { "status": "connected", "type": "mysql" },
+    "redis": { "status": "connected", "type": "redis" }
+  }
+}
+```
+
+**Status**: ✅ Backend Ready for Development

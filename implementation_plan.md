@@ -133,3 +133,48 @@ src/
 2. Create adapter hook to test new engine
 3. Gradually migrate components one by one
 4. Remove old `useGameLoop` once migration complete
+
+---
+
+# Phase 14: Backend Development
+
+## Goal
+Establish a robust, scalable backend using NestJS to handle game logic, user management, and real-time multiplayer features.
+
+## Proposed Changes
+
+### Infrastructure
+#### [NEW] `backend/`
+- **Framework**: NestJS (Modular architecture)
+- **Database**: MySQL (TypeORM) for persistent data
+- **Cache**: Redis (CacheManager) for session/game state
+- **API**: RESTful for management, Socket.io for gameplay
+
+### Authentication System
+#### [NEW] `backend/src/auth/`
+- **JWT Strategy**: Stateless authentication
+- **Guards**: `JwtAuthGuard` for protecting endpoints
+- **Decorators**: `@CurrentUser()` for easy user access
+
+### User Management
+#### [NEW] `backend/src/users/`
+- **Entity**: `User` (id, username, passwordHash, stats)
+- **Service**: CRUD operations, stats updates
+- **Controller**: Profile management, history retrieval
+
+### Game Session Management
+#### [NEW] `backend/src/games/`
+- **Entity**: `Game` (history), `Room` (active)
+- **Gateway**: `GameGateway` (WebSocket) for real-time events
+- **Manager**: `GameManager` service to handle game loops (reusing `src/rules` logic via shared library or copy)
+
+## Verification Plan
+
+### Automated Tests
+- **Unit Tests**: Services and logic
+- **E2E Tests**: API endpoints using Supertest
+- **Load Tests**: WebSocket connection limits
+
+### Manual Verification
+- **Postman/Curl**: Test REST endpoints
+- **Socket.io Client**: Test connection and event emission
