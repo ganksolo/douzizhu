@@ -14,6 +14,9 @@ import { AIService } from './services/ai.service';
 import { DecisionEngine } from './engine/ai/decision-engine';
 import { InputNormalizer } from './engine/action-pipeline/input-normalizer';
 import { ActionPipelineService } from './engine/action-pipeline/action-pipeline.service';
+import { TurnManager } from './engine/turn-manager';
+import { PlayActionHandler } from './engine/action-handlers/play-handler';
+import { PassActionHandler } from './engine/action-handlers/pass-handler';
 
 @Module({
     providers: [
@@ -30,7 +33,11 @@ import { ActionPipelineService } from './engine/action-pipeline/action-pipeline.
         DealingState,
         PlayingState,
         InputNormalizer,
+        InputNormalizer,
         ActionPipelineService,
+        TurnManager,
+        PlayActionHandler,
+        PassActionHandler,
     ],
     exports: [GameContext, GameManagerService, RulesService, AIService],
 })

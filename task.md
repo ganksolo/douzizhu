@@ -254,4 +254,9 @@
         - [x] Implement InputNormalizer (Sanitization) <!-- id: 252 -->
         - [x] Implement Identity Binding (Anti-spoofing) <!-- id: 253 -->
         - [x] Implement Payload Validation (Size limits, Format check) <!-- id: 254 -->
+    - [x] Phase 18.2: Turn Management & Action Handlers <!-- id: 255 -->
+        - [x] Implement TurnManager (Next Turn, Pass Logic, Round End) <!-- id: 256 -->
+        - [x] Implement PlayActionHandler (Validation & Execution) <!-- id: 257 -->
+        - [x] Implement PassActionHandler (Pass Logic) <!-- id: 258 -->
+        - [x] Create QA Handoff (Turn Flow Scenarios) <!-- id: 259 -->
 

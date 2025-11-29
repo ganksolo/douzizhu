@@ -1,8 +1,8 @@
 # Backend Test Plan (Phase 15, 16 & 17)
 
-**Version**: 1.8  
-**Last Updated**: 2025-11-29 23:18  
-**Scope**: Backend Game Engine, Rules Service, AI Core & Action Pipeline (Phase 18.1)
+**Version**: 1.9  
+**Last Updated**: 2025-11-29 23:30  
+**Scope**: Backend Game Engine, Rules Service, AI Core, Action Pipeline & Turn Management (Phase 18.2)
 
 ## 1. Introduction
 This document outlines the test plan for the Dou Dizhu backend game engine. It solidifies the verification work done in Phase 15 and serves as a baseline for future automated testing (CI/CD).
@@ -269,6 +269,37 @@ To fully automate these tests in the CI pipeline, we recommend the following app
 | **SEC-IN-003** | **Invalid Type**: `{ type: 'HACK_SERVER', payload: ... }` | **Reject**: Throw "Invalid action type". | ✅ PASS |
 | **SEC-IN-004** | **Null Payload**: `{ type: 'PLAY', payload: null }` | **Reject**: Throw "Invalid payload" (PLAY requires array). | ✅ PASS |
 | **SEC-IN-005** | **Bad Card Format**: `{ type: 'PLAY', payload: ['INVALID_CARD'] }` | **Reject**: Throw "Invalid card format" (Strict validation). | ✅ PASS |
+
+### 5.10 Turn Flow Test Scenarios (QA Handoff)
+
+**Scope**: Verify `TurnManager` logic for turn rotation and round clearing.
+**Files**: 
+- `backend/src/game/engine/turn-manager.spec.ts`
+- `backend/src/game/engine/action-handlers/pass-handler.spec.ts`
+**Last Executed**: 2025-11-29 23:30
+**Status**: ✅ **PASSED**
+
+| Test Case | Description | Result |
+|-----------|-------------|--------|
+| **FLOW-001a** | Normal Rotation (A → B → C → D → A) | ✅ PASS |
+| **FLOW-001b** | Reset `isAIThinking` flag on turn advance | ✅ PASS |
+| **FLOW-002a** | Grant free turn when all opponents pass | ✅ PASS |
+| **FLOW-002b** | Do NOT clear `lastPlayedCards` if rotation incomplete | ✅ PASS |
+| **FLOW-003a** | Detect winner when player has 0 cards | ✅ PASS |
+| **FLOW-003b** | Return null if no player has 0 cards | ✅ PASS |
+| **FLOW-004a** | Reject PASS on free turn (no lastPlayedCards) | ✅ PASS |
+| **FLOW-004b** | Reject PASS when player is the last one who played | ✅ PASS |
+| **FLOW-004c** | Reject PASS when not player's turn | ✅ PASS |
+| **FLOW-004d** | Allow PASS when valid | ✅ PASS |
+
+**Original QA Scenarios**:
+
+| Scenario | Steps | Expected Result |
+|:---|:---|:---|
+| **FLOW-001: Normal Rotation** | 1. Player A Plays<br>2. Player B Plays (Beats A)<br>3. Player C Plays (Beats B) | Turn moves A -> B -> C -> D. `lastPlayedCards` updates each time. |
+| **FLOW-002: Pass Logic** | 1. Player A Plays<br>2. Player B Passes<br>3. Player C Passes<br>4. Player D Passes | Turn moves A -> B -> C -> D -> A. **A gets Free Turn** (`lastPlayedCards` cleared). |
+| **FLOW-003: Game End** | 1. Player A plays last cards | `TurnManager` detects 0 cards. Game transitions to End State (or logs Winner). |
+| **FLOW-004: Invalid Pass** | 1. Player A has Free Turn<br>2. Player A tries to PASS | **Error**: "Cannot pass on a free turn". |
 - **Method**: 
   - Client A joins a unique room via `join_room` event
   - Waits up to 5 seconds for `sync_state` with valid state
