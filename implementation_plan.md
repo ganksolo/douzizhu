@@ -252,3 +252,109 @@ This script simulates two clients, verifies state transitions, checks Fog of War
 ## Current Status
 ✅ **Completed**: Multi-room isolation implemented  
 ⚠️ **In Progress**: Debugging state initialization timing issue where `getCurrentStateName()` returns "None" instead of expected state names
+
+---
+
+# Phase 16: Backend Rules Engine (4-Player)
+
+## Goal
+Implement a robust, pure-functional rules engine capable of handling 4-player Dou Dizhu rules (2 decks, 108 cards).
+
+## Key Components
+
+### 1. Type Definitions (`src/game/rules/types.ts`)
+- **Ranks**: 3-17 (supporting Small/Big Joker)
+- **Patterns**: Granular bomb types (`BOMB_4` to `BOMB_8`, `ROCKET`)
+- **AnalysisResult**: Includes `bombCount` for comparison
+
+### 2. Pattern Detector (`src/game/rules/pattern-detector.ts`)
+- **Responsibility**: Identify valid hands from a set of cards
+- **Core Logic**:
+  - **Rocket**: 4 Jokers (2 Small + 2 Big)
+  - **Bombs**: 4+ cards of same rank
+  - **Sequences**: Consecutive pairs/trios
+  - **Priority**: Bombs > Trios/Pairs (e.g., 3333 is a Bomb, not Trio+1)
+
+### 3. Move Comparator (`src/game/rules/move-comparator.ts`)
+- **Responsibility**: Validate if a move beats the previous move
+- **Rules**:
+  - **Rocket**: Beats everything
+  - **Bomb**: Beats any normal hand. Higher count beats lower count (e.g., 5-bomb > 4-bomb). Same count compares rank.
+  - **Normal**: Must match type and length. Compare main rank.
+
+### 4. MoveValidator (`src/game/rules/move-validator.ts`)
+- **Responsibility**: Full validation pipeline
+- **Steps**:
+  1. **Ownership**: Check if user actually holds the cards (Anti-cheat)
+  2. **Pattern**: Identify pattern using `PatternDetector`
+  3. **Context**:
+### 5. RulesService (`src/game/services/rules.service.ts`)
+- **Responsibility**: Facade for the rules engine, injectable into GameContext
+- **Methods**:
+  - `validateMove(context, playerId, cards)`: Returns ValidationResult
+  - `compareMoves(prev, current)`: Returns comparison result
+  - `getAvailableMoves(hand, lastMove)`: Helper for AI (future)
+
+### 6. Unit Tests (`src/game/rules/rules.spec.ts`)
+- **Framework**: Jest
+- **Key Cases**:
+  - **Bomb Grading**: 5-Bomb > 4-Bomb (regardless of rank)
+  - **Rocket**: 4 Jokers identified correctly
+  - **Comparison**: Rocket > Bomb > Normal
+  - **Pattern**: Airplane detection (basic)
+
+---
+
+# Phase 17: AI Core (Backend)
+
+## Goal
+Implement a smart AI engine capable of playing 4-player Dou Dizhu with strategic depth.
+
+## Key Components
+
+### 1. AI Types (`src/game/engine/ai/types.ts`)
+- `HeuristicResult`: Scores for hand value, control, smoothness, risk.
+- `StrategyProfile`: Defines playstyle (aggressive/conservative) based on game phase.
+
+### 2. Heuristic Evaluator (`src/game/engine/ai/heuristic-evaluator.ts`)
+- **Bomb Score**: Exponential value for bombs (4-8 count, Rocket).
+- **Control Value**: Weighted score for 2, A, Jokers.
+- **Smoothness**: Penalty for isolated small cards.
+- **Risk Assessment**: Dynamic adjustment based on opponent hand counts.
+
+### 3. Strategy Model (`src/game/engine/ai/strategy-model.ts`)
+- **Early Game**: Hoard bombs, clear small cards.
+- **Mid Game**: Balanced approach.
+- **Late Game**: Aggressive, intercept opponents.
+
+### 4. Decision Engine (`src/game/engine/ai/decision-engine.ts`)
+- **Interface**: `decideMove(hand, lastMove, strategy): { action, explain }`
+- **Pipeline**:
+  1. **Detection**: Generate all valid moves (Singles, Pairs, Trios, Bombs, Rockets).
+  2. **Filter**: Keep only moves that beat `lastMove` (if exists).
+  3. **Simulation & Rank**:
+     - Simulate move.
+     - `HeuristicEvaluator.evaluate(remainingHand)`.
+     - Sort by residual score.
+  4. **Strategy Weighing**:
+     - **Early Game**: Penalty for breaking sequences/structure.
+     - **Late Game**: Bonus for control/winning.
+     - **Bomb Logic**: Penalty for using bombs early on weak threats.
+- **Debug**: Return `AIExplain` object with reasoning.
+
+### 5. AI Service (`src/game/services/ai.service.ts`)
+- **Responsibility**: Bridge between Game Loop and Decision Engine.
+- **Method**: `executeTurn(context, playerId)`
+- **Logic**:
+  1. Retrieve player hand and `lastMove`.
+  2. Call `DecisionEngine.decideMove`.
+  3. Construct `GameAction` (PLAY or PASS).
+  4. Return action to `PlayingState`.
+
+### 6. PlayingState Integration
+- **Trigger**: In `update()` loop or `onEnter()`.
+- **Check**: If `currentTurn` is AI (isRobot=true).
+- **Action**:
+  - Wait for delay (human-like pause).
+  - Call `AIService.executeTurn`.
+  - Apply action via `handleInput`.

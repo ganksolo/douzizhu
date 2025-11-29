@@ -221,3 +221,31 @@
         - [x] Create backend/README.md <!-- id: 217 -->
         - [x] Update root README.md <!-- id: 218 -->
 
+- [x] Phase 16: Backend Rules Engine (4-Player) <!-- id: 219 -->
+    - [x] Phase 16.1: Types & Pattern Recognition <!-- id: 220 -->
+        - [x] Define Card Ranks & Pattern Types (Bomb Grading) <!-- id: 221 -->
+        - [x] Implement PatternDetector (Rocket, Bombs, Sequences) <!-- id: 222 -->
+        - [x] Unit Tests for Pattern Recognition <!-- id: 223 -->
+    - [x] Phase 16.2: Comparison Logic & Validation <!-- id: 224 -->
+        - [x] Implement MoveComparator (Rocket > Bomb > Normal) <!-- id: 225 -->
+        - [x] Implement MoveValidator (Anti-cheat, Turn Rules) <!-- id: 226 -->
+        - [x] Unit Tests for Comparator & Validator <!-- id: 227 -->
+    - [x] Phase 16.3: Service Encapsulation & Testing <!-- id: 228 -->
+        - [x] Implement RulesService (Facade) <!-- id: 229 -->
+        - [x] Create rules.spec.ts (Covering 4-player edge cases) <!-- id: 230 -->
+
+- [x] Phase 17: AI Core (Backend) <!-- id: 231 -->
+    - [x] Phase 17.1: Heuristics & Strategy Model <!-- id: 232 -->
+        - [x] Define AI Interfaces (HeuristicResult, StrategyProfile) <!-- id: 233 -->
+        - [x] Implement HeuristicEvaluator (Bomb, Control, Smoothness) <!-- id: 234 -->
+        - [x] Implement StrategyModel (Early/Mid/Late Game Logic) <!-- id: 235 -->
+    - [x] Phase 17.2: Decision Engine (Redo) <!-- id: 236 -->
+        - [x] Implement AIExplain Interface <!-- id: 237 -->
+        - [x] Implement Decision Pipeline (Detect -> Filter -> Rank -> Weigh) <!-- id: 238 -->
+        - [x] Implement Strategy Weighing (Early/Late/Bomb Logic) <!-- id: 239 -->
+        - [x] Create QA Handoff (Priority Logic List) <!-- id: 240 -->
+    - [x] Phase 17.3: AI Service Integration <!-- id: 241 -->
+        - [x] Implement AIService (NestJS Wrapper) <!-- id: 242 -->
+        - [x] Integrate into PlayingState (Auto-play loop) <!-- id: 243 -->
+        - [x] Create QA Handoff (Sequence Diagram) <!-- id: 244 -->
+

@@ -26,6 +26,8 @@ export interface Player {
     hand: string[]; // Simplification for now, just card IDs or codes
     role?: 'landlord' | 'peasant';
     isReady: boolean;
+    handCount?: number;
+    isRobot?: boolean;
 }
 
 export interface RoomData {
@@ -39,4 +41,5 @@ export interface RoomData {
         cards: string[];
     };
     multiplier: number;
+    isAIThinking?: boolean;
 }

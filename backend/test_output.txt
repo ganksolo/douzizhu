@@ -1,0 +1,76 @@
+
+> backend@0.0.1 test
+> jest src/game/engine/ai/decision-engine.spec.ts
+
+  console.log
+    Free Turn Candidates: [
+      {
+        "move": [
+          {
+            "rank": 5,
+            "suit": "♠",
+            "value": 5
+          }
+        ],
+        "score": 28,
+        "type": "SINGLE"
+      },
+      {
+        "move": [
+          {
+            "rank": 4,
+            "suit": "♠",
+            "value": 4
+          }
+        ],
+        "score": 28,
+        "type": "SINGLE"
+      },
+      {
+        "move": [
+          {
+            "rank": 3,
+            "suit": "♠",
+            "value": 3
+          }
+        ],
+        "score": 28,
+        "type": "SINGLE"
+      }
+    ]
+
+      at Object.<anonymous> (game/engine/ai/decision-engine.spec.ts:126:21)
+
+FAIL src/game/engine/ai/decision-engine.spec.ts
+  DecisionEngine (Phase 17.2 Redo)
+    Priority 1: Late Game Aggression
+      ✓ should PLAY Bomb to win/control in Late Game (7 ms)
+    Priority 2: Early Game Bomb Hoarding
+      ✓ should PASS if only valid move is Bomb (Early Game) (2 ms)
+    Priority 3: Free Turn Structure
+      ✕ should play smallest Single/Pair/Sequence on free turn (16 ms)
+    Scenario: Early Game - Pair 3 vs Pair 2/Pair 5
+      ✓ should play Pair 5 (Smallest Valid) to save Pair 2 (Control) (2 ms)
+
+  ● DecisionEngine (Phase 17.2 Redo) › Priority 3: Free Turn Structure › should play smallest Single/Pair/Sequence on free turn
+
+    expect(received).toBe(expected) // Object.is equality
+
+    Expected: 3
+    Received: 5
+
+      128 |             expect(result.move).not.toBeNull();
+      129 |             expect(result.move!.length).toBe(1);
+    > 130 |             expect(result.move![0].rank).toBe(CardRank.THREE); // Smallest single
+          |                                          ^
+      131 |         });
+      132 |     });
+      133 |
+
+      at Object.<anonymous> (game/engine/ai/decision-engine.spec.ts:130:42)
+
+Test Suites: 1 failed, 1 total
+Tests:       1 failed, 3 passed, 4 total
+Snapshots:   0 total
+Time:        0.381 s, estimated 1 s
+Ran all test suites matching src/game/engine/ai/decision-engine.spec.ts.

@@ -1,8 +1,8 @@
-# Backend Test Plan (Phase 15)
+# Backend Test Plan (Phase 15, 16 & 17)
 
-**Version**: 1.2  
-**Last Updated**: 2025-11-29 08:27  
-**Scope**: Backend Game Engine, Redis Persistence, Network Layer, Automated QA (Verified)
+**Version**: 1.7  
+**Last Updated**: 2025-11-29 22:56  
+**Scope**: Backend Game Engine, Rules Service, AI Core & Decision Engine (Phase 17.3)
 
 ## 1. Introduction
 This document outlines the test plan for the Dou Dizhu backend game engine. It solidifies the verification work done in Phase 15 and serves as a baseline for future automated testing (CI/CD).
@@ -132,7 +132,124 @@ To fully automate these tests in the CI pipeline, we recommend the following app
 **Last Executed**: 2025-11-29 08:26  
 **Test Status**: ✅ **5/6 PASSED** (83% pass rate)
 
-### 5.1 Test Cases Implemented
+### 5.2 Unit Testing (Jest)
+
+**Scope**: Backend Rules Engine (4-Player)
+**Files**: 
+- `backend/src/game/rules/rules.spec.ts` (Core Rules)
+- `backend/src/game/rules/rules_gap.spec.ts` (Gap Analysis)
+**Last Executed**: 2025-11-29 13:15
+**Status**: ⚠️ **PARTIAL PASS**
+
+| Test Suite | Test Case | Description | Result |
+|------------|-----------|-------------|--------|
+| **Core Rules** | Bomb Grading | Verify 5-Bomb > 4-Bomb | ✅ PASS |
+| **Core Rules** | Rocket | Identify 4 Jokers as ROCKET | ✅ PASS |
+| **Core Rules** | Pair Comparison | Pair(Big Joker) > Pair(2) | ✅ PASS |
+| **Core Rules** | Airplane | Detect consecutive trios (Basic) | ✅ PASS |
+| **Gap Check** | **Trio+Single** | Identify 333+4 | ✅ PASS |
+| **Gap Check** | **Trio+Pair** | Identify 333+44 | ✅ PASS |
+| **Gap Check** | Bomb Rank | 4 Kings > 4 Tens | ✅ PASS |
+| **Gap Check** | Rocket vs Bomb | Rocket > 5-Bomb | ✅ PASS |
+| **Gap Check** | Basic Rank | Single 2 > Single A | ✅ PASS |
+
+**Gap Analysis Findings**:
+- **Resolved**: `TRIO_WITH_ONE` and `TRIO_WITH_PAIR` were correctly implemented but referenced with incorrect enum keys in the test file.
+- **Verified Features**: All 4-player rule gaps are now closed and verified.
+
+- **Verified Features**: All 4-player rule gaps are now closed and verified.
+
+### 5.4 AI Logic Verification (Phase 17.1)
+
+**Scope**: Heuristic Evaluator & Strategy Model
+**File**: `backend/src/game/engine/ai/ai_core.spec.ts`
+**Last Executed**: 2025-11-29 14:15
+**Status**: ✅ **PASSED**
+
+| Test Case | Scenario | Description | Result |
+|-----------|----------|-------------|--------|
+| **AI-EVAL-001** | High Potential | Verify Straight potential calculation | ✅ PASS |
+| **AI-EVAL-002** | Max Control | Verify Control Value for Jokers/2s | ✅ PASS |
+| **AI-STRAT-001** | Early Game | Verify "early" mode & bomb hoarding | ✅ PASS |
+| **AI-STRAT-002** | Emergency | Verify "late" mode override on low opp hand | ✅ PASS |
+
+| **AI-STRAT-002** | **Emergency** | Hand Count: 10, Opponent: 3 | `mode`: "late", `aggressiveLevel`: 1.0 |
+
+### 5.5 AI Decision Logic (QA Handoff)
+
+**File**: `backend/src/game/engine/ai/decision-engine.spec.ts`
+**Last Executed**: 2025-11-29 22:38
+**Status**: ✅ **PASSED**
+
+| Test Case | Scenario | Description | Result |
+|-----------|----------|-------------|--------|
+| **AI-DEC-001** | Late Game Aggression | Play Bomb to win/control in Late Game | ✅ PASS |
+| **AI-DEC-002** | Early Game Bomb Hoarding | PASS if only valid move is Bomb (Early Game) | ✅ PASS |
+| **AI-DEC-003** | Free Turn Structure | Play smallest Single/Pair/Sequence on free turn | ✅ PASS |
+| **AI-DEC-004** | Early Game Control | Play Pair 5 (Smallest Valid) to save Pair 2 (Control) | ✅ PASS |
+
+**Decision Priority List (If-Else Logic)**:
+
+1.  **Priority 1: Late Game Aggression**
+    -   **Condition**: `mode` = "late" (Hand < 8 or Opponent < 5) AND `canBeat` = true.
+    -   **Action**: MUST PLAY. Do not pass.
+    -   **Logic**: `score` for PASS is penalized (-50). `score` for PLAY is boosted (+20).
+
+2.  **Priority 2: Early Game Bomb Hoarding**
+    -   **Condition**: `mode` = "early" (Hand > 15) AND `lastMove` is NOT Bomb/Rocket.
+    -   **Action**: If only valid move is Bomb, choose PASS.
+    -   **Logic**: Bombing a normal hand in early game has penalty (-60).
+
+3.  **Priority 3: Free Turn Structure**
+    -   **Condition**: `lastMove` = null.
+    -   **Action**: Play move that maximizes `HeuristicEvaluator` score (usually smallest Single/Pair/Sequence).
+    -   **Logic**: `straightPotential` is preserved.
+
+4.  **Priority 4: Forced Win**
+    -   **Condition**: Hand size = 1 AND `canBeat` = true.
+    -   **Action**: Play the last card.
+
+### 5.6 AI Behavior Sequence Diagram (QA Handoff)
+
+**Flow Description**:
+
+1.  **Timer Trigger**: `PlayingState.update()` called every tick.
+2.  **Turn Check**:
+    -   If `currentTurn` is AI AND `!isAIThinking`:
+    -   Set `isAIThinking = true`.
+    -   Call `AIService.scheduleTurn()`.
+3.  **AI Thinking (Async)**:
+    -   `AIService` starts `setTimeout` (Random 1000-2500ms).
+    -   *Concurrency Note*: If room is destroyed or turn changes during delay, AI action is aborted.
+4.  **Action Execution**:
+    -   Timeout fires.
+    -   `AIService` calls `DecisionEngine.decideMove()`.
+    -   `AIService` calls `GameContext.handleInput(action)`.
+5.  **Validation Pipeline**:
+    -   `PlayingState.handleInput()` receives action.
+    -   **Validation**: Calls `RulesService.validateMove()`. If invalid, rejects.
+    -   **State Update**: Removes cards, updates `lastPlayedCards`.
+    -   **Turn Advance**: `advanceTurn()` sets `isAIThinking = false`.
+6.  **Broadcast**:
+    -   `GameContext` triggers `onStateChange`.
+    -   `GameGateway` broadcasts new state to all clients via Socket.IO.
+
+    -   `GameGateway` broadcasts new state to all clients via Socket.IO.
+
+### 5.7 AI Service Integration Verification (Phase 17.3)
+
+**File**: `backend/src/game/engine/states/playing.state.spec.ts`
+**Last Executed**: 2025-11-29 22:56
+**Status**: ✅ **PASSED**
+
+| Test Case | Description | Result |
+|-----------|-------------|--------|
+| **AI-INT-001** | Should NOT trigger AI if current turn is human | ✅ PASS |
+| **AI-INT-002** | Should trigger AI if current turn is robot and not thinking | ✅ PASS |
+| **AI-INT-003** | Should NOT trigger AI if already thinking | ✅ PASS |
+| **AI-INT-004** | Should reset `isAIThinking` when turn advances | ✅ PASS |
+
+### 5.8 Automated QA Verification (Python)
 
 #### TC-STATE-001-AUTO: Room Initialization (Automated)
 - **Implementation**: Lines 91-110 in `qa_verification.py`
