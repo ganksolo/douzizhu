@@ -28,35 +28,35 @@ npm run dev    # Start dev server
 
 The frontend will be available at `http://localhost:5173`
 
-### Backend Development (Coming Soon)
-
+### Backend Development
+ 
 ```bash
 cd backend
-# Backend setup commands (to be added)
+npm install
+npm run start:dev
 ```
-
+ 
+See [backend/README.md](./backend/README.md) for detailed setup and API documentation.
+ 
 ## 📚 Documentation
-
-- **User Guide**: See [frontend/README.md](./frontend/README.md)
-- **Architecture Docs**: See [docs/README.md](./docs/README.md)
-  - [Phase 11: State Machine & Event Bus](./docs/PHASE11_ARCHITECTURE.md)
-  - [Phase 12: Pure Functional Rules Engine](./docs/PHASE12_RULES_ENGINE.md)
-
+ 
+- **Frontend Guide**: [frontend/README.md](./frontend/README.md)
+- **Backend Guide**: [backend/README.md](./backend/README.md)
+- **Architecture**: [docs/README.md](./docs/README.md)
+  - [Phase 11: State Machine](./docs/PHASE11_ARCHITECTURE.md)
+  - [Phase 15: Backend Engine](./docs/backend_test_plan.md)
+ 
 ## 🏗 Tech Stack
-
+ 
 ### Frontend
-- React 19
-- TypeScript
-- Vite
-- Tailwind CSS
-- Framer Motion
-- Vitest (testing)
-
-### Backend (Planned)
-- Node.js
-- Express (or similar)
-- WebSocket (for multiplayer)
-- Database (TBD)
+- React 19, TypeScript, Vite
+- Tailwind CSS, Framer Motion
+ 
+### Backend
+- NestJS (Node.js)
+- Socket.io (WebSocket)
+- Redis (State Persistence)
+- MySQL (User Data)
 
 ## 📝 Development Workflow
 

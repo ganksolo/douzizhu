@@ -216,4 +216,8 @@
     - [x] Bug Fixes & Architecture Improvements <!-- id: 213 -->
         - [x] Implement GameManagerService for multi-room support <!-- id: 214 -->
         - [x] Fix state initialization timing issue <!-- id: 215 -->
+    
+    - [x] Documentation Update <!-- id: 216 -->
+        - [x] Create backend/README.md <!-- id: 217 -->
+        - [x] Update root README.md <!-- id: 218 -->
 
