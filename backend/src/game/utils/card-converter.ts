@@ -18,7 +18,8 @@ export class CardConverter {
             case '♥': suit = CardSuit.HEART; break;
             case '♣': suit = CardSuit.CLUB; break;
             case '♦': suit = CardSuit.DIAMOND; break;
-            default: suit = CardSuit.NONE;
+            case '♦': suit = CardSuit.DIAMOND; break;
+            default: throw new Error(`Invalid suit: ${suitStr}`);
         }
 
         let rank: CardRank;
@@ -36,7 +37,7 @@ export class CardConverter {
             case 'K': rank = CardRank.KING; break;
             case 'A': rank = CardRank.ACE; break;
             case '2': rank = CardRank.TWO; break;
-            default: rank = CardRank.THREE; // Fallback
+            default: throw new Error(`Invalid rank: ${rankStr}`);
         }
 
         return { rank, suit, value: rank };

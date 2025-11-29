@@ -9,7 +9,9 @@ export enum GameStateEnum {
 export enum ActionType {
     JOIN = 'JOIN',
     READY = 'READY',
-    BID = 'BID',
+    BID = 'BID', // Deprecated? Keeping for backward compat if needed, but user asked for CALL/ROB
+    CALL = 'CALL',
+    ROB = 'ROB',
     PLAY = 'PLAY',
     PASS = 'PASS',
 }
@@ -18,6 +20,13 @@ export interface UserAction {
     playerId: string;
     type: ActionType;
     payload?: any;
+}
+
+export interface GameAction {
+    type: ActionType;
+    playerId: string;
+    payload: any;
+    timestamp: number;
 }
 
 export interface Player {

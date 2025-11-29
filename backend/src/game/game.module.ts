@@ -12,6 +12,8 @@ import { RulesService } from './services/rules.service';
 import { MoveValidator } from './rules/move-validator';
 import { AIService } from './services/ai.service';
 import { DecisionEngine } from './engine/ai/decision-engine';
+import { InputNormalizer } from './engine/action-pipeline/input-normalizer';
+import { ActionPipelineService } from './engine/action-pipeline/action-pipeline.service';
 
 @Module({
     providers: [
@@ -27,6 +29,8 @@ import { DecisionEngine } from './engine/ai/decision-engine';
         InitState,
         DealingState,
         PlayingState,
+        InputNormalizer,
+        ActionPipelineService,
     ],
     exports: [GameContext, GameManagerService, RulesService, AIService],
 })

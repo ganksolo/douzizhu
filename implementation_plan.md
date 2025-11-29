@@ -78,7 +78,18 @@ Central state manager:
 
 ---
 
-### React Integration
+### Phase 18: Frontend Integration & Action Pipeline
+
+### 1. Action Pipeline (`src/game/engine/action-pipeline/`)
+- **Goal**: Centralize input handling and sanitization.
+- **Components**:
+    - `InputNormalizer`: Converts raw socket data into trusted `GameAction` objects.
+        - Enforces `playerId` based on socket ID.
+        - Validates payload structure.
+    - `ActionPipelineService`: Orchestrates the flow: `Normalizer` -> `Validator` -> `State Machine`.
+
+### 2. Frontend Integration
+- **Goal**: Connect Vue.js frontend to backend via Socket.IO.
 
 #### [MODIFY] `src/hooks/useGameEngine.ts`
 New hook to replace `useGameLoop`:

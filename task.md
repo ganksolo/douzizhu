@@ -249,3 +249,9 @@
         - [x] Integrate into PlayingState (Auto-play loop) <!-- id: 243 -->
         - [x] Create QA Handoff (Sequence Diagram) <!-- id: 244 -->
 
+- [x] Phase 18: Security & Robustness <!-- id: 250 -->
+    - [x] Phase 18.1: Action Pipeline <!-- id: 251 -->
+        - [x] Implement InputNormalizer (Sanitization) <!-- id: 252 -->
+        - [x] Implement Identity Binding (Anti-spoofing) <!-- id: 253 -->
+        - [x] Implement Payload Validation (Size limits, Format check) <!-- id: 254 -->
+

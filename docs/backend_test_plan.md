@@ -1,8 +1,8 @@
 # Backend Test Plan (Phase 15, 16 & 17)
 
-**Version**: 1.7  
-**Last Updated**: 2025-11-29 22:56  
-**Scope**: Backend Game Engine, Rules Service, AI Core & Decision Engine (Phase 17.3)
+**Version**: 1.8  
+**Last Updated**: 2025-11-29 23:18  
+**Scope**: Backend Game Engine, Rules Service, AI Core & Action Pipeline (Phase 18.1)
 
 ## 1. Introduction
 This document outlines the test plan for the Dou Dizhu backend game engine. It solidifies the verification work done in Phase 15 and serves as a baseline for future automated testing (CI/CD).
@@ -253,6 +253,22 @@ To fully automate these tests in the CI pipeline, we recommend the following app
 
 #### TC-STATE-001-AUTO: Room Initialization (Automated)
 - **Implementation**: Lines 91-110 in `qa_verification.py`
+- **Status**: ✅ **PASSED**
+
+### 5.9 Input Boundary Test List (QA Handoff)
+
+**Scope**: Verify `InputNormalizer` robustness against malicious or malformed data.
+**File**: `backend/src/game/engine/action-pipeline/input-normalizer.spec.ts`
+**Last Executed**: 2025-11-29 23:18
+**Status**: ✅ **PASSED**
+
+| Test Case | Malicious Input | Expected Behavior | Result |
+|-----------|-----------------|-------------------|--------|
+| **SEC-IN-001** | **Spoofed ID**: `{ type: 'PLAY', playerId: 'admin', payload: ... }` | **Override**: `playerId` must be overwritten by the trusted Socket ID. | ✅ PASS |
+| **SEC-IN-002** | **Huge Payload**: `{ type: 'PLAY', payload: [10000 items...] }` | **Reject/Truncate**: Should throw error or limit array size (Max 20). | ✅ PASS |
+| **SEC-IN-003** | **Invalid Type**: `{ type: 'HACK_SERVER', payload: ... }` | **Reject**: Throw "Invalid action type". | ✅ PASS |
+| **SEC-IN-004** | **Null Payload**: `{ type: 'PLAY', payload: null }` | **Reject**: Throw "Invalid payload" (PLAY requires array). | ✅ PASS |
+| **SEC-IN-005** | **Bad Card Format**: `{ type: 'PLAY', payload: ['INVALID_CARD'] }` | **Reject**: Throw "Invalid card format" (Strict validation). | ✅ PASS |
 - **Method**: 
   - Client A joins a unique room via `join_room` event
   - Waits up to 5 seconds for `sync_state` with valid state

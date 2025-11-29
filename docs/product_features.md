@@ -70,3 +70,4 @@
 *   **Phase 17.1 (AI 核心)**: 实现了后端 AI 的基础架构，包括启发式手牌评估器 (HeuristicEvaluator) 和动态策略模型 (StrategyModel)，支持根据手牌质量和局势自动切换“保守/均衡/激进”策略。
 *   **Phase 17.2 (AI 决策)**: 重构了决策引擎 (DecisionEngine)，引入了完整的决策流水线 (Detection -> Filter -> Simulation -> Strategy)。实现了基于 `AIExplain` 的可解释性调试接口，并定义了明确的战术优先级（如晚期激进、早期控雷）。
 *   **Phase 17.3 (AI 集成)**: 完成了 AI 服务 (AIService) 与游戏主循环 (PlayingState) 的深度集成。实现了自动托管机制，AI 能够在规定时间内（1.5秒思考时间）自动接管掉线或托管玩家的操作，保证游戏流畅进行。
+*   **Phase 18.1 (动作管线)**: 建立了安全可靠的动作处理管线 (ActionPipeline)。引入了 `InputNormalizer` 对客户端输入进行身份绑定与格式清洗，防御伪造 ID 和恶意 Payload 攻击，确保后端逻辑接收到的均为可信数据。
