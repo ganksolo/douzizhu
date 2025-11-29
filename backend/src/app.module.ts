@@ -6,9 +6,11 @@ import { redisStore } from 'cache-manager-ioredis-yet';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { HealthController } from './health/health.controller';
+import { GameModule } from './game/game.module';
 
 @Module({
   imports: [
+    GameModule,
     // Environment configuration
     ConfigModule.forRoot({
       isGlobal: true,

@@ -196,3 +196,24 @@
         - [ ] Rate limiting implementation <!-- id: 194 -->
         - [ ] Security audit <!-- id: 195 -->
         - [ ] Load testing <!-- id: 196 -->
+
+- [x] Phase 15: Backend Game Engine Core <!-- id: 200 -->
+    - [x] State Machine Skeleton <!-- id: 201 -->
+        - [x] Define BaseState and GameContext <!-- id: 202 -->
+        - [x] Implement Init, Dealing, Playing states <!-- id: 203 -->
+        - [x] Setup GameModule with Dependency Injection <!-- id: 204 -->
+
+    - [x] Redis Persistence Integration <!-- id: 205 -->
+        - [x] Design Redis Hash structure <!-- id: 206 -->
+        - [x] Implement GameRedisService <!-- id: 207 -->
+        - [x] Update GameContext with save/load logic <!-- id: 208 -->
+
+    - [x] Network Layer & Fog of War <!-- id: 209 -->
+        - [x] Implement StateSerializer (Data Sanitization) <!-- id: 210 -->
+        - [x] Implement GameGateway (WebSocket) <!-- id: 211 -->
+        - [x] Integrate State Restoration & Broadcast Loop <!-- id: 212 -->
+
+    - [x] Bug Fixes & Architecture Improvements <!-- id: 213 -->
+        - [x] Implement GameManagerService for multi-room support <!-- id: 214 -->
+        - [x] Fix state initialization timing issue <!-- id: 215 -->
+

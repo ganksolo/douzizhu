@@ -178,3 +178,77 @@ Establish a robust, scalable backend using NestJS to handle game logic, user man
 ### Manual Verification
 - **Postman/Curl**: Test REST endpoints
 - **Socket.io Client**: Test connection and event emission
+
+---
+
+# Phase 15: Backend Game Engine Core
+
+## Goal
+Implement the core game logic on the backend using a State Machine pattern, ensure data persistence with Redis, and establish real-time communication via WebSocket.
+
+## Implemented Changes
+
+### State Machine Skeleton
+#### `backend/src/game/engine/`
+- **BaseState**: Abstract class defining lifecycle hooks (`enter`, `update`, `exit`, `handleInput`).
+- **GameContext**: Central manager injecting `GameRedisService` and State singletons. Handles transitions and atomic snapshots.
+- **States**: `InitState`, `DealingState`, `PlayingState` implemented.
+
+### Redis Persistence
+#### `backend/src/game/services/game-redis.service.ts`
+- **Structure**: Hash `room:{id}:state` storing `current_state_name` and JSON-serialized `room_data`.
+- **Atomic Saves**: State transitions automatically trigger `saveSnapshot()`.
+- **Restoration**: `loadSnapshot()` rebuilds `RoomData` and restores the correct State instance.
+
+### Network Layer & Fog of War
+#### `backend/src/game/gateway/game.gateway.ts`
+- **WebSocket**: Socket.io gateway handling `join_room` and `client_action`.
+- **Game Loop**: `setInterval` driving `GameContext.update()` (10Hz).
+- **Broadcasting**: `onStateChange` callback triggers `sync_state` emission.
+
+#### `backend/src/game/services/state-serializer.service.ts`
+- **Data Sanitization**: Filters sensitive data (other players' hands, hidden bottom cards) based on `playerId` and `currentState`.
+
+## Verification Plan
+
+### Automated Verification
+Run the E2E verification script:
+```bash
+cd backend
+npx ts-node scripts/verify-game.ts
+```
+This script simulates two clients, verifies state transitions, checks Fog of War (hidden hands), and confirms action broadcasting.
+
+### Manual Verification
+1. Start Backend: `npm run start:dev`
+2. Connect Socket.io client (e.g., Postman or custom UI).
+3. Join room and observe logs for state synchronization.
+
+---
+
+# Phase 15.3.1: Multi-Room Architecture Fix
+
+## Issue Identified
+**Bug**: `GameContext` was implemented as a singleton, causing state pollution across different rooms. Multiple rooms would share the same `GameContext` instance, leading to race conditions and incorrect game states.
+
+## Solution Implemented
+
+### GameManagerService
+#### `backend/src/game/services/game-manager.service.ts`
+- **Purpose**: Factory service managing multiple `GameContext` instances
+- **Data Structure**: `Map<roomId, GameContext>` 
+- **Methods**:
+  - `getOrCreateRoom(roomId)`: Returns existing or creates new GameContext for the room
+  - `removeRoom(roomId)`: Cleans up finished games
+  - `getAllRooms()`: Returns list of active room IDs for game loop iteration
+
+### Updated GameGateway
+#### Changes to `backend/src/game/gateway/game.gateway.ts`
+- Replaced singleton `GameContext` injection with `GameManagerService`
+- Modified `handleJoinRoom` to get room-specific context
+- Updated game loop to iterate over all active rooms
+- Each room now has its own isolated state machine
+
+## Current Status
+✅ **Completed**: Multi-room isolation implemented  
+⚠️ **In Progress**: Debugging state initialization timing issue where `getCurrentStateName()` returns "None" instead of expected state names
