@@ -1,8 +1,8 @@
 # Backend Test Plan (Phase 15, 16 & 17)
 
-**Version**: 2.3  
-**Last Updated**: 2025-11-30 11:06  
-**Scope**: Backend Game Engine, Rules Service, AI Core, Action Pipeline, Integration & Match History API (Phase 19.3)
+**Version**: 2.4  
+**Last Updated**: 2025-11-30 16:00  
+**Scope**: Backend Game Engine, Rules Service, AI Core, Action Pipeline, Integration, Match History & User Infrastructure (Phase 20.1)
 
 ## 1. Introduction
 This document outlines the test plan for the Dou Dizhu backend game engine. It solidifies the verification work done in Phase 15 and serves as a baseline for future automated testing (CI/CD).
@@ -542,6 +542,34 @@ npm test src/game/match/match.repository.spec.ts
 4. ✅ **Test Isolation**: Unit tests use mocks to run without DB dependency
 
 ---
+
+### 5.16 User Infrastructure (Phase 20.1)
+
+**Scope**: Verify `UserService` logic and `UserRepository` integration (via mocks).
+**Files**: 
+- `backend/src/user/user.entity.ts`
+- `backend/src/user/user.service.ts`
+- `backend/src/user/user.service.spec.ts`
+- `backend/docs/phase20.1_user_schema.md` (QA Handoff)
+**Last Executed**: 2025-11-30 16:00
+**Status**: ✅ **PASSED**
+
+| Test Case | Description | Result |
+|-----------|-------------|--------|
+| **USER-001** | `createGuest` generates random nickname & avatar | ✅ PASS |
+| **USER-002** | `findById` returns user object | ✅ PASS |
+| **USER-003** | `findById` throws 404 for non-existent ID | ✅ PASS |
+| **USER-004** | `updateProfile` modifies user data correctly | ✅ PASS |
+
+**Test Execution Summary**:
+- **Total Tests**: 4
+- **Pass Rate**: 100%
+- **Execution Time**: 0.899s
+
+**Key Verification Points**:
+1. ✅ **Guest Creation**: Correctly sets `AuthType.GUEST` and default values
+2. ✅ **Error Handling**: Proper exceptions for missing users
+3. ✅ **Schema Compliance**: Entity matches SQL schema definition
 
 
 - **Method**: 

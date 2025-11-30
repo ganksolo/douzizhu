@@ -666,3 +666,55 @@ Exposed the match history data to the frontend via REST API and verified the per
 ---
 
 **Status**: ✅ Phase 19 Complete (Persistence Layer Ready)
+
+---
+
+# Phase 20.1: User System Infrastructure
+
+## Overview
+Established the foundation for the User System, including the database schema, TypeORM entity, and basic service logic for guest user creation.
+
+## Steps Executed
+
+### 1. Database Schema
+- **Entity**: `User` (`user` table)
+- **Fields**: `id`, `nickname`, `avatar`, `auth_type`, `password_hash`, `last_login`
+- **Features**: 
+  - Auto-increment BigInt ID
+  - Enum for AuthType ('guest', 'password')
+  - Automatic timestamp management (`created_at`, `updated_at`)
+
+### 2. Service Layer
+- **Component**: `UserService`
+- **Methods**:
+  - `createGuest()`: Generates random nickname (e.g., "Guest-1234") and avatar
+  - `findById()`: Retrieves user profile
+  - `updateProfile()`: Updates nickname/avatar
+
+### 3. Module Integration
+- **Module**: `UserModule`
+- **Integration**: Registered in `AppModule` to ensure table creation on startup
+
+## Verification
+
+### 1. Schema Verification
+- **QA Handoff**: `docs/phase20.1_user_schema.md`
+- **SQL**: Verified `CREATE TABLE` statement matches requirements
+
+### 2. Startup Check
+- **Log**: `[Nest] ... UserModule dependencies initialized`
+- **Database**: Table `user` created successfully (via TypeORM sync)
+
+## Files Created
+- `backend/src/user/user.entity.ts`
+- `backend/src/user/user.repository.ts`
+- `backend/src/user/user.service.ts`
+- `backend/src/user/user.module.ts`
+- `docs/phase20.1_user_schema.md`
+
+## Files Modified
+- `backend/src/app.module.ts` (Imported UserModule)
+
+---
+
+**Status**: ✅ Phase 20.1 Complete (User Infrastructure Ready)

@@ -288,3 +288,10 @@
         - [x] Create Unit Tests for MatchRepository (JSON Serialization) <!-- id: 286 -->
         - [x] Create QA Handoff (API Response Examples) <!-- id: 287 -->
 
+- [x] Phase 20: User System & Statistics <!-- id: 290 -->
+    - [x] Phase 20.1: User Infrastructure <!-- id: 291 -->
+        - [x] Create UserEntity (id, nickname, avatar, auth_type) <!-- id: 292 -->
+        - [x] Implement UserRepository (CRUD) <!-- id: 293 -->
+        - [x] Implement UserService (createGuest, findById) <!-- id: 294 -->
+        - [x] Create QA Handoff (SQL Schema) <!-- id: 295 -->
+

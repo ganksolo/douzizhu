@@ -272,6 +272,36 @@ Implement persistent storage for match records to enable player statistics, matc
 
 ---
 
+# Phase 20: User System & Statistics
+
+## Goal
+Implement a robust user system with guest/password authentication and comprehensive player statistics.
+
+## Proposed Changes
+
+### Phase 20.1: User Infrastructure (✅ **COMPLETED**)
+
+#### Database Schema Design
+**Table**: `user`
+- **Primary Key**: `id` (BIGINT, auto-increment)
+- **Fields**: 
+  - `nickname` (VARCHAR 50)
+  - `avatar` (VARCHAR 255)
+  - `auth_type` (ENUM: 'guest', 'password')
+  - `password_hash` (VARCHAR, nullable)
+  - `last_login` (DATETIME)
+
+#### [NEW] `backend/src/user/`
+- `user.entity.ts`: TypeORM Entity
+- `user.repository.ts`: Data access layer
+- `user.service.ts`: Business logic (Guest creation, Profile update)
+- `user.module.ts`: Module registration
+
+#### [MODIFY] `backend/src/app.module.ts`
+- Imported `UserModule`
+
+---
+
 # Phase 14: Backend Development
 
 ## Goal
@@ -494,3 +524,46 @@ Implement a smart AI engine capable of playing 4-player Dou Dizhu with strategic
   - Wait for delay (human-like pause).
   - Call `AIService.executeTurn`.
   - Apply action via `handleInput`.
+
+---
+
+# Phase 20: User System & Statistics
+
+## Goal
+Implement a comprehensive user management system supporting guest/password authentication, user profiles, and game statistics tracking.
+
+## Proposed Changes
+
+### Phase 20.1: User Infrastructure (✅ **COMPLETED**)
+
+#### Database Schema
+**Table**: `user`
+- `id`: BIGINT (Primary Key)
+- `nickname`: VARCHAR(50)
+- `avatar`: VARCHAR(255)
+- `auth_type`: ENUM('guest', 'password')
+- `password_hash`: VARCHAR(255) (Nullable)
+- `last_login`: DATETIME
+
+#### [NEW] `backend/src/user/user.entity.ts`
+- TypeORM Entity definition
+- `AuthType` enum
+
+#### [NEW] `backend/src/user/user.repository.ts`
+- Encapsulated CRUD operations
+- `create()`, `findById()`, `update()`
+
+#### [NEW] `backend/src/user/user.service.ts`
+- `createGuest()`: Generates random nickname/avatar
+- `updateProfile()`: Handles user profile changes
+
+### Phase 20.2: Authentication & JWT (Planned)
+- Implement `AuthService` with JWT generation
+- Create `JwtStrategy` and `JwtAuthGuard`
+- Endpoints: `POST /auth/login`, `POST /auth/guest`
+
+### Phase 20.3: Statistics (Planned)
+- Add `stats` JSON column to `user` table
+- Track wins, losses, win rate, rank
+- Update stats on game end (integration with `MatchService`)
+
