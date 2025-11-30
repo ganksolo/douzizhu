@@ -302,3 +302,9 @@
         - [x] Implement AuthController (POST /auth/guest-login) <!-- id: 300 -->
         - [x] Create QA Handoff (Login Response Example) <!-- id: 301 -->
 
+    - [x] Phase 20.3: System Integration <!-- id: 302 -->
+        - [x] Update GameGateway (Handle Connection Auth) <!-- id: 303 -->
+        - [x] Update UserService (Inject MatchRepository, Aggregate Stats) <!-- id: 304 -->
+        - [x] Implement UserController (GET /user/:id/stats) <!-- id: 305 -->
+        - [x] Create QA Handoff (Socket Auth & Stats) <!-- id: 306 -->
+

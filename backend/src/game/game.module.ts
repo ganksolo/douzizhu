@@ -19,8 +19,10 @@ import { PlayActionHandler } from './engine/action-handlers/play-handler';
 import { PassActionHandler } from './engine/action-handlers/pass-handler';
 import { MatchService } from './services/match.service';
 import { GameEndState } from './engine/states/game-end.state';
+import { AuthModule } from '../auth/auth.module';
 
 @Module({
+    imports: [AuthModule],
     providers: [
         GameContext,
         GameRedisService,

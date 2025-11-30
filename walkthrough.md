@@ -769,3 +769,57 @@ Implemented a secure authentication system using JWT (JSON Web Tokens). Supports
 ---
 
 **Status**: ✅ Phase 20.2 Complete (Authentication Ready)
+
+---
+
+# Phase 20.3: System Integration (Socket & Stats)
+
+## Overview
+Integrated the User System with the Game Engine and Match System. Implemented secure Socket.IO connections using JWT and created a comprehensive user statistics API.
+
+## Steps Executed
+
+### 1. Socket Authentication
+- **Component**: `GameGateway`
+- **Change**: Updated `handleConnection` to verify JWT tokens.
+- **Logic**:
+  - Extract token from handshake auth/query.
+  - Verify via `AuthService`.
+  - Store `userId` in `client.data`.
+  - Reject invalid connections.
+- **Room Join**: Updated `handleJoinRoom` to use the authenticated `userId` instead of trusting client data.
+
+### 2. Statistics Aggregation
+- **Repository**: Added `MatchRepository.getPlayerStats(playerId)` to count matches and wins efficiently.
+- **Service**: Added `UserService.getUserStats(userId)` to aggregate:
+  - User Profile (Nickname, Avatar)
+  - Win/Loss Stats (Calculated Win Rate)
+  - Recent Match History (Last 10 games)
+
+### 3. API Implementation
+- **Controller**: `UserController`
+- **Endpoint**: `GET /user/:id/stats` (Protected)
+
+## Verification
+
+### 1. Integration Testing
+- **QA Handoff**: `docs/phase20.3_integration_guide.md`
+- **Scenarios**:
+  - Connect Socket without token -> Disconnected.
+  - Connect Socket with valid token -> Authenticated.
+  - Fetch Stats -> Returns correct structure with aggregated data.
+
+## Files Modified
+- `backend/src/game/gateway/game.gateway.ts`
+- `backend/src/game/game.module.ts`
+- `backend/src/user/user.service.ts`
+- `backend/src/user/user.module.ts`
+- `backend/src/game/match/match.repository.ts`
+
+## Files Created
+- `backend/src/user/user.controller.ts`
+- `docs/phase20.3_integration_guide.md`
+
+---
+
+**Status**: ✅ Phase 20 Complete (User System & Integration Ready)

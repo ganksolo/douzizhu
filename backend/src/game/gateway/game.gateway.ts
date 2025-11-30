@@ -14,6 +14,7 @@ import { GameManagerService } from '../services/game-manager.service';
 import { StateSerializer } from '../services/state-serializer.service';
 import { ActionPipelineService } from '../engine/action-pipeline/action-pipeline.service';
 import { UserAction } from '../types/game.types';
+import { AuthService } from '../../auth/auth.service';
 
 @WebSocketGateway({
     cors: {
@@ -31,6 +32,7 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect, On
         private gameManager: GameManagerService,
         private stateSerializer: StateSerializer,
         private actionPipeline: ActionPipelineService,
+        private authService: AuthService,
     ) { }
 
     afterInit() {
@@ -48,7 +50,27 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect, On
 
     handleConnection(client: Socket) {
         this.logger.log(`Client connected: ${client.id}`);
-        // In a real app, we would parse token from query params here
+
+        // Extract token from query or auth header
+        const token = client.handshake.auth?.token || client.handshake.query?.token;
+
+        if (!token) {
+            this.logger.warn(`Client ${client.id} missing token. Disconnecting...`);
+            client.disconnect();
+            return;
+        }
+
+        const payload = this.authService.verifyToken(token as string);
+        if (!payload) {
+            this.logger.warn(`Client ${client.id} invalid token. Disconnecting...`);
+            client.disconnect();
+            return;
+        }
+
+        // Store user info in socket data
+        client.data.userId = payload.sub;
+        client.data.username = payload.username;
+        this.logger.log(`Client ${client.id} authenticated as ${payload.username} (${payload.sub})`);
     }
 
     handleDisconnect(client: Socket) {
@@ -57,15 +79,25 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect, On
 
     @SubscribeMessage('join_room')
     async handleJoinRoom(
-        @MessageBody() data: { roomId: string; playerId: string },
+        @MessageBody() data: { roomId: string },
         @ConnectedSocket() client: Socket,
     ) {
         try {
-            const { roomId, playerId } = data;
+            const { roomId } = data;
+            // Use authenticated userId
+            const playerId = client.data.userId;
+            const username = client.data.username;
+
+            if (!playerId) {
+                throw new Error('User not authenticated');
+            }
+
             client.join(roomId);
-            client.data.playerId = playerId;
             client.data.roomId = roomId;
-            this.logger.log(`Player ${playerId} joined room ${roomId}`);
+            // client.data.playerId is already set as userId, but let's keep consistency if needed
+            client.data.playerId = playerId;
+
+            this.logger.log(`Player ${username} (${playerId}) joined room ${roomId}`);
 
             const gameContext = this.gameManager.getOrCreateRoom(roomId);
 
@@ -99,7 +131,7 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect, On
             if (!existingPlayer) {
                 gameContext.roomData.players.push({
                     id: playerId,
-                    name: playerId,
+                    name: username || `User-${playerId}`,
                     hand: [],
                     isReady: true
                 });

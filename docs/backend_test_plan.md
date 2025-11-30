@@ -1,8 +1,8 @@
 # Backend Test Plan (Phase 15, 16 & 17)
 
-**Version**: 2.5  
-**Last Updated**: 2025-11-30 16:09  
-**Scope**: Backend Game Engine, Rules Service, AI Core, Action Pipeline, Integration, Match History, User Infrastructure & Auth (Phase 20.2)
+**Version**: 2.6  
+**Last Updated**: 2025-11-30 16:15  
+**Scope**: Backend Game Engine, Rules Service, AI Core, Action Pipeline, Integration, Match History, User Infrastructure, Auth & Stats (Phase 20.3)
 
 ## 1. Introduction
 This document outlines the test plan for the Dou Dizhu backend game engine. It solidifies the verification work done in Phase 15 and serves as a baseline for future automated testing (CI/CD).
@@ -601,6 +601,37 @@ npm test src/game/match/match.repository.spec.ts
 1. ✅ **JWT Generation**: Token contains correct payload (sub, username)
 2. ✅ **Guest Flow**: Seamless guest login without password
 3. ✅ **Guard Integration**: Controller uses `AuthGuard` (verified via override in test)
+
+---
+
+### 5.18 System Integration & Statistics (Phase 20.3)
+
+**Scope**: Verify `UserController` stats endpoint and `UserService` aggregation logic.
+**Files**: 
+- `backend/src/user/user.controller.ts`
+- `backend/src/user/user.service.ts`
+- `backend/src/user/user.controller.spec.ts`
+- `backend/src/user/user.service.spec.ts`
+- `backend/docs/phase20.3_integration_guide.md` (QA Handoff)
+**Last Executed**: 2025-11-30 16:15
+**Status**: ✅ **PASSED**
+
+| Test Case | Description | Result |
+|-----------|-------------|--------|
+| **STATS-001** | `getUserStats` aggregates user info and match stats | ✅ PASS |
+| **STATS-002** | `GET /user/:id/stats` returns 200 OK with correct structure | ✅ PASS |
+| **STATS-003** | `GET /user/:id/stats` throws 404 for missing user | ✅ PASS |
+| **INTEG-001** | `UserService` correctly calls `MatchRepository` | ✅ PASS |
+
+**Test Execution Summary**:
+- **Total Tests**: 7 (UserService + UserController)
+- **Pass Rate**: 100%
+- **Execution Time**: 1.06s
+
+**Key Verification Points**:
+1. ✅ **Data Aggregation**: Combines User entity and Match stats
+2. ✅ **Win Rate Calculation**: Correctly computed from total wins/matches
+3. ✅ **Dependency Injection**: `MatchRepository` properly integrated into `UserService`
 
 
 - **Method**: 

@@ -117,4 +117,21 @@ export class MatchRepository {
             .orderBy('match.startTime', 'DESC')
             .getMany();
     }
+    /**
+     * Get aggregated stats for a player
+     * @param playerId Player ID
+     * @returns Object with total matches and wins
+     */
+    async getPlayerStats(playerId: string): Promise<{ totalMatches: number; totalWins: number }> {
+        const totalMatches = await this.repository
+            .createQueryBuilder('match')
+            .where(`JSON_SEARCH(match.playersJson, 'one', :playerId, NULL, '$[*].userId') IS NOT NULL`, { playerId })
+            .getCount();
+
+        const totalWins = await this.repository.count({
+            where: { winnerPlayerId: playerId },
+        });
+
+        return { totalMatches, totalWins };
+    }
 }

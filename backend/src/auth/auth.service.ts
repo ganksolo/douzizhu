@@ -35,4 +35,15 @@ export class AuthService {
     async validateUser(userId: string): Promise<User | null> {
         return await this.userService.findById(userId);
     }
+
+    /**
+     * Verify JWT token and return payload
+     */
+    verifyToken(token: string): any {
+        try {
+            return this.jwtService.verify(token);
+        } catch (e) {
+            return null;
+        }
+    }
 }

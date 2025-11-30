@@ -316,6 +316,23 @@ Implement a robust user system with guest/password authentication and comprehens
 #### Documentation
 - `docs/phase20.2_auth_guide.md`: API guide for authentication
 
+### Phase 20.3: System Integration (✅ **COMPLETED**)
+
+#### Socket Authentication
+- **Component**: `GameGateway`
+- **Logic**: Verify JWT in `handleConnection`, reject invalid clients.
+- **Identity**: Map `client.id` to `userId` for game actions.
+
+#### Statistics Aggregation
+- **Component**: `UserService` + `MatchRepository`
+- **Logic**:
+  - `getPlayerStats(userId)`: Count matches and wins.
+  - `getUserStats(userId)`: Combine User Profile + Aggregated Stats + Recent History.
+- **Endpoint**: `GET /user/:id/stats`
+
+#### Documentation
+- `docs/phase20.3_integration_guide.md`: Integration guide for Socket & Stats.
+
 ---
 
 # Phase 14: Backend Development
@@ -589,8 +606,21 @@ Implement a comprehensive user management system supporting guest/password authe
 #### Documentation
 - `docs/phase20.2_auth_guide.md`: API guide for authentication
 
-### Phase 20.3: Statistics (Planned)
-- Add `stats` JSON column to `user` table
-- Track wins, losses, win rate, rank
-- Update stats on game end (integration with `MatchService`)
+### Phase 20.3: Statistics (✅ **COMPLETED**)
+
+#### Features
+- **Aggregated Stats**: Calculated on-the-fly via `MatchRepository`
+- **Socket Auth**: `GameGateway` verifies JWT on connection
+- **User API**: `GET /user/:id/stats`
+
+#### [MODIFY] `backend/src/user/user.service.ts`
+- Injected `MatchRepository`
+- Added `getUserStats(userId)` method
+
+#### [MODIFY] `backend/src/game/gateway/game.gateway.ts`
+- Added `handleConnection` with JWT verification
+- Stores `userId` in socket data
+
+#### Documentation
+- `docs/phase20.3_integration_guide.md`: Integration guide
 

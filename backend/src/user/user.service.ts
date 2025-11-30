@@ -1,11 +1,13 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { UserRepository } from './user.repository';
 import { User, AuthType } from './user.entity';
+import { MatchRepository } from '../game/match/match.repository';
 
 @Injectable()
 export class UserService {
     constructor(
         private readonly userRepository: UserRepository,
+        private readonly matchRepository: MatchRepository,
     ) { }
 
     /**
@@ -47,5 +49,28 @@ export class UserService {
      */
     async updateLastLogin(id: string): Promise<void> {
         await this.userRepository.update(id, { lastLogin: new Date() });
+    }
+
+    /**
+     * Get user statistics
+     */
+    async getUserStats(userId: string) {
+        const user = await this.findById(userId);
+        const stats = await this.matchRepository.getPlayerStats(userId);
+        const recentMatches = await this.matchRepository.findByPlayerId(userId, 10);
+
+        return {
+            user: {
+                id: user.id,
+                nickname: user.nickname,
+                avatar: user.avatar,
+            },
+            stats: {
+                totalMatches: stats.totalMatches,
+                totalWins: stats.totalWins,
+                winRate: stats.totalMatches > 0 ? (stats.totalWins / stats.totalMatches) : 0,
+            },
+            recentMatches,
+        };
     }
 }
