@@ -9,12 +9,14 @@ import { HealthController } from './health/health.controller';
 import { GameModule } from './game/game.module';
 import { MatchModule } from './game/match/match.module';
 import { UserModule } from './user/user.module';
+import { AuthModule } from './auth/auth.module';
 
 @Module({
   imports: [
     GameModule,
     MatchModule,
     UserModule,
+    AuthModule,
     // Environment configuration
     ConfigModule.forRoot({
       isGlobal: true,

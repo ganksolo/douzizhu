@@ -718,3 +718,54 @@ Established the foundation for the User System, including the database schema, T
 ---
 
 **Status**: ✅ Phase 20.1 Complete (User Infrastructure Ready)
+
+---
+
+# Phase 20.2: Authentication & JWT
+
+## Overview
+Implemented a secure authentication system using JWT (JSON Web Tokens). Supports guest login (auto-registration) and protected routes via NestJS Guards.
+
+## Steps Executed
+
+### 1. Auth Module Setup
+- **Dependencies**: Installed `@nestjs/jwt`, `@nestjs/passport`, `passport`, `passport-jwt`.
+- **Configuration**: Configured `JwtModule` with secret key and expiration (7 days).
+
+### 2. Core Logic
+- **Service**: `AuthService.guestLogin()`
+  - Calls `UserService.createGuest()`
+  - Generates JWT containing `sub` (userId) and `username`
+- **Strategy**: `JwtStrategy`
+  - Extracts Bearer Token from Authorization header
+  - Validates signature and expiration
+  - Injects user payload into `req.user`
+
+### 3. API Implementation
+- **Controller**: `AuthController`
+- **Endpoints**:
+  - `POST /auth/guest-login`: Public endpoint for guest access
+  - `GET /auth/me`: Protected endpoint returning current profile
+
+## Verification
+
+### 1. API Testing
+- **QA Handoff**: `docs/phase20.2_auth_guide.md`
+- **Scenario**: 
+  1. Call `guest-login` -> Receive Token
+  2. Call `me` with Token -> Receive Profile
+  3. Call `me` without Token -> Receive 401 Unauthorized
+
+## Files Created
+- `backend/src/auth/auth.module.ts`
+- `backend/src/auth/auth.service.ts`
+- `backend/src/auth/auth.controller.ts`
+- `backend/src/auth/jwt.strategy.ts`
+- `docs/phase20.2_auth_guide.md`
+
+## Files Modified
+- `backend/src/app.module.ts` (Imported AuthModule)
+
+---
+
+**Status**: ✅ Phase 20.2 Complete (Authentication Ready)

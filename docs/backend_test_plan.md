@@ -1,8 +1,8 @@
 # Backend Test Plan (Phase 15, 16 & 17)
 
-**Version**: 2.4  
-**Last Updated**: 2025-11-30 16:00  
-**Scope**: Backend Game Engine, Rules Service, AI Core, Action Pipeline, Integration, Match History & User Infrastructure (Phase 20.1)
+**Version**: 2.5  
+**Last Updated**: 2025-11-30 16:09  
+**Scope**: Backend Game Engine, Rules Service, AI Core, Action Pipeline, Integration, Match History, User Infrastructure & Auth (Phase 20.2)
 
 ## 1. Introduction
 This document outlines the test plan for the Dou Dizhu backend game engine. It solidifies the verification work done in Phase 15 and serves as a baseline for future automated testing (CI/CD).
@@ -570,6 +570,37 @@ npm test src/game/match/match.repository.spec.ts
 1. ✅ **Guest Creation**: Correctly sets `AuthType.GUEST` and default values
 2. ✅ **Error Handling**: Proper exceptions for missing users
 3. ✅ **Schema Compliance**: Entity matches SQL schema definition
+
+---
+
+### 5.17 Authentication & JWT (Phase 20.2)
+
+**Scope**: Verify `AuthService` logic, `AuthController` endpoints, and JWT integration.
+**Files**: 
+- `backend/src/auth/auth.service.ts`
+- `backend/src/auth/auth.controller.ts`
+- `backend/src/auth/auth.service.spec.ts`
+- `backend/src/auth/auth.controller.spec.ts`
+- `backend/docs/phase20.2_auth_guide.md` (QA Handoff)
+**Last Executed**: 2025-11-30 16:09
+**Status**: ✅ **PASSED**
+
+| Test Case | Description | Result |
+|-----------|-------------|--------|
+| **AUTH-001** | `guestLogin` creates user and returns JWT | ✅ PASS |
+| **AUTH-002** | `validateUser` returns user object | ✅ PASS |
+| **AUTH-003** | `POST /auth/guest-login` returns 200 OK with token | ✅ PASS |
+| **AUTH-004** | `GET /auth/me` returns user profile (mocked guard) | ✅ PASS |
+
+**Test Execution Summary**:
+- **Total Tests**: 4
+- **Pass Rate**: 100%
+- **Execution Time**: 1.141s
+
+**Key Verification Points**:
+1. ✅ **JWT Generation**: Token contains correct payload (sub, username)
+2. ✅ **Guest Flow**: Seamless guest login without password
+3. ✅ **Guard Integration**: Controller uses `AuthGuard` (verified via override in test)
 
 
 - **Method**: 

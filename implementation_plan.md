@@ -300,6 +300,22 @@ Implement a robust user system with guest/password authentication and comprehens
 #### [MODIFY] `backend/src/app.module.ts`
 - Imported `UserModule`
 
+### Phase 20.2: Authentication & JWT (✅ **COMPLETED**)
+
+#### Auth Architecture
+- **Dependencies**: `@nestjs/jwt`, `@nestjs/passport`, `passport`, `passport-jwt`
+- **Strategy**: `JwtStrategy` (Bearer Token)
+- **Guard**: `AuthGuard('jwt')`
+
+#### [NEW] `backend/src/auth/`
+- `auth.service.ts`: Handles `guestLogin` logic
+- `auth.controller.ts`: Exposes `/auth/guest-login` and `/auth/me`
+- `jwt.strategy.ts`: Validates tokens
+- `auth.module.ts`: Configures JWT and imports UserModule
+
+#### Documentation
+- `docs/phase20.2_auth_guide.md`: API guide for authentication
+
 ---
 
 # Phase 14: Backend Development
@@ -557,10 +573,21 @@ Implement a comprehensive user management system supporting guest/password authe
 - `createGuest()`: Generates random nickname/avatar
 - `updateProfile()`: Handles user profile changes
 
-### Phase 20.2: Authentication & JWT (Planned)
-- Implement `AuthService` with JWT generation
-- Create `JwtStrategy` and `JwtAuthGuard`
-- Endpoints: `POST /auth/login`, `POST /auth/guest`
+### Phase 20.2: Authentication & JWT (✅ **COMPLETED**)
+
+#### Auth Architecture
+- **Dependencies**: `@nestjs/jwt`, `@nestjs/passport`, `passport`, `passport-jwt`
+- **Strategy**: `JwtStrategy` (Bearer Token)
+- **Guard**: `AuthGuard('jwt')`
+
+#### [NEW] `backend/src/auth/`
+- `auth.service.ts`: Handles `guestLogin` logic
+- `auth.controller.ts`: Exposes `/auth/guest-login` and `/auth/me`
+- `jwt.strategy.ts`: Validates tokens
+- `auth.module.ts`: Configures JWT and imports UserModule
+
+#### Documentation
+- `docs/phase20.2_auth_guide.md`: API guide for authentication
 
 ### Phase 20.3: Statistics (Planned)
 - Add `stats` JSON column to `user` table

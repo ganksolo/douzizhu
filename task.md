@@ -295,3 +295,10 @@
         - [x] Implement UserService (createGuest, findById) <!-- id: 294 -->
         - [x] Create QA Handoff (SQL Schema) <!-- id: 295 -->
 
+    - [x] Phase 20.2: Authentication & JWT <!-- id: 296 -->
+        - [x] Install dependencies (@nestjs/jwt, passport) <!-- id: 297 -->
+        - [x] Implement AuthService (guestLogin, JWT generation) <!-- id: 298 -->
+        - [x] Implement JwtStrategy & AuthGuard <!-- id: 299 -->
+        - [x] Implement AuthController (POST /auth/guest-login) <!-- id: 300 -->
+        - [x] Create QA Handoff (Login Response Example) <!-- id: 301 -->
+
