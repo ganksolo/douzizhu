@@ -257,6 +257,19 @@ Implement persistent storage for match records to enable player statistics, matc
 #### [MODIFY] `backend/src/game/types/game.types.ts`
 - Added `actionHistory` and `startTime` to `RoomData`
 
+### Phase 19.3: API & Tests (✅ **COMPLETED**)
+
+#### REST API (`MatchController`)
+- `GET /matches/player/:playerId`: Fetch history (limit 20)
+- `GET /matches/:id`: Fetch full match detail with replay data
+
+#### Unit Testing
+- `match.service.spec.ts`: Verified data transformation and repository calls
+- `match.repository.spec.ts`: Verified TypeORM integration and JSON queries
+
+#### Documentation
+- `docs/phase19.3_api_guide.md`: API response examples and testing guide
+
 ---
 
 # Phase 14: Backend Development

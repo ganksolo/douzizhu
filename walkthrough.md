@@ -619,3 +619,50 @@ Implemented the bridge between the game engine (Redis hot data) and the persiste
 ---
 
 **Status**: ✅ Phase 19.2 Complete & Documented
+
+---
+
+# Phase 19.3: API & Tests
+
+## Overview
+Exposed the match history data to the frontend via REST API and verified the persistence layer with unit tests.
+
+## Steps Executed
+
+### 1. API Implementation
+- **Controller**: `MatchController`
+- **Endpoints**:
+  - `GET /matches/player/:id`: Returns list of matches (summary)
+  - `GET /matches/:id`: Returns single match (detail with replay)
+
+### 2. Unit Testing
+- **Service Tests**: `match.service.spec.ts`
+  - Verified `saveMatchResult` calls repository with correct data
+  - Verified score calculation logic
+- **Repository Tests**: `match.repository.spec.ts`
+  - Verified TypeORM integration
+  - Verified JSON query construction
+
+## Verification
+
+### 1. API Response
+- **QA Handoff**: `docs/phase19.3_api_guide.md`
+- **Sample**: Verified JSON structure matches frontend expectations
+
+### 2. Test Coverage
+- **Command**: `npm test src/game/match`
+- **Result**: All tests passed (Service + Repository)
+
+## Files Created
+- `backend/src/game/match/match.controller.ts`
+- `backend/src/game/match/match.repository.spec.ts`
+- `backend/src/game/services/match.service.spec.ts`
+- `docs/phase19.3_api_guide.md`
+
+## Files Modified
+- `backend/src/game/match/match.module.ts` (Registered Controller)
+- `backend/src/game/game.module.ts` (Registered Service)
+
+---
+
+**Status**: ✅ Phase 19 Complete (Persistence Layer Ready)

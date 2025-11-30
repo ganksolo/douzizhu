@@ -501,7 +501,27 @@ Authorization: Bearer <REFRESH_TOKEN>
 
 ---
 
-## WebSocket Protocol
+## 4. Match History API
+
+### 4.1 Get Player History
+Retrieves recent match history for a specific player.
+
+- **URL**: `/matches/player/:playerId`
+- **Method**: `GET`
+- **Query Params**:
+  - `limit` (optional): Number of records (default 20, max 50)
+- **Response**: `MatchRecord[]`
+
+### 4.2 Get Match Detail
+Retrieves full details of a specific match, including replay actions.
+
+- **URL**: `/matches/:id`
+- **Method**: `GET`
+- **Response**: `MatchRecord`
+
+---
+
+## 5. WebSocket Events
 
 ### Connection
 

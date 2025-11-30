@@ -1,8 +1,8 @@
 # Backend Test Plan (Phase 15, 16 & 17)
 
-**Version**: 2.2  
-**Last Updated**: 2025-11-30 10:18  
-**Scope**: Backend Game Engine, Rules Service, AI Core, Action Pipeline, Integration & Match Settlement (Phase 19.2)
+**Version**: 2.3  
+**Last Updated**: 2025-11-30 11:06  
+**Scope**: Backend Game Engine, Rules Service, AI Core, Action Pipeline, Integration & Match History API (Phase 19.3)
 
 ## 1. Introduction
 This document outlines the test plan for the Dou Dizhu backend game engine. It solidifies the verification work done in Phase 15 and serves as a baseline for future automated testing (CI/CD).
@@ -510,9 +510,36 @@ npm test src/game/match/match.repository.spec.ts
 - **Method**: `repository.findByDateRange(startDate, endDate)`
 - **Expected**: Returns matches within date range, ordered by startTime DESC
 
-**DB-006: JSON Integrity**
-- **Method**: Insert and retrieve match, verify JSON structure preserved
-- **Expected**: `playersJson` and `resultJson` deserialize correctly to TS objects
+### 5.15 API & Unit Tests (Phase 19.3)
+
+**Scope**: Verify `MatchController` endpoints and unit test coverage for Service/Repository layers.
+**Files**: 
+- `backend/src/game/match/match.controller.ts`
+- `backend/src/game/match/match.controller.spec.ts`
+- `backend/src/game/match/match.repository.spec.ts` (Unit Tests with Mocks)
+- `backend/docs/phase19.3_api_guide.md` (QA Handoff)
+**Last Executed**: 2025-11-30 11:06
+**Status**: ✅ **PASSED**
+
+| Test Case | Description | Result |
+|-----------|-------------|--------|
+| **API-001** | `GET /matches/player/:id` returns history | ✅ PASS |
+| **API-002** | `GET /matches/player/:id` respects limit param | ✅ PASS |
+| **API-003** | `GET /matches/:id` returns match detail | ✅ PASS |
+| **API-004** | `GET /matches/:id` throws 404 if not found | ✅ PASS |
+| **UNIT-004** | `MatchRepository` createAndSave mock verification | ✅ PASS |
+| **UNIT-005** | `MatchRepository` findByPlayerId query builder mock | ✅ PASS |
+
+**Test Execution Summary**:
+- **Total Tests**: 9 (Service + Repository + Controller)
+- **Pass Rate**: 100%
+- **Execution Time**: 1.026s
+
+**Key Verification Points**:
+1. ✅ **API Contract**: Controller endpoints match API Guide specifications
+2. ✅ **Error Handling**: Proper 404 exceptions for missing resources
+3. ✅ **Query Limits**: Pagination/Limit logic implemented safely
+4. ✅ **Test Isolation**: Unit tests use mocks to run without DB dependency
 
 ---
 

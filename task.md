@@ -282,3 +282,9 @@
         - [x] Integrate PlayActionHandler -> GameEndState transition <!-- id: 281 -->
         - [x] Create QA Handoff (Data Mapping Table) <!-- id: 282 -->
 
+    - [x] Phase 19.3: API & Tests <!-- id: 283 -->
+        - [x] Implement MatchController (GET /matches/player/:id, GET /matches/:id) <!-- id: 284 -->
+        - [x] Create Unit Tests for MatchService (Mock Repository) <!-- id: 285 -->
+        - [x] Create Unit Tests for MatchRepository (JSON Serialization) <!-- id: 286 -->
+        - [x] Create QA Handoff (API Response Examples) <!-- id: 287 -->
+
