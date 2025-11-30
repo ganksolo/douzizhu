@@ -5,6 +5,7 @@ import { GameAction } from '../../types/game.types';
 import { RulesService } from '../../services/rules.service';
 import { TurnManager } from '../turn-manager';
 import { CardConverter } from '../../utils/card-converter';
+import { GameEndState } from '../states/game-end.state';
 
 @Injectable()
 export class PlayActionHandler implements ActionHandler {
@@ -12,7 +13,8 @@ export class PlayActionHandler implements ActionHandler {
 
     constructor(
         private rulesService: RulesService,
-        private turnManager: TurnManager
+        private turnManager: TurnManager,
+        private gameEndState: GameEndState,
     ) { }
 
     handle(context: GameContext, action: GameAction): void {
@@ -24,12 +26,6 @@ export class PlayActionHandler implements ActionHandler {
         }
 
         // 2. Validate Move
-        // Payload is expected to be Card[] (from InputNormalizer)
-        // But RulesService.validateMove expects Card[]
-        // Let's verify payload type. InputNormalizer converts to Card[].
-        // So we can cast payload to Card[].
-
-        // Wait, validateMove signature: validateMove(context, playerId, cards: Card[])
         const cards = payload; // Assuming Card[]
 
         const validation = this.rulesService.validateMove(context, playerId, cards);
@@ -41,8 +37,6 @@ export class PlayActionHandler implements ActionHandler {
         this.logger.log(`Player ${playerId} played ${cards.length} cards.`);
 
         // Update Last Played
-        // Note: We need to convert Card[] back to string[] for RoomData storage if RoomData uses string[]
-        // RoomData.lastPlayedCards.cards is string[]
         const cardStrings = cards.map(c => CardConverter.toString(c));
 
         context.roomData.lastPlayedCards = {
@@ -70,10 +64,7 @@ export class PlayActionHandler implements ActionHandler {
         const winner = this.turnManager.checkGameEnd(context);
         if (winner) {
             this.logger.log(`Game Over! Winner: ${winner.name}`);
-            // TODO: Transition to GameEndState
-            // For now, just log it. The State Machine should handle transition.
-            // Maybe we emit an event or set a flag in context?
-            // context.roomData.winner = winner.id;
+            context.transitionTo(this.gameEndState);
         } else {
             // 5. Advance Turn
             this.turnManager.nextTurn(context);

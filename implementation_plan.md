@@ -230,6 +230,35 @@ Implement persistent storage for match records to enable player statistics, matc
 
 ---
 
+### Phase 19.2: Settlement Logic & State Machine Integration (✅ **COMPLETED**)
+
+#### Data Transformation (Redis -> MySQL)
+- **Source**: `RoomData` (Redis hot data)
+- **Target**: `MatchRecord` (MySQL cold storage)
+- **Key Logic**:
+  - `actionHistory`: Tracked in `ActionPipelineService`, persisted to `resultJson.actions`
+  - `score`: Calculated based on winner, role, and multiplier
+  - `winMethod`: Detected (Spring/Anti-Spring/Normal) based on opponent hand counts
+
+#### [NEW] `backend/src/game/engine/states/game-end.state.ts`
+- **Trigger**: Transitioned from `PlayActionHandler` when `TurnManager.checkGameEnd()` returns true
+- **Action**: Calls `MatchService.saveMatchResult()` asynchronously
+- **Safety**: Catches errors to prevent game loop crash
+
+#### [MODIFY] `backend/src/game/services/match.service.ts`
+- Implemented `saveMatchResult()`
+- Handles data mapping and repository calls
+- Error handling for database failures
+
+#### [MODIFY] `backend/src/game/engine/action-handlers/play-handler.ts`
+- Injected `GameEndState`
+- Transitions to end state upon victory detection
+
+#### [MODIFY] `backend/src/game/types/game.types.ts`
+- Added `actionHistory` and `startTime` to `RoomData`
+
+---
+
 # Phase 14: Backend Development
 
 ## Goal

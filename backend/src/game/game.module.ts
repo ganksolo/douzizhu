@@ -17,6 +17,8 @@ import { ActionPipelineService } from './engine/action-pipeline/action-pipeline.
 import { TurnManager } from './engine/turn-manager';
 import { PlayActionHandler } from './engine/action-handlers/play-handler';
 import { PassActionHandler } from './engine/action-handlers/pass-handler';
+import { MatchService } from './services/match.service';
+import { GameEndState } from './engine/states/game-end.state';
 
 @Module({
     providers: [
@@ -32,11 +34,13 @@ import { PassActionHandler } from './engine/action-handlers/pass-handler';
         InitState,
         DealingState,
         PlayingState,
+        GameEndState,
         InputNormalizer,
         ActionPipelineService,
         TurnManager,
         PlayActionHandler,
         PassActionHandler,
+        MatchService,
     ],
     exports: [GameContext, GameManagerService, RulesService, AIService],
 })

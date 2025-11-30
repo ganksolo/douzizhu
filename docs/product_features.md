@@ -47,6 +47,15 @@
 *   **防作弊机制 (战争迷雾)** - [服务端严格控制数据发送，玩家只能收到自己的手牌数据，杜绝抓包看牌作弊] - [实现阶段: Phase 15]
 *   **断线重连与状态恢复** - [游戏状态实时保存至服务器（Redis），意外刷新或断线后可无缝恢复当前对局] - [实现阶段: Phase 15]
 
+## 4. Match History & Replay (New)
+**Status**: Backend Ready (Phase 19.2)
+
+- **Automatic Recording**: Every completed game is automatically saved to the database.
+- **Detailed Stats**: Records include winner, scores, duration, and win method (Spring/Anti-Spring).
+- **Full Replay**: Stores every action (Play/Pass) with timestamps, allowing for complete game replay.
+- **Data Persistence**: Uses MySQL for reliable long-term storage of player history.
+
+## 5. Technical Stack
 ### 2.5 技术基建 (Technical Infrastructure)
 > 稳健的底层架构,保障游戏的高性能与可扩展性。
 
@@ -74,5 +83,6 @@
 *   **Phase 18.2 (回合管理)**: 实现了 `TurnManager` 和策略模式的动作处理器 (`PlayActionHandler`, `PassActionHandler`)。支持标准的逆时针轮转、连续跳过清空（Free Turn）逻辑以及游戏结束判定，确保游戏流转符合四人斗地主规则。
 *   **Phase 18.3 (集成与持久化)**: 完成了动作管线的完整集成。实现了 Redis 分布式锁（SET NX PX）防止并发冲突、原子写入保证数据一致性、自动回滚策略（失败时 Redis 保留旧状态），并与 GameGateway 集成实现状态广播。确保了多人在线游戏的高可用性和数据安全性。
 *   **Phase 19.1 (数据持久化基础)**: 建立了对局历史记录的数据持久化层。设计了 MySQL `match_record` 表结构，支持 JSON 列存储玩家快照和完整对局数据；实现了 TypeORM 实体和仓储层，支持通过玩家 ID (JSON_SEARCH)、房间 ID (索引查询)、日期范围等多维度查询历史记录，为后续的战绩统计和回放功能奠定基础。
+*   **Phase 19.2 (结算与状态机)**: 实现了游戏结算逻辑与状态机集成。开发了 `MatchService` 负责将热数据 (RoomData) 转换为冷存储 (MatchRecord)，实现了地主/农民积分计算公式及"春天/反春"判定逻辑；集成了 `GameEndState`，确保游戏结束时自动触发异步持久化流程，实现了完整的游戏生命周期闭环。
 
 

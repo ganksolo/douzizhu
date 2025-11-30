@@ -560,3 +560,62 @@ mysql> DESCRIBE match_record;
 ---
 
 **Status**: ✅ Phase 19.1 Complete & Documented
+
+---
+
+# Phase 19.2: Settlement Logic & State Machine Integration
+
+## Overview
+Implemented the bridge between the game engine (Redis hot data) and the persistence layer (MySQL cold storage). This ensures that every finished game is automatically saved with full replay data.
+
+## Steps Executed
+
+### 1. Data Transformation Logic
+- **Component**: `MatchService`
+- **Function**: `saveMatchResult(roomData, winnerId, startTime)`
+- **Logic**:
+  - Converts `RoomData.players` -> `PlayerSnapshot[]`
+  - Calculates scores based on role (Landlord/Peasant) and multiplier
+  - Detects win method (Spring/Anti-Spring/Normal)
+  - Extracts `actionHistory` for replay
+
+### 2. State Machine Integration
+- **New State**: `GameEndState`
+  - Triggered when `TurnManager` detects a winner
+  - Calls `MatchService.saveMatchResult` asynchronously (Fire-and-forget)
+  - Cleans up temporary room data
+- **Transition**:
+  - `PlayActionHandler` now transitions to `GameEndState` instead of just logging "Game Over"
+
+### 3. Data Tracking Enhancements
+- **RoomData Updates**:
+  - Added `startTime` (Set in `DealingState`)
+  - Added `actionHistory` (Tracked in `ActionPipelineService`)
+
+## Verification
+
+### 1. Game Flow
+- **Start**: `DealingState` sets `startTime`
+- **Play**: `ActionPipelineService` records every move to `actionHistory`
+- **End**: `PlayActionHandler` detects 0 cards -> Transitions to `GameEndState`
+- **Save**: `GameEndState` triggers `MatchService` -> `MatchRepository` -> MySQL
+
+### 2. Data Integrity
+- **QA Handoff**: `docs/phase19.2_settlement_mapping.md`
+- **Mapping**: Verified Redis fields map correctly to MySQL JSON columns
+
+## Files Created
+- `backend/src/game/services/match.service.ts`
+- `backend/src/game/engine/states/game-end.state.ts`
+- `docs/phase19.2_settlement_mapping.md`
+
+## Files Modified
+- `backend/src/game/game.module.ts` (Registered new providers)
+- `backend/src/game/types/game.types.ts` (Added tracking fields)
+- `backend/src/game/engine/states/dealing.state.ts` (Set startTime)
+- `backend/src/game/engine/action-pipeline/action-pipeline.service.ts` (Track history)
+- `backend/src/game/engine/action-handlers/play-handler.ts` (Trigger end state)
+
+---
+
+**Status**: ✅ Phase 19.2 Complete & Documented

@@ -17,6 +17,7 @@ export class DealingState extends BaseState {
 
     enter(context: GameContext): void {
         this.logger.log('Entering DealingState. Shuffling deck...');
+        context.roomData.startTime = new Date();
         this.shuffleDeck(context);
     }
 

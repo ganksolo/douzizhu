@@ -79,6 +79,12 @@ export class ActionPipelineService {
             this.routeToHandler(context, action);
             this.logger.log(`[Pipeline] Handler execution completed for ${action.type}`);
 
+            // Track action history for replay
+            if (!context.roomData.actionHistory) {
+                context.roomData.actionHistory = [];
+            }
+            context.roomData.actionHistory.push(action);
+
             // Step 5: Atomic Write to Redis
             this.logger.debug(`[Pipeline] Step 5: Writing updated state to Redis`);
             await context.saveSnapshot();

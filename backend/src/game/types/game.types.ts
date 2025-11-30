@@ -51,4 +51,6 @@ export interface RoomData {
     };
     multiplier: number;
     isAIThinking?: boolean;
+    actionHistory?: GameAction[]; // Track all actions for replay
+    startTime?: Date; // Match start time
 }

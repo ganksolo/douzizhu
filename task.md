@@ -275,3 +275,10 @@
         - [x] Implement match.repository.ts (CRUD + JSON queries) <!-- id: 275 -->
         - [x] Create QA Handoff (Schema Verification Checklist) <!-- id: 276 -->
 
+    - [x] Phase 19.2: Settlement Logic & State Machine Integration <!-- id: 277 -->
+        - [x] Update RoomData with actionHistory and startTime <!-- id: 278 -->
+        - [x] Implement MatchService.saveMatchResult() (Data Transformation) <!-- id: 279 -->
+        - [x] Implement GameEndState (Async Persistence Trigger) <!-- id: 280 -->
+        - [x] Integrate PlayActionHandler -> GameEndState transition <!-- id: 281 -->
+        - [x] Create QA Handoff (Data Mapping Table) <!-- id: 282 -->
+

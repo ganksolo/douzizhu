@@ -1,8 +1,8 @@
 # Backend Test Plan (Phase 15, 16 & 17)
 
-**Version**: 2.1  
-**Last Updated**: 2025-11-30 09:58  
-**Scope**: Backend Game Engine, Rules Service, AI Core, Action Pipeline, Integration & Match Persistence (Phase 19.1)
+**Version**: 2.2  
+**Last Updated**: 2025-11-30 10:18  
+**Scope**: Backend Game Engine, Rules Service, AI Core, Action Pipeline, Integration & Match Settlement (Phase 19.2)
 
 ## 1. Introduction
 This document outlines the test plan for the Dou Dizhu backend game engine. It solidifies the verification work done in Phase 15 and serves as a baseline for future automated testing (CI/CD).
@@ -458,45 +458,37 @@ npm test src/game/match/match.repository.spec.ts
 
 #### Test Details:
 
-**DB-001: Table Schema Verification**
-- **Status**: ✅ PASSED (AUTO)
-- **Method**: TypeORM auto-generated table on backend restart
-- **Verification**: 
-  ```sql
-  DESCRIBE match_record;
-  ```
-- **Expected Columns**:
-  - `id` BIGINT PRIMARY KEY AUTO_INCREMENT
-  - `roomId` VARCHAR(255) with INDEX
-  - `playersJson` JSON
-  - `resultJson` JSON
-  - `startTime`, `endTime` DATETIME
-  - `duration` INT
-  - `createdAt` DATETIME
+### 5.14 Settlement Logic & State Machine (Phase 19.2)
 
-**DB-002: Insert Match Record**
-- **Method**: Use `MatchRepository.createAndSave()`
-- **Test Data**:
-  ```typescript
-  const matchData = {
-    roomId: 'test-room-123',
-    winnerPlayerId: 'player-A',
-    landlordPlayerId: 'player-A',
-    playersJson: [
-      { userId: 'player-A', role: 'landlord', score: 120, ... },
-      { userId: 'player-B', role: 'peasant', score: -40, ... }
-    ],
-    resultJson: {
-      actions: [...],
-      winMethod: 'normal',
-      multiplier: 2,
-      ...
-    },
-    startTime: new Date('2025-11-30 09:00:00'),
-    endTime: new Date('2025-11-30 09:08:00')
-  };
-  ```
-- **Expected**: Record inserted with auto-generated ID, duration = 480 seconds
+**Scope**: Verify `MatchService` data transformation, score calculation, and `GameEndState` persistence trigger.
+**Files**: 
+- `backend/src/game/services/match.service.ts`
+- `backend/src/game/services/match.service.spec.ts`
+- `backend/src/game/engine/states/game-end.state.ts`
+- `backend/src/game/engine/states/game-end.state.spec.ts`
+**Last Executed**: 2025-11-30 10:18
+**Status**: ✅ **PASSED**
+
+| Test Case | Description | Result |
+|-----------|-------------|--------|
+| **SETTLE-001** | Transform `RoomData` to `MatchRecord` (Data Mapping) | ✅ PASS |
+| **SETTLE-002** | Calculate scores for Landlord Win (+200 / -66) | ✅ PASS |
+| **SETTLE-003** | Calculate scores for Peasant Win (-200 / +66) | ✅ PASS |
+| **SETTLE-004** | Detect "Spring" win method (Opponents played 0 cards) | ✅ PASS |
+| **STATE-001** | `GameEndState` detects winner correctly | ✅ PASS |
+| **STATE-002** | `GameEndState` triggers async persistence on enter | ✅ PASS |
+| **STATE-003** | `GameEndState` clears temp data on exit | ✅ PASS |
+
+**Test Execution Summary**:
+- **Total Tests**: 7
+- **Pass Rate**: 100%
+- **Execution Time**: 0.832s
+
+**Key Verification Points**:
+1. ✅ **Data Mapping**: Correctly maps hot Redis data to cold MySQL schema
+2. ✅ **Score Logic**: Implements Landlord vs Peasants scoring formula
+3. ✅ **Win Method**: Correctly identifies Normal vs Spring victories
+4. ✅ **Async Persistence**: Save operation does not block game loop (Fire-and-forget)
 
 **DB-003: JSON_SEARCH Query**
 - **Method**: `repository.findByPlayerId('player-A', 10)`
