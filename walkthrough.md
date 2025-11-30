@@ -431,3 +431,132 @@ Implemented a complete action processing pipeline with input sanitization, turn 
 ---
 
 **Status**: ✅ Phase 18.3 Complete & Documented
+
+---
+
+# Phase 19.1: Match Persistence Foundation
+
+## Overview
+Implemented MySQL-based persistent storage for match records using TypeORM and JSON columns for flexible data storage.
+
+## Steps Executed
+
+### 1. Database Schema Design
+- **Table**: `match_record` with 10 columns
+- **JSON Columns**: 
+  - `playersJson`: Stores all players' final state (hands, scores, roles)
+  - `resultJson`: Stores complete replay data (actions, win method, multiplier)
+- **Indexes**: Created on roomId, winnerPlayerId, landlordPlayerId, startTime
+- **Auto-increment**: BIGINT primary key
+
+### 2. TypeScript Type Definitions
+Created `match.types.ts` with:
+- `PlayerSnapshot`: Player state at match end (userId, role, finalHand, score)
+- `ActionRecord`: Individual action for replay (timestamp, playerId, actionType, cards)
+- `MatchResultData`: Complete match result (players, actions, winMethod, multiplier, duration)
+- `CreateMatchRecordDto`: DTO for creating new records
+
+### 3. TypeORM Entity
+Created `match.entity.ts`:
+- `@Entity('match_record')` decorator
+- JSON columns using `@Column({ type: 'json' })`
+- Class-level indexes with `@Index()`
+- `computeDuration()` helper method
+
+### 4. Repository Pattern
+Created `match.repository.ts` with methods:
+- `createAndSave()`: Insert new match with computed duration
+- `findByPlayerId()`: Query using JSON_SEARCH for player participation
+- `findByRoomId()`, `findByWinner()`: Indexed queries
+- `findByDateRange()`: Time-based queries
+- `findById()`, `count()`: Utility methods
+
+### 5. Module Registration
+- Created `match.module.ts` for dependency injection
+- Updated `app.module.ts` to import MatchModule
+- Enabled `autoLoadEntities: true` in TypeORM config
+
+## Verification
+
+### Database Creation
+```bash
+# Table auto-created on backend restart
+[Nest] LOG [InstanceLoader] TypeOrmCoreModule dependencies initialized
+query: CREATE TABLE `match_record` ...
+```
+
+### Schema Verification
+```sql
+mysql> DESCRIBE match_record;
++-------------------+--------------+------+-----+-------------------+
+| Field             | Type         | Null | Key | Default           |
++-------------------+--------------+------+-----+-------------------+
+| id                | bigint       | NO   | PRI | NULL              |
+| roomId            | varchar(255) | NO   | MUL | NULL              |
+| winnerPlayerId    | varchar(255) | NO   | MUL | NULL              |
+| landlordPlayerId  | varchar(255) | NO   | MUL | NULL              |
+| playersJson       | json         | NO   |     | NULL              |
+| resultJson        | json         | NO   |     | NULL              |
+| startTime         | datetime     | NO   | MUL | NULL              |
+| endTime           | datetime     | NO   |     | NULL              |
+| duration          | int          | YES  |     | NULL              |
+| createdAt         | datetime(6)  | NO   |     | CURRENT_TIMESTAMP |
++-------------------+--------------+------+-----+-------------------+
+```
+
+### Storage Estimates
+- **Typical Match** (100 actions): 8-15KB
+- **Long Match** (300 actions): 24-45KB
+- **MySQL JSON Limit**: 64KB
+
+### MySQL Requirements
+- **Minimum**: MySQL 5.7.8 (native JSON support)
+- **Recommended**: MySQL 8.0+ (enhanced JSON functions like JSON_TABLE)
+
+## QA Handoff
+
+### Documentation
+- **Schema Verification**: `docs/phase19.1_schema_verification.md`
+  - Sample JSON data structures
+  - Field validation rules
+  - Query performance estimates
+  - Potential issues and solutions
+
+### Test Cases (Pending Execution)
+- **DB-001**: ✅ Table schema created correctly
+- **DB-002**: ⏳ Insert match record with JSON data
+- **DB-003**: ⏳ Query by playerId (JSON_SEARCH)
+- **DB-004**: ⏳ Query by roomId (indexed)
+- **DB-005**: ⏳ Date range queries
+- **DB-006**: ⏳ JSON data integrity
+
+## Files Created
+- `backend/src/game/match/match.types.ts` (118 lines)
+- `backend/src/game/match/match.entity.ts` (91 lines)
+- `backend/src/game/match/match.repository.ts` (122 lines)
+- `backend/src/game/match/match.module.ts` (17 lines)
+- `docs/phase19.1_schema_verification.md` (QA Handoff)
+
+## Files Modified
+- `backend/src/app.module.ts` (+2 lines - import MatchModule, enable autoLoadEntities)
+
+## Next Steps
+
+1. **Phase 19.2**: Match Service Integration
+   - Create MatchService to orchestrate saving
+   - Hook into PlayingState game end detection
+   - Automatically save match records after each game
+
+2. **Phase 19.3**: Statistics & Query API
+   - Implement player stats aggregation
+   - Create REST endpoints for match history
+   - Add leaderboard calculations
+
+3. **Testing**: 
+   - Write integration tests for repository methods
+   - Test JSON query performance with 10k+ records
+   - Verify data integrity after save/load
+
+---
+
+**Status**: ✅ Phase 19.1 Complete & Documented

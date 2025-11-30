@@ -267,3 +267,11 @@
         - [x] Implement Error Handling & Rollback Strategy <!-- id: 265 -->
         - [x] Create QA Handoff (E2E Action Flow with Sequence Diagram) <!-- id: 266 -->
 
+- [x] Phase 19: Match History & Statistics <!-- id: 270 -->
+    - [x] Phase 19.1: Data Persistence Foundation <!-- id: 271 -->
+        - [x] Design match_record table schema (MySQL) <!-- id: 272 -->
+        - [x] Create match.types.ts (PlayerSnapshot, MatchResultData) <!-- id: 273 -->
+        - [x] Implement match.entity.ts (TypeORM Entity with JSON columns) <!-- id: 274 -->
+        - [x] Implement match.repository.ts (CRUD + JSON queries) <!-- id: 275 -->
+        - [x] Create QA Handoff (Schema Verification Checklist) <!-- id: 276 -->
+

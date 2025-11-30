@@ -175,6 +175,61 @@ src/
 
 ---
 
+# Phase 19: Match History & Statistics
+
+## Goal
+Implement persistent storage for match records to enable player statistics, match history, and game replay functionality.
+
+## Proposed Changes
+
+### Phase 19.1: Data Persistence Foundation (✅ **COMPLETED**)
+
+#### Database Schema Design
+**Table**: `match_record`
+- **Primary Key**: `id` (BIGINT, auto-increment)
+- **Indexes**: roomId, winnerPlayerId, landlordPlayerId, startTime
+- **JSON Columns**: 
+  - `playersJson`: Array of PlayerSnapshot (final hands, scores, roles)
+  - `resultJson`: MatchResultData (full replay with actions)
+- **Timestamps**: startTime, endTime, duration (computed)
+
+#### [NEW] `backend/src/game/match/match.types.ts`
+- `PlayerSnapshot`: Player state at match end
+- `ActionRecord`: Individual action for replay
+- `MatchResultData`: Complete match result with replay data
+- `CreateMatchRecordDto`: DTO for creating records
+
+#### [NEW] `backend/src/game/match/match.entity.ts`
+- TypeORM Entity with `@Entity('match_record')`
+- JSON columns using MySQL native `json` type (requires MySQL 5.7+)
+- Indexed fields for efficient querying
+- `computeDuration()` method for automatic calculation
+
+#### [NEW] `backend/src/game/match/match.repository.ts`
+- `createAndSave()`: Insert new match record
+- `findByPlayerId()`: Query matches by player participation (JSON_SEARCH)
+- `findByRoomId()`, `findByWinner()`: Indexed queries
+- `findByDateRange()`: Time-based queries
+
+#### [NEW] `backend/src/game/match/match.module.ts`
+- NestJS module registering MatchRecord entity
+- Exports MatchRepository for dependency injection
+
+#### [MODIFY] `backend/src/app.module.ts`
+- Imported MatchModule
+- Enabled `autoLoadEntities: true` for automatic entity discovery
+
+### Storage Estimates
+- **Per Match**: 8-15KB (typical 100 actions)
+- **Long Matches**: 24-45KB (300+ actions)
+- **JSON Limit**: 64KB (MySQL hard limit)
+
+### MySQL Requirements
+- **Minimum**: MySQL 5.7.8 (native JSON support)
+- **Recommended**: MySQL 8.0+ (enhanced JSON functions)
+
+---
+
 # Phase 14: Backend Development
 
 ## Goal

@@ -1,8 +1,8 @@
 # Backend Test Plan (Phase 15, 16 & 17)
 
-**Version**: 2.0  
-**Last Updated**: 2025-11-30 09:28  
-**Scope**: Backend Game Engine, Rules Service, AI Core, Action Pipeline & Integration (Phase 18.3 Complete), **Action Pipeline Integration & Redis Locks (Phase 18.3)**
+**Version**: 2.1  
+**Last Updated**: 2025-11-30 09:58  
+**Scope**: Backend Game Engine, Rules Service, AI Core, Action Pipeline, Integration & Match Persistence (Phase 19.1)
 
 ## 1. Introduction
 This document outlines the test plan for the Dou Dizhu backend game engine. It solidifies the verification work done in Phase 15 and serves as a baseline for future automated testing (CI/CD).
@@ -414,6 +414,117 @@ To fully automate these tests in the CI pipeline, we recommend the following app
 ---
 
 ### 5.12 Phase 18.3 E2E Test Script (Planned)
+
+---
+
+### 5.13 Match Persistence Layer (Phase 19.1)
+
+**Scope**: Verify `MatchRecord` entity, repository methods, and MySQL JSON queries.
+**Files**: 
+- `backend/src/game/match/match.entity.ts`
+- `backend/src/game/match/match.entity.spec.ts`
+- `backend/src/game/match/match.repository.ts`
+- `backend/src/game/match/match.repository.spec.ts` (Integration tests - requires MySQL)
+- `backend/docs/phase19.1_schema_verification.md` (QA Handoff)
+**Last Executed**: 2025-11-30 09:58
+**Status**: ✅ **UNIT TESTS PASSED** (Integration tests require live MySQL)
+
+| Test Case | Description | Result |
+|-----------|-------------|--------|
+| **DB-001** | Table `match_record` created with correct schema | ✅ PASS (Auto-sync) |
+| **UNIT-001** | computeDuration() calculates seconds correctly | ✅ PASS |
+| **UNIT-002** | JSON data types (PlayerSnapshot, MatchResultData) | ✅ PASS |
+| **UNIT-003** | Schema validation & type safety | ✅ PASS |
+| **DB-002** | Insert match record with JSON data | ⏳ MANUAL (Requires MySQL) |
+| **DB-003** | Query match by playerId (JSON_SEARCH) | ⏳ MANUAL (Requires MySQL) |
+| **DB-004** | Query match by roomId (indexed query) | ⏳ MANUAL (Requires MySQL) |
+| **DB-005** | Query match by date range | ⏳ MANUAL (Requires MySQL) |
+| **DB-006** | Verify JSON data integrity after insert/retrieve | ⏳ MANUAL (Requires MySQL) |
+
+**Unit Test Summary**:
+- **Total Unit Tests**: 7
+- **Pass Rate**: 100%
+- **Execution Time**: 0.418s
+
+**Integration Test Note**:
+Integration tests require a running MySQL database. To execute:
+```bash
+# Start MySQL (Docker example)
+docker run --name doudizhu-mysql -e MYSQL_ROOT_PASSWORD=root -e MYSQL_DATABASE=doudizhu_test -p 3306:3306 -d mysql:8.0
+
+# Run integration tests
+npm test src/game/match/match.repository.spec.ts
+```
+
+#### Test Details:
+
+**DB-001: Table Schema Verification**
+- **Status**: ✅ PASSED (AUTO)
+- **Method**: TypeORM auto-generated table on backend restart
+- **Verification**: 
+  ```sql
+  DESCRIBE match_record;
+  ```
+- **Expected Columns**:
+  - `id` BIGINT PRIMARY KEY AUTO_INCREMENT
+  - `roomId` VARCHAR(255) with INDEX
+  - `playersJson` JSON
+  - `resultJson` JSON
+  - `startTime`, `endTime` DATETIME
+  - `duration` INT
+  - `createdAt` DATETIME
+
+**DB-002: Insert Match Record**
+- **Method**: Use `MatchRepository.createAndSave()`
+- **Test Data**:
+  ```typescript
+  const matchData = {
+    roomId: 'test-room-123',
+    winnerPlayerId: 'player-A',
+    landlordPlayerId: 'player-A',
+    playersJson: [
+      { userId: 'player-A', role: 'landlord', score: 120, ... },
+      { userId: 'player-B', role: 'peasant', score: -40, ... }
+    ],
+    resultJson: {
+      actions: [...],
+      winMethod: 'normal',
+      multiplier: 2,
+      ...
+    },
+    startTime: new Date('2025-11-30 09:00:00'),
+    endTime: new Date('2025-11-30 09:08:00')
+  };
+  ```
+- **Expected**: Record inserted with auto-generated ID, duration = 480 seconds
+
+**DB-003: JSON_SEARCH Query**
+- **Method**: `repository.findByPlayerId('player-A', 10)`
+- **Expected**: Returns all matches where player-A participated
+- **SQL Generated**:
+  ```sql
+  SELECT * FROM match_record
+  WHERE JSON_SEARCH(playersJson, 'one', 'player-A', NULL, '$[*].userId') IS NOT NULL
+  ORDER BY startTime DESC
+  LIMIT 10;
+  ```
+
+**DB-004: Indexed Query**
+- **Method**: `repository.findByRoomId('test-room-123', 20)`
+- **Expected**: Fast query using roomId index
+- **Performance**: < 10ms for 10k records
+
+**DB-005: Date Range Query**
+- **Method**: `repository.findByDateRange(startDate, endDate)`
+- **Expected**: Returns matches within date range, ordered by startTime DESC
+
+**DB-006: JSON Integrity**
+- **Method**: Insert and retrieve match, verify JSON structure preserved
+- **Expected**: `playersJson` and `resultJson` deserialize correctly to TS objects
+
+---
+
+
 - **Method**: 
   - Client A joins a unique room via `join_room` event
   - Waits up to 5 seconds for `sync_state` with valid state

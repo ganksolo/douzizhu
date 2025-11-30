@@ -73,4 +73,6 @@
 *   **Phase 18.1 (动作管线)**: 建立了安全可靠的动作处理管线 (ActionPipeline)。引入了 `InputNormalizer` 对客户端输入进行身份绑定与格式清洗，防御伪造 ID 和恶意 Payload 攻击，确保后端逻辑接收到的均为可信数据。
 *   **Phase 18.2 (回合管理)**: 实现了 `TurnManager` 和策略模式的动作处理器 (`PlayActionHandler`, `PassActionHandler`)。支持标准的逆时针轮转、连续跳过清空（Free Turn）逻辑以及游戏结束判定，确保游戏流转符合四人斗地主规则。
 *   **Phase 18.3 (集成与持久化)**: 完成了动作管线的完整集成。实现了 Redis 分布式锁（SET NX PX）防止并发冲突、原子写入保证数据一致性、自动回滚策略（失败时 Redis 保留旧状态），并与 GameGateway 集成实现状态广播。确保了多人在线游戏的高可用性和数据安全性。
+*   **Phase 19.1 (数据持久化基础)**: 建立了对局历史记录的数据持久化层。设计了 MySQL `match_record` 表结构，支持 JSON 列存储玩家快照和完整对局数据；实现了 TypeORM 实体和仓储层，支持通过玩家 ID (JSON_SEARCH)、房间 ID (索引查询)、日期范围等多维度查询历史记录，为后续的战绩统计和回放功能奠定基础。
+
 

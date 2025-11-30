@@ -7,10 +7,12 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { HealthController } from './health/health.controller';
 import { GameModule } from './game/game.module';
+import { MatchModule } from './game/match/match.module';
 
 @Module({
   imports: [
     GameModule,
+    MatchModule,
     // Environment configuration
     ConfigModule.forRoot({
       isGlobal: true,
@@ -27,7 +29,7 @@ import { GameModule } from './game/game.module';
         username: configService.get('DATABASE_USER'),
         password: configService.get('DATABASE_PASSWORD'),
         database: configService.get('DATABASE_NAME'),
-        entities: [],
+        autoLoadEntities: true, // Auto-load entities from modules
         synchronize: true, // WARNING: disable in production
         logging: true,
       }),
