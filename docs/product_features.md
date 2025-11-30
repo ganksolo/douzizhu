@@ -72,3 +72,5 @@
 *   **Phase 17.3 (AI 集成)**: 完成了 AI 服务 (AIService) 与游戏主循环 (PlayingState) 的深度集成。实现了自动托管机制，AI 能够在规定时间内（1.5秒思考时间）自动接管掉线或托管玩家的操作，保证游戏流畅进行。
 *   **Phase 18.1 (动作管线)**: 建立了安全可靠的动作处理管线 (ActionPipeline)。引入了 `InputNormalizer` 对客户端输入进行身份绑定与格式清洗，防御伪造 ID 和恶意 Payload 攻击，确保后端逻辑接收到的均为可信数据。
 *   **Phase 18.2 (回合管理)**: 实现了 `TurnManager` 和策略模式的动作处理器 (`PlayActionHandler`, `PassActionHandler`)。支持标准的逆时针轮转、连续跳过清空（Free Turn）逻辑以及游戏结束判定，确保游戏流转符合四人斗地主规则。
+*   **Phase 18.3 (集成与持久化)**: 完成了动作管线的完整集成。实现了 Redis 分布式锁（SET NX PX）防止并发冲突、原子写入保证数据一致性、自动回滚策略（失败时 Redis 保留旧状态），并与 GameGateway 集成实现状态广播。确保了多人在线游戏的高可用性和数据安全性。
+

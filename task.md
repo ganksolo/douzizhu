@@ -259,4 +259,11 @@
         - [x] Implement PlayActionHandler (Validation & Execution) <!-- id: 257 -->
         - [x] Implement PassActionHandler (Pass Logic) <!-- id: 258 -->
         - [x] Create QA Handoff (Turn Flow Scenarios) <!-- id: 259 -->
+    - [x] Phase 18.3: Integration, Persistence & Broadcasting <!-- id: 260 -->
+        - [x] Implement ActionPipelineService.execute() (Complete Pipeline) <!-- id: 261 -->
+        - [x] Integrate Redis Distributed Locks (Concurrency Control) <!-- id: 262 -->
+        - [x] Implement Atomic Redis Writes (State Persistence) <!-- id: 263 -->
+        - [x] Integrate with GameGateway (WebSocket Layer) <!-- id: 264 -->
+        - [x] Implement Error Handling & Rollback Strategy <!-- id: 265 -->
+        - [x] Create QA Handoff (E2E Action Flow with Sequence Diagram) <!-- id: 266 -->
 

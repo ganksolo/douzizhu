@@ -12,6 +12,7 @@ import { Server, Socket } from 'socket.io';
 import { Logger } from '@nestjs/common';
 import { GameManagerService } from '../services/game-manager.service';
 import { StateSerializer } from '../services/state-serializer.service';
+import { ActionPipelineService } from '../engine/action-pipeline/action-pipeline.service';
 import { UserAction } from '../types/game.types';
 
 @WebSocketGateway({
@@ -29,6 +30,7 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect, On
     constructor(
         private gameManager: GameManagerService,
         private stateSerializer: StateSerializer,
+        private actionPipeline: ActionPipelineService,
     ) { }
 
     afterInit() {
@@ -118,23 +120,32 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect, On
         @ConnectedSocket() client: Socket,
     ) {
         const { roomId } = action;
-        this.logger.log(`Received action ${action.type} from ${action.playerId} in room ${roomId}`);
+        const playerId = client.data.playerId || action.playerId;
+        this.logger.log(`Received action ${action.type} from ${playerId} in room ${roomId}`);
 
         try {
             const gameContext = this.gameManager.getOrCreateRoom(roomId);
 
-            // 1. Execute Logic
-            gameContext.handleInput(action);
+            // Use Action Pipeline (Phase 18.3)
+            // Pipeline handles: Normalize → Lock → Execute → Save → Unlock → Broadcast
+            await this.actionPipeline.execute(
+                gameContext,
+                action, // Raw input
+                playerId, // Trusted ID
+                async () => await this.broadcastState(roomId) // Broadcast callback
+            );
 
-            // 2. Save State
-            await gameContext.saveSnapshot();
-
-            // 3. Broadcast Sanitized State
-            await this.broadcastState(roomId);
+            this.logger.log(`Action ${action.type} processed successfully for room ${roomId}`);
 
         } catch (error) {
-            this.logger.error(`Error processing action: ${error.message}`);
-            client.emit('error', { message: 'Internal Server Error' });
+            this.logger.error(`Error processing action in room ${roomId}: ${error.message}`);
+            // Send error to client
+            client.emit('action_error', {
+                type: 'error',
+                code: 'ACTION_FAILED',
+                message: error.message || 'Failed to process action',
+                action: action.type
+            });
         }
     }
 

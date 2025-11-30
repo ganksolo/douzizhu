@@ -78,31 +78,59 @@ Central state manager:
 
 ---
 
-### Phase 18: Frontend Integration & Action Pipeline
+### Phase 18: Security & Robustness - Action Pipeline
 
-### 1. Action Pipeline (`src/game/engine/action-pipeline/`)
-- **Goal**: Centralize input handling and sanitization.
+### Phase 18.1: Input Sanitization (`src/game/engine/action-pipeline/`)
+- **Goal**: Centralize input handling and sanitization
 - **Components**:
-    - `InputNormalizer`: Converts raw socket data into trusted `GameAction` objects.
-        - Enforces `playerId` based on socket ID.
-        - Validates payload structure.
-    - `ActionPipelineService`: Orchestrates the flow: `Normalizer` -> `Validator` -> `State Machine`.
+    - `InputNormalizer`: Converts raw socket data into trusted `GameAction` objects
+        - Enforces `playerId` based on socket authentication (Anti-spoofing)
+        - Validates payload structure (Size limits, type checks)
+        - Converts card strings to `Card[]` objects
+    - Unit tests for normalization and validation
 
-### 2. Frontend Integration
-- **Goal**: Connect Vue.js frontend to backend via Socket.IO.
+### Phase 18.2: Turn Management & Action Handlers (`src/game/engine/`)
+- **Goal**: Implement game logic handlers for PLAY and PASS actions
+- **Components**:
+    - `TurnManager`: Manages turn rotation, pass logic, round end detection
+    - `PlayActionHandler`: Validates moves, updates state, checks win condition
+    - `PassActionHandler`: Validates pass actions, prevents passing on free turn
+    - Unit tests for turn logic and handlers
 
-#### [MODIFY] `src/hooks/useGameEngine.ts`
-New hook to replace `useGameLoop`:
-- Subscribe to EventBus events in `useEffect`
-- Sync game state to React `useState` for rendering only
-- Expose `dispatch(action)` function for UI to trigger actions
-- Start update loop with `requestAnimationFrame` for `update()`
+### Phase 18.3: Integration, Persistence & Broadcasting (✅ **COMPLETED**)
+- **Goal**: Complete action pipeline with Redis persistence and concurrency control
+- **Implementation**:
+    - `ActionPipelineService.execute()`: Complete pipeline orchestration
+        - Step 1: Input Normalization (InputNormalizer)
+        - Step 2: Acquire Redis Distributed Lock (SET NX PX pattern)
+        - Step 3: Execute Handler (PlayActionHandler or PassActionHandler)
+        - Step 4: Atomic Write to Redis (GameRedisService.saveSnapshot)
+        - Step 5: Release Lock (always in finally block)
+        - Step 6: Broadcast State Update (via callback to GameGateway)
+    - **Error Handling & Rollback**:
+        - Handler validation fails → State NOT persisted, Redis keeps old state
+        - Redis write fails → Automatic rollback (old state remains)
+        - Lock acquisition fails → Client receives error, retries after delay
+        - Distributed locks prevent concurrent state corruption
+    - **GameGateway Integration**:
+        - Replaced direct `handleInput()` calls with `actionPipeline.execute()`
+        - Added structured error responses: `action_error` event with error codes
+        - Fog of War data sanitization before broadcast
 
-#### [MODIFY] `src/components/GameTable.tsx`
-- Replace direct state modifications with `dispatch()` calls
-- Example: `onPlayClick` → `dispatch({ type: 'PLAY', cards: selectedCards })`
+### Frontend Integration (Future Phase)
+- **Goal**: Connect React/Vue.js frontend to backend via Socket.IO
+
+#### [FUTURE] `frontend/hooks/useGameEngine.ts`
+- Subscribe to WebSocket events (`sync_state`, `action_error`)
+- Sync backend state to React `useState` for rendering
+- Expose `dispatch(action)` function for UI interactions
+
+#### [FUTURE] `frontend/components/GameTable.tsx`
+- Replace direct state modifications with WebSocket emits
+- Example: `onPlayClick` → `socket.emit('client_action', { type: 'PLAY', cards })`
 
 ---
+
 
 ## File Structure
 ```

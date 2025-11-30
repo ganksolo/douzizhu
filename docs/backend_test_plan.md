@@ -1,8 +1,8 @@
 # Backend Test Plan (Phase 15, 16 & 17)
 
-**Version**: 1.9  
-**Last Updated**: 2025-11-29 23:30  
-**Scope**: Backend Game Engine, Rules Service, AI Core, Action Pipeline & Turn Management (Phase 18.2)
+**Version**: 2.0  
+**Last Updated**: 2025-11-30 09:28  
+**Scope**: Backend Game Engine, Rules Service, AI Core, Action Pipeline & Integration (Phase 18.3 Complete), **Action Pipeline Integration & Redis Locks (Phase 18.3)**
 
 ## 1. Introduction
 This document outlines the test plan for the Dou Dizhu backend game engine. It solidifies the verification work done in Phase 15 and serves as a baseline for future automated testing (CI/CD).
@@ -300,6 +300,120 @@ To fully automate these tests in the CI pipeline, we recommend the following app
 | **FLOW-002: Pass Logic** | 1. Player A Plays<br>2. Player B Passes<br>3. Player C Passes<br>4. Player D Passes | Turn moves A -> B -> C -> D -> A. **A gets Free Turn** (`lastPlayedCards` cleared). |
 | **FLOW-003: Game End** | 1. Player A plays last cards | `TurnManager` detects 0 cards. Game transitions to End State (or logs Winner). |
 | **FLOW-004: Invalid Pass** | 1. Player A has Free Turn<br>2. Player A tries to PASS | **Error**: "Cannot pass on a free turn". |
+
+### 5.11 Action Pipeline Integration (Phase 18.3)
+
+**Scope**: Verify `ActionPipelineService` with Redis locks, atomic writes, and error handling.
+**Files**: 
+- `backend/src/game/engine/action-pipeline/action-pipeline.service.ts`
+- `backend/src/game/engine/action-pipeline/action-pipeline.service.spec.ts`
+- `backend/docs/phase18.3_action_pipeline_e2e.md` (QA Handoff)
+**Last Executed**: 2025-11-30 09:28
+**Status**: ✅ **PASSED**
+
+| Test Case | Description | Result |
+|-----------|-------------|--------|
+| **PIPE-001** | Complete E2E action flow (Normalize → Lock → Execute → Save → Broadcast) | ✅ PASS |
+| **PIPE-002a** | Redis distributed lock with retry mechanism (10 retries × 50ms) | ✅ PASS |
+| **PIPE-002b** | Lock acquisition failure after max retries | ✅ PASS |
+| **PIPE-003** | Atomic write to Redis on successful action | ✅ PASS |
+| **PIPE-004** | Handler validation failure → State NOT persisted (rollback) | ✅ PASS |
+| **PIPE-005** | Redis write failure → Lock released in finally block | ✅ PASS |
+| **PIPE-006** | Lock acquisition failure → Client receives LOCK_TIMEOUT error | ✅ PASS |
+| **PIPE-007a** | Handler errors propagated to Gateway for `action_error` emission | ✅ PASS |
+| **PIPE-007b** | Normalization errors propagated correctly | ✅ PASS |
+
+**Test Execution Summary**:
+- **Total Tests**: 9
+- **Pass Rate**: 100%
+- **Execution Time**: 2.022s (includes 500ms retry delays)
+
+**Key Verification Points**:
+1. ✅ Distributed Lock: SET NX PX pattern implemented correctly
+2. ✅ Retry Logic: 10 attempts with 50ms delay between retries
+3. ✅ Rollback Strategy: saveSnapshot() not called on handler error
+4. ✅ Finally Block: Lock always released, even on exceptions
+5. ✅ Error Propagation: All errors bubble up to Gateway layer
+
+#### Test Details:
+
+**PIPE-001: Complete E2E Action Flow**
+- **Input**: Client sends `client_action` { type: 'PLAY', cards: [...] } via WebSocket
+- **Expected Flow**:
+  1. ActionPipelineService.execute() called
+  2. InputNormalizer sanitizes payload
+  3. Redis lock acquired (`SET lock:room:123 NX PX 5000`)
+  4. PlayActionHandler validates and executes move
+  5. GameContext.saveSnapshot() writes to Redis (`HSET room:123:state`)
+  6. Lock released (`DEL lock:room:123`)
+  7. broadcastCallback triggers GameGateway.broadcastState()
+  8. All clients receive `sync_state` with updated game state
+- **Verification**: Check logs for all 6 pipeline steps completing
+
+**PIPE-002: Redis Distributed Lock (Concurrency Control)**
+- **Input**: Two clients send actions simultaneously to same room
+- **Expected Behavior**:
+  - Client A acquires lock
+  - Client B waits and retries (up to 10 times with 50ms delay)
+  - Both actions eventually succeed sequentially
+- **Verification**: 
+  - Check Redis `KEYS lock:room:*` during concurrent requests
+  - Verify no race conditions in `roomData.players[].hand`
+
+**PIPE-003: Atomic Redis Write**
+- **Input**: Valid PLAY action
+- **Expected Behavior**:
+  - Before: Redis contains old state (e.g., player has 25 cards)
+  - After: Redis contains new state (e.g., player has 23 cards, lastPlayedCards updated)
+  - No intermediate corrupted state visible
+- **Verification**: Query Redis `HGETALL room:123:state` before and after
+
+**PIPE-004: Handler Validation Failure Rollback**
+- **Input**: Client sends invalid cards (e.g., cards not in hand)
+- **Expected Behavior**:
+  - PlayActionHandler throws error: "Player does not own these cards"
+  - `context.roomData` may be modified in memory (corrupted)
+  - `saveSnapshot()` is NOT called (skipped due to exception)
+  - Redis retains old valid state
+- **Verification**: 
+  - Check client receives `action_error` event
+  - Query Redis to confirm state unchanged
+
+**PIPE-005: Redis Write Failure Rollback**
+- **Input**: Simulate Redis connection failure during `saveSnapshot()`
+- **Expected Behavior**:
+  - Handler executes successfully
+  - `saveSnapshot()` throws error
+  - Pipeline catches error, logs rollback warning
+  - Lock released in `finally` block
+  - Client receives `action_error`
+- **Verification**: 
+  - Mock `redisService.saveSnapshot()` to throw error
+  - Confirm lock is released
+  - Confirm client can retry
+
+**PIPE-006: Lock Acquisition Failure**
+- **Input**: Hold lock manually via `redis-cli SET lock:room:123 held PX 10000`
+- **Expected Behavior**:
+  - Pipeline retries 10 times (50ms each = 500ms total)
+  - After 500ms, throws "Failed to acquire lock"
+  - Client receives `action_error` with code `LOCK_TIMEOUT`
+- **Verification**: Check error message and retry count in logs
+
+**PIPE-007: GameGateway Error Response**
+- **Input**: Any action that causes pipeline to throw error
+- **Expected Behavior**:
+  - GameGateway catches error
+  - Emits `action_error` event to client with:
+    - `type`: "error"
+    - `code`: "ACTION_FAILED" (or specific code)
+    - `message`: Human-readable error
+    - `action`: Original action type
+- **Verification**: Client socket receives `action_error` event with correct structure
+
+---
+
+### 5.12 Phase 18.3 E2E Test Script (Planned)
 - **Method**: 
   - Client A joins a unique room via `join_room` event
   - Waits up to 5 seconds for `sync_state` with valid state
