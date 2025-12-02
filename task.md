@@ -308,3 +308,16 @@
         - [x] Implement UserController (GET /user/:id/stats) <!-- id: 305 -->
         - [x] Create QA Handoff (Socket Auth & Stats) <!-- id: 306 -->
 
+- [x] Phase 21: Room Management & Gameplay Enhancements <!-- id: 307 -->
+    - [x] Phase 21.1: Room Core & Redis Upgrade <!-- id: 308 -->
+        - [x] Create RoomModule/Service/Gateway <!-- id: 309 -->
+        - [x] Implement Redis Schema (room:meta, room:players) <!-- id: 310 -->
+        - [x] Implement Join/Leave/Kick Logic <!-- id: 311 -->
+        - [x] Create QA Handoff (Redis Structure) <!-- id: 312 -->
+
+    - [x] Phase 21.2: Ready System & Game Start <!-- id: 313 -->
+        - [x] Implement toggleReady & requestRematch <!-- id: 314 -->
+        - [x] Implement tryStartGame (Trigger Game Engine) <!-- id: 315 -->
+        - [x] Update RoomGateway (Events) <!-- id: 316 -->
+        - [x] Create QA Handoff (Start Flow) <!-- id: 317 -->
+

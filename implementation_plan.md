@@ -335,6 +335,59 @@ Implement a robust user system with guest/password authentication and comprehens
 
 ---
 
+# Phase 21: Room Management & Gameplay Enhancements
+
+## Goal
+Upgrade the room system to support advanced features (kick, ready state, owner transfer) and enhance the gameplay experience.
+
+## Proposed Changes
+
+### Phase 21.1: Room Core & Redis Upgrade (✅ **COMPLETED**)
+
+#### Redis Schema
+- `room:{id}:meta` (Hash): `ownerId`, `status`, `config`
+- `room:{id}:players` (Hash): `userId` -> JSON (`seat`, `ready`, `online`)
+
+#### [NEW] `backend/src/room/`
+- `room.module.ts`: Registers Room components.
+- `room.service.ts`: Handles Redis operations and room logic (Join/Leave/Kick).
+- `room.gateway.ts`: Handles WebSocket events (`join_room`, `leave_room`, `kick_player`) in `room` namespace.
+
+#### [MODIFY] `backend/src/app.module.ts`
+- Imported `RoomModule`.
+
+#### Documentation
+- `docs/phase21.1_room_core.md`: Redis data structure verification.
+
+### Phase 21.2: Ready System & Game Start (✅ **COMPLETED**)
+
+#### Features
+- **Ready Logic**: `toggleReady` updates Redis
+- **Auto Start**: `tryStartGame` checks conditions (3 players + all ready)
+- **Rematch**: `requestRematch` resets state
+- **Integration**: Calls `GameManager.getOrCreateRoom()`
+
+#### [MODIFY] `backend/src/room/room.service.ts`
+- Added `toggleReady`, `tryStartGame`, `requestRematch`
+- Injected `GameManagerService`
+
+#### Documentation
+- `docs/phase21.2_game_start_flow.md`: Flow & Verification guide
+
+#### [MODIFY] `backend/src/room/room.service.ts`
+- Added `toggleReady`: Updates player status.
+- Added `tryStartGame`: Checks conditions (3 players + all ready), initializes `GameContext`.
+- Added `requestRematch`: Resets room and player status.
+
+#### [MODIFY] `backend/src/room/room.gateway.ts`
+- Added `toggle_ready` event handler.
+- Added `request_rematch` event handler.
+
+#### Documentation
+- `docs/phase21.2_game_start_flow.md`: QA verification for game start logic.
+
+---
+
 # Phase 14: Backend Development
 
 ## Goal
@@ -590,7 +643,22 @@ Implement a comprehensive user management system supporting guest/password authe
 - `createGuest()`: Generates random nickname/avatar
 - `updateProfile()`: Handles user profile changes
 
-### Phase 20.2: Authentication & JWT (✅ **COMPLETED**)
+### Phase 21: Room Management & Gameplay Enhancements
+
+#### Phase 21.1: Room Core & Redis Upgrade (✅ **COMPLETED**)
+
+#### Features
+- **Redis Schema**: `room:{id}:meta` (Hash), `room:{id}:players` (Hash)
+- **Room Logic**: Join, Leave, Kick, Owner Transfer
+- **Service**: `RoomService` with Redis integration
+
+#### [NEW] `backend/src/room/`
+- `room.service.ts`: Core logic
+- `room.gateway.ts`: WebSocket interface (Namespace: `/room`)
+- `room.module.ts`: Dependency injection
+
+#### Documentation
+- `docs/phase21.1_room_core.md`: Redis data model & I/O guide
 
 #### Auth Architecture
 - **Dependencies**: `@nestjs/jwt`, `@nestjs/passport`, `passport`, `passport-jwt`

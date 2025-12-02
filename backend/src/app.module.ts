@@ -10,6 +10,7 @@ import { GameModule } from './game/game.module';
 import { MatchModule } from './game/match/match.module';
 import { UserModule } from './user/user.module';
 import { AuthModule } from './auth/auth.module';
+import { RoomModule } from './room/room.module';
 
 @Module({
   imports: [
@@ -17,6 +18,7 @@ import { AuthModule } from './auth/auth.module';
     MatchModule,
     UserModule,
     AuthModule,
+    RoomModule,
     // Environment configuration
     ConfigModule.forRoot({
       isGlobal: true,

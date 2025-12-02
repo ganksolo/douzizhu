@@ -598,20 +598,104 @@ Retrieves full details of a specific match, including replay actions.
   "gameId": "uuid"
 }
 ```
+#### 6. Pass Turn
+```json
+{
+  "type": "pass",
+  "gameId": "uuid"
+}
+```
+
+#### 7. Kick Player (Host Only)
+```json
+{
+  "type": "kick_player",
+  "roomId": "uuid",
+  "targetId": "uuid"
+}
+```
+
+#### 8. Toggle Ready
+```json
+{
+  "type": "toggle_ready",
+  "roomId": "uuid",
+  "isReady": true
+}
+```
+
+#### 9. Request Rematch
+```json
+{
+  "type": "request_rematch",
+  "roomId": "uuid"
+}
+```
 
 ---
 
 ### Events (Server → Client)
 
-#### 1. Room Updated
+#### 1. Room Updated (Player List)
 ```json
 {
-  "type": "room_updated",
+  "type": "player_list_update",
   "roomId": "uuid",
-  "players": [...],
-  "status": "waiting"
+  "players": [
+    {
+      "userId": "uuid",
+      "nickname": "string",
+      "avatar": "string",
+      "seat": 0,
+      "online": true,
+      "ready": false
+    }
+  ]
 }
 ```
+
+#### 2. Player Events
+**Player Joined**:
+```json
+{
+  "type": "player_joined",
+  "userId": "uuid",
+  "nickname": "string"
+}
+```
+
+**Player Left**:
+```json
+{
+  "type": "player_left",
+  "userId": "uuid"
+}
+```
+
+#### 3. Player Kicked
+```json
+{
+  "type": "player_kicked",
+  "targetId": "uuid"
+}
+```
+
+#### 4. Game Start
+```json
+{
+  "type": "game_start",
+  "roomId": "uuid"
+}
+```
+
+#### 5. Room Reset
+```json
+{
+  "type": "room_reset",
+  "roomId": "uuid"
+}
+```
+
 
 #### 2. Game Started
 ```json

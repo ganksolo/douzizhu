@@ -823,3 +823,88 @@ Integrated the User System with the Game Engine and Match System. Implemented se
 ---
 
 **Status**: ✅ Phase 20 Complete (User System & Integration Ready)
+
+---
+
+# Phase 21.1: Room Core Management & Redis Upgrade
+
+## Overview
+Upgraded the Room System to support advanced features by restructuring Redis storage. Implemented `RoomService` and `RoomGateway` to manage room lifecycle and player events.
+
+## Steps Executed
+
+### 1. Redis Schema Upgrade
+- **Meta Data** (`room:{id}:meta`): Stores `ownerId`, `status`, `config`.
+- **Player Data** (`room:{id}:players`): Hash map storing detailed player state (seat, ready, online) as JSON.
+
+### 2. Room Service Logic
+- **Join**: Checks room capacity (max 3), assigns first available seat, updates Redis.
+- **Leave**: Removes player, handles owner transfer if owner leaves, destroys room if empty.
+- **Kick**: Verifies owner permission, forces target player removal.
+
+### 3. Gateway Implementation
+- **Namespace**: `/room`
+- **Events**:
+  - `join_room`: Handles entry and broadcasts `player_joined`.
+  - `leave_room`: Handles exit and broadcasts `player_left`.
+  - `kick_player`: Handles forced exit and broadcasts `player_kicked`.
+
+## Verification
+
+### 1. Data Structure Check
+- **QA Handoff**: `docs/phase21.1_redis_structure.md`
+- **Scenarios**: Verified Redis keys created correctly for Room Meta and Players.
+
+## Files Created
+- `backend/src/room/room.module.ts`
+- `backend/src/room/room.service.ts`
+- `backend/src/room/room.gateway.ts`
+- `docs/phase21.1_redis_structure.md`
+
+## Files Modified
+- `backend/src/app.module.ts` (Imported RoomModule)
+
+---
+
+**Status**: ✅ Phase 21.1 Complete (Room Core Ready)
+
+---
+
+# Phase 21.2: Ready System & Game Start
+
+## Overview
+Implemented the "Ready" mechanism and automatic game start logic. When 3 players are ready, the system initializes the Game Engine and transitions the room to `playing` status.
+
+## Steps Executed
+
+### 1. Ready Logic
+- **Service**: `RoomService.toggleReady` updates Redis.
+- **Gateway**: `handleToggleReady` broadcasts updates.
+
+### 2. Game Start Logic
+- **Trigger**: `RoomService.tryStartGame` checks if 3 players are present and all `ready=true`.
+- **Action**:
+  - Sets `room:{id}:meta` status to `playing`.
+  - Calls `GameManager.getOrCreateRoom` -> `GameContext.initialize`.
+  - Broadcasts `game_start` event.
+
+### 3. Rematch Logic
+- **Service**: `RoomService.requestRematch` resets room status to `waiting` and all players to `ready=false`.
+- **Gateway**: `handleRematch` broadcasts `room_reset`.
+
+## Verification
+
+### 1. Flow Verification
+- **QA Handoff**: `docs/phase21.2_game_start_flow.md`
+- **Scenarios**:
+  - Toggle Ready -> UI updates.
+  - 3 Players Ready -> Game Starts.
+  - Rematch -> Room Resets.
+
+## Files Modified
+- `backend/src/room/room.service.ts`
+- `backend/src/room/room.gateway.ts`
+
+---
+
+**Status**: ✅ Phase 21.2 Complete (Game Start Flow Ready)

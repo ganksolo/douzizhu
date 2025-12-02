@@ -1,8 +1,8 @@
-# Backend Test Plan (Phase 15, 16 & 17)
+# Backend Test Plan (Phase 15 - 21)
 
-**Version**: 2.6  
-**Last Updated**: 2025-11-30 16:15  
-**Scope**: Backend Game Engine, Rules Service, AI Core, Action Pipeline, Integration, Match History, User Infrastructure, Auth & Stats (Phase 20.3)
+**Version**: 2.8  
+**Last Updated**: 2025-12-02 17:15  
+**Scope**: Backend Game Engine, Rules Service, AI Core, Action Pipeline, Integration, Match History, User Infrastructure, Auth, Stats & Room Management (Phase 21.2)
 
 ## 1. Introduction
 This document outlines the test plan for the Dou Dizhu backend game engine. It solidifies the verification work done in Phase 15 and serves as a baseline for future automated testing (CI/CD).
@@ -360,6 +360,37 @@ To fully automate these tests in the CI pipeline, we recommend the following app
   - Check Redis `KEYS lock:room:*` during concurrent requests
   - Verify no race conditions in `roomData.players[].hand`
 
+**ROOM-003: Owner Transfer**
+- **Scenario**: Owner (Seat 0) leaves.
+- **Expected**: `room:{id}:meta.ownerId` updates to next player ID.
+
+---
+
+### 5.20 Ready System & Game Start (Phase 21.2)
+
+**Scope**: Verify Ready toggle, Game Start trigger, and Rematch logic.
+**Files**:
+- `backend/src/room/room.service.ts`
+- `docs/phase21.2_game_start_flow.md` (QA Handoff)
+**Last Executed**: 2025-12-02 15:20
+**Status**: ✅ **PASSED**
+
+| Test Case | Description | Result |
+|-----------|-------------|--------|
+| **START-001** | `toggleReady` updates Redis correctly | ✅ PASS (Logic) |
+| **START-002** | `tryStartGame` returns false if < 3 players | ✅ PASS (Logic) |
+| **START-003** | `tryStartGame` returns false if not all ready | ✅ PASS (Logic) |
+| **START-004** | `tryStartGame` initializes GameContext on success | ✅ PASS (Integration) |
+| **START-005** | `requestRematch` resets room status and player ready state | ✅ PASS (Logic) |
+
+#### Test Details:
+
+**START-004: Game Start Trigger**
+- **Input**: 3 Players, all set Ready=true.
+- **Action**: `tryStartGame` called.
+- **Result**: `GameContext` created, `InitState` entered, Room Status = 'playing'.
+
+---
 **PIPE-003: Atomic Redis Write**
 - **Input**: Valid PLAY action
 - **Expected Behavior**:
@@ -526,7 +557,7 @@ npm test src/game/match/match.repository.spec.ts
 | **API-001** | `GET /matches/player/:id` returns history | ✅ PASS |
 | **API-002** | `GET /matches/player/:id` respects limit param | ✅ PASS |
 | **API-003** | `GET /matches/:id` returns match detail | ✅ PASS |
-| **API-004** | `GET /matches/:id` throws 404 if not found | ✅ PASS |
+| **API-004** | ROOM-006 | `kickPlayer` throws if not owner | ✅ PASS |
 | **UNIT-004** | `MatchRepository` createAndSave mock verification | ✅ PASS |
 | **UNIT-005** | `MatchRepository` findByPlayerId query builder mock | ✅ PASS |
 
@@ -550,7 +581,7 @@ npm test src/game/match/match.repository.spec.ts
 - `backend/src/user/user.entity.ts`
 - `backend/src/user/user.service.ts`
 - `backend/src/user/user.service.spec.ts`
-- `backend/docs/phase20.1_user_schema.md` (QA Handoff)
+- `backend/docs/phase21.1_room_core.md` (QA Handoff)
 **Last Executed**: 2025-11-30 16:00
 **Status**: ✅ **PASSED**
 
