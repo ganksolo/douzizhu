@@ -696,6 +696,16 @@ Retrieves full details of a specific match, including replay actions.
 }
 ```
 
+#### 6. Player AFK
+```json
+{
+  "type": "player_afk",
+  "userId": "uuid"
+}
+```
+**Description**: Sent when a player has been inactive for > 30 seconds. Frontend should display "AFK" indicator.
+
+
 
 #### 2. Game Started
 ```json

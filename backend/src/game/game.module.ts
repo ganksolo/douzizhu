@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { Module, forwardRef } from '@nestjs/common';
 import { GameContext } from './engine/game-context';
 import { InitState } from './engine/states/init.state';
 import { DealingState } from './engine/states/dealing.state';
@@ -20,9 +20,13 @@ import { PassActionHandler } from './engine/action-handlers/pass-handler';
 import { MatchService } from './services/match.service';
 import { GameEndState } from './engine/states/game-end.state';
 import { AuthModule } from '../auth/auth.module';
+import { RoomModule } from '../room/room.module';
 
 @Module({
-    imports: [AuthModule],
+    imports: [
+        AuthModule,
+        forwardRef(() => RoomModule),
+    ],
     providers: [
         GameContext,
         GameRedisService,

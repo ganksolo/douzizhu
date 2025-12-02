@@ -1,8 +1,8 @@
 # Backend Test Plan (Phase 15 - 21)
 
-**Version**: 2.8  
-**Last Updated**: 2025-12-02 17:15  
-**Scope**: Backend Game Engine, Rules Service, AI Core, Action Pipeline, Integration, Match History, User Infrastructure, Auth, Stats & Room Management (Phase 21.2)
+**Version**: 2.9  
+**Last Updated**: 2025-12-02 17:45  
+**Scope**: Backend Game Engine, Rules Service, AI Core, Action Pipeline, Integration, Match History, User Infrastructure, Auth, Stats & Room Resilience (Phase 21.3)
 
 ## 1. Introduction
 This document outlines the test plan for the Dou Dizhu backend game engine. It solidifies the verification work done in Phase 15 and serves as a baseline for future automated testing (CI/CD).
@@ -382,6 +382,50 @@ To fully automate these tests in the CI pipeline, we recommend the following app
 | **START-003** | `tryStartGame` returns false if not all ready | ✅ PASS (Logic) |
 | **START-004** | `tryStartGame` initializes GameContext on success | ✅ PASS (Integration) |
 | **START-005** | `requestRematch` resets room status and player ready state | ✅ PASS (Logic) |
+
+**Key Verification Points**:
+1. ✅ **Ready Toggle**: Player ready status correctly persisted in Redis.
+2. ✅ **Game Start**: Correctly prevents game start if conditions (player count, all ready) are not met.
+3. ✅ **Rematch**: Full reset of ready states and room status verified
+
+---
+
+### 5.21 Reconnection & AFK Handling (Phase 21.3)
+
+**Scope**: Verify resilience services for disconnect/reconnect, AFK detection, and room cleanup.
+**Files**: 
+- `backend/src/room/services/reconnect.service.ts`
+- `backend/src/room/services/afk.service.ts`
+- `backend/src/room/services/room-cleaner.service.ts`
+- `backend/src/room/services/*.spec.ts`
+- `backend/docs/phase21.3_reconnect_afk_guide.md` (QA Handoff)
+**Last Executed**: 2025-12-02 17:45
+**Status**: ✅ **PASSED**
+
+| Test Case | Description | Result |
+|-----------|-------------|--------|
+| **RECONNECT-001** | `handleDisconnect` sets player online to false | ✅ PASS |
+| **RECONNECT-002** | `handleReconnect` sets player online to true | ✅ PASS |
+| **RECONNECT-003** | `handleReconnect` returns true if game is playing | ✅ PASS |
+| **RECONNECT-004** | `handleReconnect` returns false if room not found | ✅ PASS |
+| **AFK-001** | `updateActivity` updates lastActive timestamp | ✅ PASS |
+| **AFK-002** | `checkAFK` emits player_afk if inactive > 30s | ✅ PASS |
+| **AFK-003** | `checkAFK` kicks player if inactive > 90s | ✅ PASS |
+| **AFK-004** | `checkAFK` skips offline players | ✅ PASS |
+| **CLEANER-001** | Destroys empty rooms immediately | ✅ PASS |
+| **CLEANER-002** | Destroys abandoned rooms (all offline > 10 mins) | ✅ PASS |
+| **CLEANER-003** | Does NOT destroy rooms with online players | ✅ PASS |
+| **CLEANER-004** | Does NOT destroy rooms with recent activity | ✅ PASS |
+
+**Test Execution Summary**:
+- **Total Tests**: 12 (3 services)
+- **Pass Rate**: 100%
+- **Execution Time**: 1.071s
+
+**Key Verification Points**:
+1. ✅ **Disconnect/Reconnect**: Player state preserved during disconnection
+2. ✅ **AFK Detection**: Cron-based inactivity monitoring (30s warning, 90s kick)
+3. ✅ **Room Cleanup**: Automatic resource reclamation for abandoned rooms
 
 #### Test Details:
 

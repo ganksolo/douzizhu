@@ -321,3 +321,10 @@
         - [x] Update RoomGateway (Events) <!-- id: 316 -->
         - [x] Create QA Handoff (Start Flow) <!-- id: 317 -->
 
+    - [x] Phase 21.3: Reconnection & AFK Handling <!-- id: 318 -->
+        - [x] Implement ReconnectService (Disconnect/Reconnect Logic) <!-- id: 319 -->
+        - [x] Implement AFKService (Activity Tracking & Auto-Kick) <!-- id: 320 -->
+        - [x] Implement RoomCleanerService (Abandoned Room Cleanup) <!-- id: 321 -->
+        - [x] Integrate into GameGateway (Disconnect/Reconnect Hooks) <!-- id: 322 -->
+        - [x] Create QA Handoff (Reconnection Flow & Test Cases) <!-- id: 323 -->
+

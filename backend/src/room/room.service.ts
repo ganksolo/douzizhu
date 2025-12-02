@@ -139,7 +139,7 @@ export class RoomService {
 
         // 1. Verify Owner
         const currentOwner = await client.hget(metaKey, 'ownerId');
-        if (currentOwner !== ownerId) {
+        if (ownerId !== 'system' && currentOwner !== ownerId) {
             throw new ForbiddenException('Only owner can kick players');
         }
 
@@ -261,5 +261,48 @@ export class RoomService {
         const meta = await client.hgetall(this.getMetaKey(roomId));
         if (!meta || Object.keys(meta).length === 0) return null;
         return meta as unknown as RoomMeta;
+    }
+
+    // --- Resilience Methods ---
+
+    async setPlayerOnline(roomId: string, userId: string, online: boolean): Promise<void> {
+        const client = this.getRedisClient();
+        const playersKey = this.getPlayersKey(roomId);
+        const playerData = await client.hget(playersKey, userId);
+        if (playerData) {
+            const player: RoomPlayer = JSON.parse(playerData);
+            player.online = online;
+            if (online) player.lastActive = Date.now();
+            await client.hset(playersKey, userId, JSON.stringify(player));
+        }
+    }
+
+    async updateLastActive(roomId: string, userId: string): Promise<void> {
+        const client = this.getRedisClient();
+        const playersKey = this.getPlayersKey(roomId);
+        const playerData = await client.hget(playersKey, userId);
+        if (playerData) {
+            const player: RoomPlayer = JSON.parse(playerData);
+            player.lastActive = Date.now();
+            await client.hset(playersKey, userId, JSON.stringify(player));
+        }
+    }
+
+    async getAllRoomIds(): Promise<string[]> {
+        const client = this.getRedisClient();
+        // In production, use SCAN. For now, KEYS is acceptable for prototype.
+        const keys = await client.keys('room:*:meta');
+        return keys.map((key: string) => key.split(':')[1]);
+    }
+
+    async destroyRoom(roomId: string): Promise<void> {
+        const client = this.getRedisClient();
+        const metaKey = this.getMetaKey(roomId);
+        const playersKey = this.getPlayersKey(roomId);
+
+        await client.del(metaKey);
+        await client.del(playersKey);
+        this.gameManager.removeRoom(roomId); // Ensure game context is also cleaned
+        this.logger.log(`Room ${roomId} destroyed`);
     }
 }

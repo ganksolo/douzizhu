@@ -692,3 +692,59 @@ Implement a comprehensive user management system supporting guest/password authe
 #### Documentation
 - `docs/phase20.3_integration_guide.md`: Integration guide
 
+
+### Phase 21.3: Reconnection & AFK Handling (✅ **COMPLETED**)
+
+#### Features
+- **ReconnectService**: Handles disconnect/reconnect without losing game state
+- **AFKService**: Cron-based inactivity detection (30s warning, 90s kick)
+- **RoomCleanerService**: Automatic cleanup of abandoned rooms (10 min threshold)
+
+#### [NEW] `backend/src/room/services/`
+- `reconnect.service.ts`: Disconnect/reconnect logic
+- `afk.service.ts`: AFK detection with cron job
+- `room-cleaner.service.ts`: Room cleanup cron job
+
+#### [MODIFY] `backend/src/room/room.service.ts`
+- Added `setPlayerOnline`, `updateLastActive`, `getAllRoomIds`, `destroyRoom`
+
+#### Documentation
+- `docs/phase21.3_reconnect_afk_guide.md`: Comprehensive flow & verification guide
+
+## Goal
+Implement robust handling for network disconnections, AFK players, and abandoned rooms to ensure production stability.
+
+## Proposed Changes
+
+### 1. ReconnectService
+- **Handle Disconnect**:
+    - Set `online = false` in Redis.
+    - Do NOT remove player immediately.
+    - Start retention window (e.g., 5 mins).
+- **Handle Reconnect**:
+    - Verify player is in room.
+    - Set `online = true`.
+    - Trigger `GameService.syncState` to restore context.
+
+### 2. AFKService
+- **Activity Tracking**: `updateLastActive(userId)` on every action.
+- **Cron Job**:
+    - `> 30s`: Mark as AFK (Frontend shows "Away").
+    - `> 90s`: Kick player (Force leave).
+- **Configuration**: Short timeouts (10s/30s) for dev/test.
+
+### 3. RoomCleaner
+- **Logic**: If all players offline > 10 mins, destroy room.
+- **Implementation**: Cron job scanning all rooms.
+
+### 4. Integration
+- **GameGateway**:
+    - `handleDisconnect` -> `ReconnectService.handleDisconnect`
+    - `handleJoinRoom` -> `ReconnectService.handleReconnect`
+    - `handleClientAction` -> `AFKService.updateActivity`
+
+## Verification Plan
+- **Automated**: Unit tests for services.
+- **Manual**:
+    - "Pull the plug" test: Disconnect wifi, wait 30s, reconnect -> Verify state sync.
+    - AFK test: Stop sending actions -> Verify AFK status -> Verify Kick.

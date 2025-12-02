@@ -15,6 +15,8 @@ import { StateSerializer } from '../services/state-serializer.service';
 import { ActionPipelineService } from '../engine/action-pipeline/action-pipeline.service';
 import { UserAction } from '../types/game.types';
 import { AuthService } from '../../auth/auth.service';
+import { ReconnectService } from '../../room/services/reconnect.service';
+import { AFKService } from '../../room/services/afk.service';
 
 @WebSocketGateway({
     cors: {
@@ -33,6 +35,8 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect, On
         private stateSerializer: StateSerializer,
         private actionPipeline: ActionPipelineService,
         private authService: AuthService,
+        private reconnectService: ReconnectService,
+        private afkService: AFKService,
     ) { }
 
     afterInit() {
@@ -73,8 +77,14 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect, On
         this.logger.log(`Client ${client.id} authenticated as ${payload.username} (${payload.sub})`);
     }
 
-    handleDisconnect(client: Socket) {
-        this.logger.log(`Client disconnected: ${client.id}`);
+    async handleDisconnect(client: Socket) {
+        const userId = client.data.userId;
+        const roomId = client.data.roomId;
+        this.logger.log(`Client disconnected: ${client.id} (User: ${userId}, Room: ${roomId})`);
+
+        if (userId && roomId) {
+            await this.reconnectService.handleDisconnect(roomId, userId);
+        }
     }
 
     @SubscribeMessage('join_room')
@@ -98,6 +108,9 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect, On
             client.data.playerId = playerId;
 
             this.logger.log(`Player ${username} (${playerId}) joined room ${roomId}`);
+
+            // Handle Reconnect Logic
+            await this.reconnectService.handleReconnect(roomId, playerId);
 
             const gameContext = this.gameManager.getOrCreateRoom(roomId);
 
@@ -156,6 +169,9 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect, On
         this.logger.log(`Received action ${action.type} from ${playerId} in room ${roomId}`);
 
         try {
+            // Update Activity
+            await this.afkService.updateActivity(roomId, playerId);
+
             const gameContext = this.gameManager.getOrCreateRoom(roomId);
 
             // Use Action Pipeline (Phase 18.3)
