@@ -54,6 +54,33 @@
 - 不得与 backend_test_plan.md 混用  
 
 ---
+### 3. OpenAPI / Swagger 文档同步（若启用则为强制要求）
+
+如果项目启用了 OpenAPI 文档（如 `docs/openapi.yaml`）并提供 swagger-ui 或 redoc：
+
+- Backend 必须在每次 API 契约变更后同步更新：
+
+  1. `docs/api_spec.md` —— AI 协作使用  
+  2. `docs/openapi.yaml` —— Swagger / 人类调试使用  
+
+- OpenAPI 文档必须真实反映当前接口契约，包括：
+  - 请求参数结构  
+  - 响应结构  
+  - 错误结构  
+  - 示例负载  
+
+- 若 `api_spec.md` 与 `openapi.yaml` 不一致，视为 **DoD 未完成**。
+
+- OpenAPI 文档可由 AI 自动生成，无需人工维护：
+
+```
+请根据 docs/api_spec.md 自动生成最新的 docs/openapi.yaml（OpenAPI 3.1）。
+```
+
+**说明：**  
+API Spec 面向 AI，OpenAPI 面向人类，两者均为契约载体，必须保持一致。
+
+---
 
 ## C. QA（测试）
 

@@ -39,9 +39,52 @@ export class RoomService {
     }
 
     private getRedisClient(): any {
-        return (this.cacheManager as any).store.client;
+        const cache = this.cacheManager as any;
+
+        // Handle MultiCache (stores array)
+        if (cache.stores && Array.isArray(cache.stores) && cache.stores.length > 0) {
+            const store = cache.stores[0];
+
+            if (store.client) return store.client;
+
+            if (store.store) {
+                if (store.store.client) return store.store.client;
+                // Sometimes the store itself is the redis client wrapper
+                if (typeof store.store.keys === 'function') return store.store;
+            }
+
+            // Try to find client in store directly if it's ioredis
+            if (typeof store.keys === 'function') return store;
+        }
+
+        // Handle single store
+        if (cache.store) {
+            if (cache.store.client) return cache.store.client;
+            if (typeof cache.store.keys === 'function') return cache.store;
+        }
+
+        return cache;
     }
 
+    /**
+     * Helper: Get all active room IDs
+     * Used by AFKService and RoomCleanerService
+     */
+    async getAllRoomIds(): Promise<string[]> {
+        const client = this.getRedisClient();
+        // In production, use SCAN. For now, KEYS is acceptable for prototype.
+        try {
+            if (typeof client.keys !== 'function') {
+                this.logger.error('Redis client does not have keys() method. Keys available: ' + Object.keys(client));
+                throw new Error('Redis client does not have keys() method');
+            }
+            const keys = await client.keys('room:*:meta');
+            return keys.map((key: string) => key.split(':')[1]);
+        } catch (e) {
+            this.logger.error('Error in getAllRoomIds: ' + e.message);
+            return [];
+        }
+    }
     /**
      * Join a room
      */
@@ -288,12 +331,7 @@ export class RoomService {
         }
     }
 
-    async getAllRoomIds(): Promise<string[]> {
-        const client = this.getRedisClient();
-        // In production, use SCAN. For now, KEYS is acceptable for prototype.
-        const keys = await client.keys('room:*:meta');
-        return keys.map((key: string) => key.split(':')[1]);
-    }
+
 
     async destroyRoom(roomId: string): Promise<void> {
         const client = this.getRedisClient();

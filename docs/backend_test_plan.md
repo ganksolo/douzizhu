@@ -1,8 +1,8 @@
-# Backend Test Plan (Phase 15 - 21)
+# Backend Test Plan (Phase 15 - 22)
 
-**Version**: 2.9  
-**Last Updated**: 2025-12-02 17:45  
-**Scope**: Backend Game Engine, Rules Service, AI Core, Action Pipeline, Integration, Match History, User Infrastructure, Auth, Stats & Room Resilience (Phase 21.3)
+**Version**: 3.0  
+**Last Updated**: 2025-12-03 11:30  
+**Scope**: Backend Game Engine, Rules Service, AI Core, Action Pipeline, Integration, Match History, User Infrastructure, Auth, Stats, Room Resilience & Frontend Integration (Phase 22.1)
 
 ## 1. Introduction
 This document outlines the test plan for the Dou Dizhu backend game engine. It solidifies the verification work done in Phase 15 and serves as a baseline for future automated testing (CI/CD).
@@ -426,6 +426,58 @@ To fully automate these tests in the CI pipeline, we recommend the following app
 1. ✅ **Disconnect/Reconnect**: Player state preserved during disconnection
 2. ✅ **AFK Detection**: Cron-based inactivity monitoring (30s warning, 90s kick)
 3. ✅ **Room Cleanup**: Automatic resource reclamation for abandoned rooms
+
+---
+
+### 5.22 Frontend Infrastructure Integration (Phase 22.1)
+
+**Scope**: Verify frontend API client, socket manager, and state management integration with backend.
+**Type**: Manual Integration Testing (Frontend-Backend)
+**Files**: 
+- `frontend/src/services/api.ts` (API Client)
+- `frontend/src/services/socket.ts` (Socket Manager)
+- `frontend/src/store/auth.store.ts` (Auth State)
+- `frontend/src/store/room.store.ts` (Room State)
+- `docs/phase22.1_infrastructure_qa.md` (QA Handoff)
+- `docs/ws_events.md` (Event Specification)
+**Last Executed**: 2025-12-03 (Manual Browser Console Verification)
+**Status**: ✅ **PASSED**
+
+| Test Case | Description | Method | Result |
+|-----------|-------------|--------|--------|
+| **API-001** | API Client: Guest login via REST | Browser Console | ✅ PASS |
+| **API-002** | API Client: Request interceptor injects JWT | Browser Console | ✅ PASS |
+| **API-003** | API Client: Debug logging enabled | Browser Console | ✅ PASS |
+| **SOCKET-001** | Socket Manager: Connect to /game namespace | Browser Console | ✅ PASS |
+| **SOCKET-002** | Socket Manager: JWT authentication handshake | Browser Console | ✅ PASS |
+| **SOCKET-003** | Socket Manager: Event logging enabled | Browser Console | ✅ PASS |
+| **SOCKET-004** | Socket Manager: Test utility (window.socketTest) | Browser Console | ✅ PASS |
+| **AUTH-001** | Auth Store: loginGuest() flow complete | Browser Console | ✅ PASS |
+| **AUTH-002** | Auth Store: Token persisted to localStorage | Browser Console | ✅ PASS |
+| **AUTH-003** | Auth Store: Socket auto-initialized | Browser Console | ✅ PASS |
+| **ROOM-001** | Room Store: setRoomData() updates state | Browser Console | ✅ PASS |
+| **ROOM-002** | Room Store: Partial updates (ready toggle) | Browser Console | ✅ PASS |
+| **E2E-001** | Full flow: Login → Socket connect → Join room | Browser Console | ✅ PASS |
+| **E2E-002** | WebSocket events: player_list_update received | Browser Console | ✅ PASS |
+| **E2E-003** | WebSocket events: sync_state received | Browser Console | ✅ PASS |
+
+**Test Execution Summary**:
+- **Total Tests**: 15 (Manual Integration)
+- **Pass Rate**: 100%
+- **Verification Method**: Browser DevTools Console + Chrome Network Tab
+
+**Key Verification Points**:
+1. ✅ **API Integration**: Axios client correctly calls backend REST endpoints
+2. ✅ **Socket Integration**: Socket.IO client connects with JWT authentication
+3. ✅ **State Management**: Zustand stores correctly persist and update state
+4. ✅ **Event Flow**: Full guest login → socket connect → room join flow verified
+5. ✅ **Debug Logging**: All network requests and socket events logged to console
+
+**Infrastructure Verification**:
+- ✅ Build: `npm run build` compiles successfully
+- ✅ TypeScript: No type errors
+- ✅ ESLint: No linting errors
+- ✅ Dev Server: `npm run dev` runs on port 5173
 
 #### Test Details:
 

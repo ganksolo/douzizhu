@@ -21,11 +21,13 @@ import { MatchService } from './services/match.service';
 import { GameEndState } from './engine/states/game-end.state';
 import { AuthModule } from '../auth/auth.module';
 import { RoomModule } from '../room/room.module';
+import { MatchModule } from './match/match.module';
 
 @Module({
     imports: [
         AuthModule,
         forwardRef(() => RoomModule),
+        MatchModule,
     ],
     providers: [
         GameContext,
