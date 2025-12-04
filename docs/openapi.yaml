@@ -1,0 +1,946 @@
+openapi: 3.1.0
+info:
+  title: Dou Dizhu Backend API
+  version: 1.0.0
+  description: RESTful API for Dou Dizhu multiplayer game backend
+  contact:
+    name: Backend Team
+servers:
+  - url: http://localhost:3001/api
+    description: Development server
+  - url: https://api.doudizhu.example.com
+    description: Production server
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: JWT token for authentication
+
+  schemas:
+    ErrorResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: false
+        error:
+          type: object
+          properties:
+            code:
+              type: string
+              example: INVALID_INPUT
+            message:
+              type: string
+              example: Invalid request data
+      required:
+        - success
+        - error
+
+    User:
+      type: object
+      properties:
+        userId:
+          type: string
+          format: uuid
+        username:
+          type: string
+        email:
+          type: string
+          format: email
+        stats:
+          type: object
+          properties:
+            totalGames:
+              type: integer
+            wins:
+              type: integer
+            losses:
+              type: integer
+            winRate:
+              type: number
+              format: float
+            totalScore:
+              type: integer
+        createdAt:
+          type: string
+          format: date-time
+
+    Room:
+      type: object
+      properties:
+        roomId:
+          type: string
+          format: uuid
+        name:
+          type: string
+        hostId:
+          type: string
+          format: uuid
+        players:
+          type: array
+          items:
+            $ref: '#/components/schemas/RoomPlayer'
+        maxPlayers:
+          type: integer
+          example: 4
+        isPrivate:
+          type: boolean
+        status:
+          type: string
+          enum: [waiting, playing, finished]
+        createdAt:
+          type: string
+          format: date-time
+
+    RoomPlayer:
+      type: object
+      properties:
+        userId:
+          type: string
+          format: uuid
+        username:
+          type: string
+        isReady:
+          type: boolean
+
+    GameState:
+      type: object
+      properties:
+        gameId:
+          type: string
+          format: uuid
+        roomId:
+          type: string
+          format: uuid
+        status:
+          type: string
+          enum: [playing, finished]
+        currentTurn:
+          type: string
+          format: uuid
+        players:
+          type: array
+          items:
+            $ref: '#/components/schemas/GamePlayer'
+        lastAction:
+          type: object
+          properties:
+            playerId:
+              type: string
+              format: uuid
+            type:
+              type: string
+            cards:
+              type: array
+              items:
+                type: object
+            timestamp:
+              type: string
+              format: date-time
+
+    GamePlayer:
+      type: object
+      properties:
+        userId:
+          type: string
+          format: uuid
+        username:
+          type: string
+        role:
+          type: string
+          enum: [landlord, peasant]
+        cardCount:
+          type: integer
+        score:
+          type: integer
+
+    MatchRecord:
+      type: object
+      properties:
+        gameId:
+          type: string
+          format: uuid
+        result:
+          type: string
+          enum: [win, loss]
+        role:
+          type: string
+          enum: [landlord, peasant]
+        score:
+          type: integer
+        duration:
+          type: integer
+          description: Duration in seconds
+        players:
+          type: array
+          items:
+            type: string
+        playedAt:
+          type: string
+          format: date-time
+
+paths:
+  /auth/register:
+    post:
+      summary: Register a new user account
+      tags:
+        - Authentication
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - username
+                - password
+              properties:
+                username:
+                  type: string
+                  minLength: 3
+                  maxLength: 20
+                password:
+                  type: string
+                  minLength: 6
+                email:
+                  type: string
+                  format: email
+            example:
+              username: player123
+              password: securepass123
+              email: player@example.com
+      responses:
+        '201':
+          description: User registered successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    type: object
+                    properties:
+                      userId:
+                        type: string
+                        format: uuid
+                      username:
+                        type: string
+                      token:
+                        type: string
+                      expiresAt:
+                        type: string
+                        format: date-time
+              example:
+                success: true
+                data:
+                  userId: 550e8400-e29b-41d4-a716-446655440000
+                  username: player123
+                  token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+                  expiresAt: '2025-12-04T15:53:00Z'
+        '400':
+          description: Invalid input or username already taken
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /auth/login:
+    post:
+      summary: Login with existing credentials
+      tags:
+        - Authentication
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - username
+                - password
+              properties:
+                username:
+                  type: string
+                password:
+                  type: string
+            example:
+              username: player123
+              password: securepass123
+      responses:
+        '200':
+          description: Login successful
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+                    properties:
+                      userId:
+                        type: string
+                        format: uuid
+                      username:
+                        type: string
+                      token:
+                        type: string
+                      expiresAt:
+                        type: string
+                        format: date-time
+        '401':
+          description: Invalid credentials
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /auth/refresh:
+    post:
+      summary: Refresh JWT token
+      tags:
+        - Authentication
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Token refreshed successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+                    properties:
+                      token:
+                        type: string
+                      expiresAt:
+                        type: string
+                        format: date-time
+
+  /users/me:
+    get:
+      summary: Get current user profile
+      tags:
+        - User Profile
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: User profile retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    $ref: '#/components/schemas/User'
+              example:
+                success: true
+                data:
+                  userId: 550e8400-e29b-41d4-a716-446655440000
+                  username: player123
+                  email: player@example.com
+                  stats:
+                    totalGames: 123
+                    wins: 45
+                    losses: 78
+                    winRate: 0.366
+                    totalScore: 1250
+                  createdAt: '2025-01-01T12:00:00Z'
+
+    patch:
+      summary: Update user profile
+      tags:
+        - User Profile
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+                  format: email
+                password:
+                  type: string
+                  minLength: 6
+            example:
+              email: newemail@example.com
+      responses:
+        '200':
+          description: Profile updated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+                    properties:
+                      userId:
+                        type: string
+                        format: uuid
+                      username:
+                        type: string
+                      email:
+                        type: string
+
+  /rooms:
+    get:
+      summary: List available game rooms
+      tags:
+        - Game Rooms
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [waiting, playing, finished]
+          description: Filter by room status
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 20
+            maximum: 100
+      responses:
+        '200':
+          description: Room list retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+                    properties:
+                      rooms:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/Room'
+                      pagination:
+                        type: object
+                        properties:
+                          page:
+                            type: integer
+                          limit:
+                            type: integer
+                          total:
+                            type: integer
+                          totalPages:
+                            type: integer
+
+    post:
+      summary: Create a new game room
+      tags:
+        - Game Rooms
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                maxPlayers:
+                  type: integer
+                  default: 4
+                isPrivate:
+                  type: boolean
+                  default: false
+                password:
+                  type: string
+                  description: Required for private rooms
+            example:
+              name: My Game Room
+              maxPlayers: 4
+              isPrivate: false
+      responses:
+        '201':
+          description: Room created successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    $ref: '#/components/schemas/Room'
+
+  /rooms/{roomId}:
+    get:
+      summary: Get room details
+      tags:
+        - Game Rooms
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: roomId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Room details retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    $ref: '#/components/schemas/Room'
+        '404':
+          description: Room not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+    delete:
+      summary: Delete room (host only)
+      tags:
+        - Game Rooms
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: roomId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Room deleted successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  message:
+                    type: string
+        '403':
+          description: Not room host
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /rooms/{roomId}/join:
+    post:
+      summary: Join an existing room
+      tags:
+        - Game Rooms
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: roomId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                password:
+                  type: string
+                  description: Required for private rooms
+      responses:
+        '200':
+          description: Joined room successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+                    properties:
+                      roomId:
+                        type: string
+                        format: uuid
+                      playerId:
+                        type: string
+                        format: uuid
+        '403':
+          description: Room is full or wrong password
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Room not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /rooms/{roomId}/leave:
+    post:
+      summary: Leave current room
+      tags:
+        - Game Rooms
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: roomId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Left room successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  message:
+                    type: string
+
+  /games/{roomId}/start:
+    post:
+      summary: Start game in room (host only)
+      tags:
+        - Game Sessions
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: roomId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Game started successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+                    properties:
+                      gameId:
+                        type: string
+                        format: uuid
+                      roomId:
+                        type: string
+                        format: uuid
+                      status:
+                        type: string
+        '400':
+          description: Not enough players
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Not host
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /games/{gameId}:
+    get:
+      summary: Get game state
+      tags:
+        - Game Sessions
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: gameId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Game state retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    $ref: '#/components/schemas/GameState'
+
+  /games/{gameId}/history:
+    get:
+      summary: Get game action history
+      tags:
+        - Game Sessions
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: gameId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Game history retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+                    properties:
+                      gameId:
+                        type: string
+                        format: uuid
+                      actions:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            actionId:
+                              type: string
+                              format: uuid
+                            playerId:
+                              type: string
+                              format: uuid
+                            type:
+                              type: string
+                            data:
+                              type: object
+                            timestamp:
+                              type: string
+                              format: date-time
+
+  /leaderboard:
+    get:
+      summary: Get global leaderboard
+      tags:
+        - Leaderboard & Stats
+      parameters:
+        - name: sortBy
+          in: query
+          schema:
+            type: string
+            enum: [totalScore, winRate, totalGames]
+            default: totalScore
+        - name: period
+          in: query
+          schema:
+            type: string
+            enum: [all, daily, weekly, monthly]
+            default: all
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 50
+            maximum: 100
+      responses:
+        '200':
+          description: Leaderboard retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+                    properties:
+                      leaderboard:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            rank:
+                              type: integer
+                            userId:
+                              type: string
+                              format: uuid
+                            username:
+                              type: string
+                            totalScore:
+                              type: integer
+                            winRate:
+                              type: number
+                            totalGames:
+                              type: integer
+                      updatedAt:
+                        type: string
+                        format: date-time
+
+  /users/{userId}/matches:
+    get:
+      summary: Get user's match history
+      tags:
+        - Leaderboard & Stats
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 20
+      responses:
+        '200':
+          description: Match history retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+                    properties:
+                      matches:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/MatchRecord'
+                      pagination:
+                        type: object
+                        properties:
+                          page:
+                            type: integer
+                          total:
+                            type: integer
+
+  /matches/player/{playerId}:
+    get:
+      summary: Get player match history
+      tags:
+        - Match History
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: playerId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 20
+            maximum: 50
+      responses:
+        '200':
+          description: Player match history retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/MatchRecord'
+
+  /matches/{id}:
+    get:
+      summary: Get match detail with replay actions
+      tags:
+        - Match History
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Match details retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    $ref: '#/components/schemas/MatchRecord'

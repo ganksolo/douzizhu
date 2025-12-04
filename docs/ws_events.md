@@ -6,6 +6,7 @@ This document defines all WebSocket events used for real-time communication betw
 **Namespace**: `/game`  
 **Protocol**: Socket.IO  
 **Authentication**: JWT token via `auth: { token }` handshake
+**Base URL**: `http://localhost:3001`
 
 ---
 
@@ -175,10 +176,10 @@ This document defines all WebSocket events used for real-time communication betw
   players: {
     [userId: string]: {
       seat: number,
-      nickname: string,
+      username: string,
       avatar: string,
       online: boolean,
-      ready: boolean,
+      isReady: boolean,
       handCount: number,
       handCards: Card[] | null,  // null for opponents (fog-of-war)
       lastActive: number
@@ -218,10 +219,10 @@ This document defines all WebSocket events used for real-time communication betw
     {
       userId: string,
       seat: number,
-      nickname: string,
+      username: string,
       avatar: string,
       online: boolean,
-      ready: boolean,
+      isReady: boolean,
       lastActive: number
     }
   ]
@@ -248,12 +249,12 @@ This document defines all WebSocket events used for real-time communication betw
 ```typescript
 {
   userId: string,
-  nickname: string
+  username: string
 }
 ```
 
 **Frontend Behavior**:
-- Show toast notification: "{nickname} joined"
+- Show toast notification: "{username} joined"
 - Call `useRoomStore.addPlayer()`
 
 ---
@@ -269,7 +270,7 @@ This document defines all WebSocket events used for real-time communication betw
 ```
 
 **Frontend Behavior**:
-- Show toast notification: "{nickname} left"
+- Show toast notification: "{username} left"
 - Call `useRoomStore.removePlayer()`
 
 ---
@@ -447,7 +448,7 @@ This document defines all WebSocket events used for real-time communication betw
 ### Example 2: Ready → Game Start
 ```
 [Client] emit('toggle_ready', { roomId: 'room-1', isReady: true })
-[Server] → on('player_list_update', { players: [{ ready: true }, ...] })
+[Server] → on('player_list_update', { players: [{ isReady: true }, ...] })
 
 [All 3 Players Ready]
 [Server] → on('game_start', { roomId: 'room-1' })
@@ -472,7 +473,7 @@ This document defines all WebSocket events used for real-time communication betw
 
 [Client] emit('request_rematch', { roomId: 'room-1' })
 [Server] → on('room_reset', { roomId: 'room-1' })
-[Server] → on('player_list_update', { players: [{ ready: false }, ...] })
+[Server] → on('player_list_update', { players: [{ isReady: false }, ...] })
 ```
 
 ---

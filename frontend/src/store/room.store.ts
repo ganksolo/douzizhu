@@ -2,15 +2,15 @@ import { create } from 'zustand';
 
 /**
  * Room Player Data Structure
- * Based on phase21.1_room_core.md Redis schema
+ * Aligned with Swagger RoomPlayer schema + WebSocket extensions
  */
 export interface RoomPlayer {
     userId: string;
-    seat: number;
-    nickname: string;
-    avatar: string;
-    online: boolean;
-    ready: boolean;
+    username: string; // Swagger: username
+    isReady: boolean; // Swagger: isReady
+    seat?: number;    // WebSocket extension
+    avatar?: string;  // WebSocket extension
+    online?: boolean; // WebSocket extension
     lastActive?: number;
 }
 
@@ -36,14 +36,14 @@ interface RoomState {
     updatePlayerReady: (userId: string, isReady: boolean) => void;
     addPlayer: (player: RoomPlayer) => void;
     removePlayer: (userId: string) => void;
-    setMySeaId: (seatId: number) => void;
+    setMySeatId: (seatId: number) => void;
     reset: () => void;
 }
 
 /**
  * Room Store - Manages room state synchronized with backend
  * Events handled:
- * - player_list_update: Full room state (from phase21.1_room_core.md)
+ * - player_list_update: Full room state
  * - player_joined: Add new player
  * - player_left: Remove player
  * - toggle_ready: Update ready state
@@ -80,7 +80,7 @@ export const useRoomStore = create<RoomState>((set) => ({
         set((state) => ({
             players: state.players.map((player) =>
                 player.userId === userId
-                    ? { ...player, ready: isReady }
+                    ? { ...player, isReady }
                     : player
             ),
         }));
@@ -124,7 +124,7 @@ export const useRoomStore = create<RoomState>((set) => ({
      * Set current user's seat ID
      * @param seatId - Seat number (0-2 for 3-player game)
      */
-    setMySeaId: (seatId) => {
+    setMySeatId: (seatId) => {
         console.log('[Room] Setting my seat ID:', seatId);
         set({ mySeatId: seatId });
     },

@@ -3,37 +3,42 @@ import axios, { type AxiosInstance, type InternalAxiosRequestConfig } from 'axio
 // API Base URL - can be configured via environment variables
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
 
-// Type definitions based on backend API contracts
+// Type definitions based on backend API contracts (Swagger)
 export interface UserEntity {
-    id: string;
-    nickname: string;
-    avatar: string;
-    auth_type?: string;
-}
-
-export interface GuestLoginResponse {
-    access_token: string;
-    user: UserEntity;
-}
-
-export interface UserStats {
-    user: UserEntity;
-    stats: {
-        totalMatches: number;
-        totalWins: number;
+    userId: string;
+    username: string;
+    email?: string;
+    stats?: {
+        totalGames: number;
+        wins: number;
+        losses: number;
         winRate: number;
+        totalScore: number;
     };
-    recentMatches: any[];
+    createdAt?: string;
+}
+
+export interface AuthResponseData {
+    userId: string;
+    username: string;
+    token: string;
+    expiresAt: string;
+}
+
+export interface ApiResponse<T> {
+    success: boolean;
+    data: T;
+    message?: string;
 }
 
 export interface MatchRecord {
-    id: string;
-    roomId: string;
-    winnerPlayerId: string;
-    landlordPlayerId: string;
-    startTime: string;
-    endTime: string;
+    gameId: string;
+    result: 'win' | 'loss';
+    role: 'landlord' | 'peasant';
+    score: number;
     duration: number;
+    players: string[];
+    playedAt: string;
 }
 
 // Create Axios instance
@@ -86,6 +91,15 @@ apiClient.interceptors.response.use(
     }
 );
 
+// Helper to generate random guest credentials
+const generateGuestCredentials = () => {
+    const randomId = Math.random().toString(36).substring(2, 8);
+    return {
+        username: `Guest_${randomId}`,
+        password: `pass_${randomId}` // Min 6 chars required
+    };
+};
+
 // API Methods
 export const api = {
     /**
@@ -93,34 +107,22 @@ export const api = {
      */
     auth: {
         /**
-         * Guest login - creates a temporary user and returns JWT token
-         * Based on: phase20.2_auth_guide.md
+         * Guest login - actually registers a new user with random credentials
+         * Endpoint: POST /auth/register
          */
-        loginGuest: async (): Promise<GuestLoginResponse> => {
-            const response = await apiClient.post<GuestLoginResponse>('/auth/guest-login');
-            return response.data;
+        loginGuest: async (): Promise<AuthResponseData> => {
+            const credentials = generateGuestCredentials();
+            const response = await apiClient.post<ApiResponse<AuthResponseData>>('/auth/register', credentials);
+            return response.data.data;
         },
 
         /**
          * Get current user profile (requires auth)
+         * Endpoint: GET /users/me
          */
         getMe: async (): Promise<UserEntity> => {
-            const response = await apiClient.get<UserEntity>('/auth/me');
-            return response.data;
-        },
-    },
-
-    /**
-     * User APIs
-     */
-    user: {
-        /**
-         * Get user statistics and recent matches
-         * Based on: phase20.3_integration_guide.md
-         */
-        getStats: async (userId: string): Promise<UserStats> => {
-            const response = await apiClient.get<UserStats>(`/user/${userId}/stats`);
-            return response.data;
+            const response = await apiClient.get<ApiResponse<UserEntity>>('/users/me');
+            return response.data.data;
         },
     },
 
@@ -130,21 +132,22 @@ export const api = {
     match: {
         /**
          * Get player's match history
-         * Based on: phase19.3_api_guide.md
+         * Endpoint: GET /matches/player/:playerId
          */
-        getPlayerMatches: async (userId: string, limit = 20): Promise<MatchRecord[]> => {
-            const response = await apiClient.get<MatchRecord[]>(`/matches/player/${userId}`, {
+        getPlayerMatches: async (playerId: string, limit = 20): Promise<MatchRecord[]> => {
+            const response = await apiClient.get<ApiResponse<MatchRecord[]>>(`/matches/player/${playerId}`, {
                 params: { limit },
             });
-            return response.data;
+            return response.data.data;
         },
 
         /**
          * Get single match detail
+         * Endpoint: GET /matches/:id
          */
         getMatchDetail: async (matchId: string): Promise<MatchRecord> => {
-            const response = await apiClient.get<MatchRecord>(`/matches/${matchId}`);
-            return response.data;
+            const response = await apiClient.get<ApiResponse<MatchRecord>>(`/matches/${matchId}`);
+            return response.data.data;
         },
     },
 };

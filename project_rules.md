@@ -20,6 +20,10 @@
 ### 3. `@docs/product_features.md`
 若新增用户可感知的业务价值（Feature），必须以非技术语言说明该能力的行为与意义。
 
+### 4. OpenAPI 契约同步（若启用 Swagger/OpenAPI）
+- 任何 API 字段、响应结构、错误结构变更，必须同步更新 `docs/openapi.yaml`
+- OpenAPI 文档与 `api_spec.md` 必须保持一致，若不一致则视为 DoD 未完成
+
 ---
 
 ## B. Backend（后端）
@@ -115,6 +119,18 @@ QA 在测试某一阶段功能时，必须将：
 
 QA 不得凭自身推测行为，也不得依赖代码结构进行反向推断。
 
+（新增）当前端进入联调阶段（Frontend Integration）时，QA 必须同时参考：
+  1. `docs/phase{number}_{module}.md` —— 后端工程事实  
+  2. `walkthrough.md` —— 前端工程事实  
+  3. `api_spec.md` / `openapi.yaml` —— 契约文档  
+  
+  三份文档共同构成 QA 的完整测试依据。
+  
+  QA 必须验证：
+  - UI 行为是否符合 walkthrough.md 描述  
+  - API 调用是否符合 Backend 文档  
+  - 渲染字段是否与实际返回数据一致  
+  - 前后端契约是否保持一致  
 ---
 
 ### 3. 基于 phase 文档执行通用验证流程
@@ -146,12 +162,21 @@ QA 必须验证：
 ## D. Frontend（前端）
 
 ### 1. 更新 `@walkthrough.md`
+
 如用户交互流程、界面行为或触发事件发生变化，必须同步更新：
 - 用户路径  
 - 状态变化  
 - 事件触发逻辑  
 - 加载 / 错误处理流程  
 
+（新增）walkthrough.md 必须体现“前端工程事实（Frontend Engineering Facts）”，包含：
+- 页面结构（Page Layout）
+- 用户操作路径（User Flow）
+- API 调用点（何时、为何发起请求）
+- UI 字段 → 数据字段的映射关系（Data Mapping）
+- 状态变化逻辑（State Updates）
+- 错误处理与异常分支
+- 此文档在联调阶段是 **QA 的 UI 测试依据**，与 Backend phase 文档共同构成前后端统一的验收契约。
 ---
 
 ### 2. 更新 `@docs/api_spec.md`
@@ -205,7 +230,4 @@ QA 测试结果已在当前会话输出（未保存文件）
 - 可测试性 (Testability)  
 - 可扩展性 (Scalability)  
 - 跨模型一致性 (Model-Invariance)  
-- 多 Agent 协作可预测性 (Predictability)* **强制更新** **`@docs/backend_test_plan.md`**: 必须记录新编写的测试用例、测试脚本路径以及测试结果日志（Pass/Fail）。
-
-### C. 执行动作
-每次任务结束时，请**自动**向用户汇报：“已执行 DoD 检查，更新了 [文件A, 文件B...]。”
+- 多 Agent 协作可预测性 (Predictability)

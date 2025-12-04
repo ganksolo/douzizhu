@@ -16,7 +16,7 @@ This document defines the RESTful API and WebSocket protocol required for the Do
 
 ```
 Production: https://api.doudizhu.example.com
-Development: http://localhost:3000/api
+Development: http://localhost:3001/api
 ```
 
 ---
@@ -523,9 +523,10 @@ Retrieves full details of a specific match, including replay actions.
 
 ## 5. WebSocket Events
 
-### Connection
+**Base URL**: `http://localhost:3001`
+**WebSocket URL**: `ws://localhost:3001`
 
-**Endpoint**: `ws://localhost:3000`
+### Connection
 
 **Authentication**: Send JWT token on connection:
 ```json
@@ -644,11 +645,11 @@ Retrieves full details of a specific match, including replay actions.
   "players": [
     {
       "userId": "uuid",
-      "nickname": "string",
+      "username": "string",
       "avatar": "string",
       "seat": 0,
       "online": true,
-      "ready": false
+      "isReady": false
     }
   ]
 }
@@ -660,7 +661,7 @@ Retrieves full details of a specific match, including replay actions.
 {
   "type": "player_joined",
   "userId": "uuid",
-  "nickname": "string"
+  "username": "string"
 }
 ```
 

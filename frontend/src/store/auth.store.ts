@@ -42,19 +42,26 @@ export const useAuthStore = create<AuthState>((set) => ({
         try {
             console.log('[Auth] Attempting guest login...');
 
-            // Step 1: Call API
+            // Step 1: Call API (now returns AuthResponseData)
             const response = await api.auth.loginGuest();
 
-            console.log('[Auth] Login successful:', response.user);
+            console.log('[Auth] Login successful:', response);
+
+            // Construct UserEntity from response
+            const user: UserEntity = {
+                userId: response.userId,
+                username: response.username,
+                // Avatar not returned by register endpoint
+            };
 
             // Step 2: Store token in localStorage for persistence
-            localStorage.setItem('auth_token', response.access_token);
-            localStorage.setItem('auth_user', JSON.stringify(response.user));
+            localStorage.setItem('auth_token', response.token);
+            localStorage.setItem('auth_user', JSON.stringify(user));
 
             // Step 3: Update store state
             set({
-                user: response.user,
-                token: response.access_token,
+                user,
+                token: response.token,
                 isAuthenticated: true,
                 isLoading: false,
                 error: null,
@@ -62,7 +69,7 @@ export const useAuthStore = create<AuthState>((set) => ({
 
             // Step 4: Initialize Socket connection
             console.log('[Auth] Initializing socket connection...');
-            SocketService.connect(response.access_token);
+            SocketService.connect(response.token);
 
         } catch (error: any) {
             console.error('[Auth] Login failed:', error);

@@ -11,7 +11,7 @@ This document describes the foundational frontend infrastructure setup for Phase
 
 #### API Client (`api.ts`)
 - **HTTP Client**: Axios instance configured for REST API calls
-- **Base URL**: `http://localhost:3000` (configurable via `VITE_API_URL`)
+- **Base URL**: `http://localhost:3001` (configurable via `VITE_API_URL`)
 - **Authentication**: JWT auto-injection via request interceptor
 - **Error Handling**: Global 401 handler with auto-logout
 - **Debug**: All requests/responses logged to console
@@ -145,7 +145,7 @@ frontend/src/
 ## Backend Integration Points
 
 ### Phase 20.2: Authentication
-- **API**: `POST /auth/guest-login` → `{ access_token, user }`
+- **API**: `POST /auth/register` → `{ access_token, user }`
 - **Frontend**: `useAuthStore.loginGuest()` → Store token → Initialize socket
 
 ### Phase 21.1: Room Core
