@@ -347,3 +347,11 @@
         - [x] Verify "Login -> Join -> Ready -> Game Start" flow <!-- id: 338 -->
         - [x] Update walkthrough.md with Frontend Engineering Facts <!-- id: 339 -->
 
+    - [x] Phase 22.3: Lobby System & Routing <!-- id: 340 -->
+        - [x] Extend api.ts with room.list() and room.create() <!-- id: 341 -->
+        - [x] Create lobby.store.ts (room list state management) <!-- id: 342 -->
+        - [x] Update App.tsx (add /lobby route) <!-- id: 343 -->
+        - [x] Update LoginPage.tsx (redirect to /lobby) <!-- id: 344 -->
+        - [x] Create LobbyPage.tsx (room list + create buttons) <!-- id: 345 -->
+        - [x] Verify lobby flow: Login -> Lobby -> Create/Join Room <!-- id: 346 -->
+

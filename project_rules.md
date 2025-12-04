@@ -1,233 +1,271 @@
-# ... (保留你之前的代码规范等内容) ...
-
-## 4. Definition of Done (DoD) — 通用交付协议
-
-**Master Rule：**  
-任何功能、模块或能力，只要未更新规定文档，即视为 **未完成 (Incomplete)**。  
-当出现 **"DoD"**, **"Sync"**, **"完成"**, **"交付"**, **"验收"** 等指令时，必须执行完整 DoD 流程。
+# Project Rules v3 — AI-Driven Multi-Agent Engineering Protocol
+斗地主 Dou Dizhu Engineering Specification  
+Author: Jia Yulong  
+Version: v3.0 — 2025
 
 ---
 
-## A. 全员通用要求（Universal Requirements）
+# 0. 核心理念（The Constitution）
 
-### 1. `@task.md`
-- 勾选已完成任务  
-- 必要时拆解新增子任务  
+本项目采用 **AI-Driven Multi-Agent Engineering** 模式：  
+- FE Agent（前端）  
+- BE Agent（后端）  
+- QA Agent（测试）  
+- （未来）DevOps Agent  
 
-### 2. `@implementation_plan.md`
-如行为流程、模块边界、架构设计或实现方式发生变化，必须同步更新。
+所有 Agent 必须严格遵守本规则，否则输出无效。
 
-### 3. `@docs/product_features.md`
-若新增用户可感知的业务价值（Feature），必须以非技术语言说明该能力的行为与意义。
-
-### 4. OpenAPI 契约同步（若启用 Swagger/OpenAPI）
-- 任何 API 字段、响应结构、错误结构变更，必须同步更新 `docs/openapi.yaml`
-- OpenAPI 文档与 `api_spec.md` 必须保持一致，若不一致则视为 DoD 未完成
-
----
-
-## B. Backend（后端）
-
-### 1. 更新 `@docs/api_spec.md`
-任何输入、输出、契约、字段、错误格式或协议变更，都必须第一时间同步更新。
+本协议目标：  
+- 可复现性（Reproducibility）  
+- 可回溯性（Traceability）  
+- 可交接性（Transferability）  
+- 可测试性（Testability）  
+- 跨模型一致性（Model-Invariance）  
+- 多 Agent 协作可预测性（Predictability）
 
 ---
 
-### 2. 产出工程事实文档（Handoff Micro-Doc）  
-**文件格式： `docs/phase{number}_{module}.md`（⭐强制要求）**
+# 1. 文档体系（Documentation System）
 
-所有后端功能开发任务（API / Service / DB / Logic）结束后，必须产出独立的 **Handoff Micro-Doc**  
-（例如：`phase21.2_game_start.md`）。
+项目所有核心真相（Facts）必须写入以下文档：
 
-#### 文档必须包含（工程事实 Facts）：
-- 功能的结构定义（数据结构、业务实体、状态形态等）  
-- 行为流程（Flow），包括前置条件 / 后置结果  
-- 输入与输出契约（I/O Contract）  
-- 示例（样例数据、样例负载、样例调用）  
-- **可执行的验证步骤（Verification Steps）**  
-  → 以抽象形式描述如何验证此功能，例如调用步骤、检查逻辑、预期行为条件等  
+- `task.md`
+- `implementation_plan.md`
+- `walkthrough.md`
+- `docs/api_spec.md`
+- `docs/ws_events.md`
+- `docs/phase{number}_{module}.md`
+- `docs/backend_test_plan.md`
+- `docs/product_features.md`
+- （若启用）`docs/openapi.yaml`
 
-#### 文档目的：
-- 确保功能的 **可追溯性**  
-- 确保功能的 **可复现性**  
-- 确保功能的 **可交接性**（独立于上下文，可用于新模型 / 新窗口 / 新 Agent）  
-- 防止因上下文丢失导致工程信息中断  
-
-#### 禁止事项：
-- 不得写入任何测试结果（facts only）  
-- 不得与 backend_test_plan.md 混用  
+**未写入即视为不存在。**
 
 ---
-### 3. OpenAPI / Swagger 文档同步（若启用则为强制要求）
 
-如果项目启用了 OpenAPI 文档（如 `docs/openapi.yaml`）并提供 swagger-ui 或 redoc：
+# 2. 全局同步协议（Sync Protocol）
 
-- Backend 必须在每次 API 契约变更后同步更新：
+当我说出以下任意指令时：  
+- “DoD”  
+- “Sync”  
+- “完成”  
+- “交付”  
 
-  1. `docs/api_spec.md` —— AI 协作使用  
-  2. `docs/openapi.yaml` —— Swagger / 人类调试使用  
+FE / BE / QA 必须立即执行完整 DoD（Definition of Done）流程（见第 4 章）。
 
-- OpenAPI 文档必须真实反映当前接口契约，包括：
-  - 请求参数结构  
-  - 响应结构  
-  - 错误结构  
-  - 示例负载  
+---
 
-- 若 `api_spec.md` 与 `openapi.yaml` 不一致，视为 **DoD 未完成**。
+# 3. 多 Agent 角色边界（Role Boundaries）
 
-- OpenAPI 文档可由 AI 自动生成，无需人工维护：
+## FE Agent
+负责：
+- UI / 状态管理 / 用户交互  
+- 前端联调  
+- 渲染 SyncState  
+- 更新 walkthrough.md、api_spec.md、ws_events.md
+
+**不得修复后端逻辑，不得修改 phase 文档。**
+
+---
+
+## BE Agent
+负责：
+- API / 状态机 / DB / Redis  
+- ws events  
+- 行为逻辑  
+- 更新 phase 文档 + api_spec + openapi.yaml
+
+**Contract_bug 的第一责任人。**  
+**不得修改 walkthrough.md（这是 FE 的职责）。**
+
+---
+
+## QA Agent
+负责：
+- 独立验证  
+- Bug 分类  
+- 创建 GitHub Issue  
+- Regression 回归  
+- 更新 backend_test_plan.md
+
+**不得修改代码，不得修复 Bug。**
+
+---
+
+# 4. Definition of Done（DoD）
+
+无论 FE / BE / QA，DoD 必须包含：
+
+- 更新 `task.md`
+- 更新 `implementation_plan.md`（如架构/行为变化）
+- 更新 `product_features.md`（如影响用户价值）
+- 若 API 变动：
+  - 更新 `docs/api_spec.md`
+  - 更新 `docs/openapi.yaml`
+- 若为后端模块开发：
+  - 必须新增 `docs/phase{number}_{module}.md`
+- 若为前端联调：
+  - 更新 `walkthrough.md`
+  - 更新 `docs/ws_events.md`
+
+未执行 DoD = 功能未完成。
+
+---
+
+# 5. Bug Routing System（缺陷分类与分发系统）⭐
+
+## 5.1 缺陷分类（QA 专用）
+
+QA Agent 必须把每个问题归类为 4 类之一：
+
+| 类别 | 描述 |
+|------|------|
+| **FE_bug** | UI、渲染、交互、前端 API 调用 |
+| **BE_bug** | API 逻辑、状态机、数据库、Redis、ws event |
+| **DevOps_bug** | Docker、服务启动、端口、env、部署脚本 |
+| **Contract_bug** | 前后端字段/结构/协议不一致 |
+
+**QA 不得修复 Bug。**
+
+---
+
+## 5.2 Issue 创建（必经流程）
+
+QA 必须通过 MCP GitHub 创建 Issue，包含：
+
+- 标题  
+- 描述（问题背景）  
+- 复现步骤  
+- 预期行为  
+- 实际行为  
+- Bug 类型 label  
+- 指派（Assignee）  
+- 可选附件（截图、日志等）
+
+---
+
+## 5.3 Issue 自动认领（FE / BE / DevOps）
+
+### FE Agent  
+自动领取：`FE_bug`、状态=Open
+
+### BE Agent  
+自动领取：`BE_bug`、`Contract_bug`（主责）
+
+### DevOps Agent  
+自动领取：`DevOps_bug`
+
+---
+
+## 5.4 Contract_bug 特殊规则（非常关键）
 
 ```
-请根据 docs/api_spec.md 自动生成最新的 docs/openapi.yaml（OpenAPI 3.1）。
+Contract_bug 必须由 BE Agent 先修复，
+FE Agent 后同步前端数据结构。
 ```
 
-**说明：**  
-API Spec 面向 AI，OpenAPI 面向人类，两者均为契约载体，必须保持一致。
+流程：
+
+1. QA 标记 Contract_bug → assign 给 BE  
+2. BE：
+   - 修复 API 字段  
+   - 更新 api_spec  
+   - 更新 phase 文档  
+   - 标记 Issue = Ready for FE Sync  
+3. FE：  
+   - 同步 UI 与前端数据模型  
+   - 更新 walkthrough.md / ws_events.md  
+   - 标记 Issue = Ready for QA  
+4. QA Regression，标记为 Verified
 
 ---
 
-## C. QA（测试）
+## 5.5 Bug Issue 模板（示例，仅教学用途，不得视为真实问题）
 
-### 1. 更新 `@docs/backend_test_plan.md`（长期回归测试索引）
-
-记录以下内容：
-- Test ID  
-- Test Purpose  
-- Coverage Scope  
-- Preconditions  
-- Regression Required (Y/N)  
-- Latest Result（Pass / Fail）  
-
-该文档为长期测试体系的一部分，不包含工程事实，也不负责描述具体实现细节。
-
----
-
-### 2. 使用 phase 文档作为唯一测试依据（⭐关键规则）
-
-QA 在测试某一阶段功能时，必须将：
-
-**`docs/phase{number}_{module}.md`**
-
-视为：
-
-- 当前阶段唯一  
-- 最终  
-- 完整  
-- 权威的 QA handoff 文档  
-
-所有测试行为、验证逻辑、输入输出契约都必须以该文档为准。
-
-QA 不得凭自身推测行为，也不得依赖代码结构进行反向推断。
-
-（新增）当前端进入联调阶段（Frontend Integration）时，QA 必须同时参考：
-  1. `docs/phase{number}_{module}.md` —— 后端工程事实  
-  2. `walkthrough.md` —— 前端工程事实  
-  3. `api_spec.md` / `openapi.yaml` —— 契约文档  
-  
-  三份文档共同构成 QA 的完整测试依据。
-  
-  QA 必须验证：
-  - UI 行为是否符合 walkthrough.md 描述  
-  - API 调用是否符合 Backend 文档  
-  - 渲染字段是否与实际返回数据一致  
-  - 前后端契约是否保持一致  
----
-
-### 3. 基于 phase 文档执行通用验证流程
-
-QA 必须验证：
-
-- 输入处理是否正确  
-- 输出是否符合 Backend 文档描述  
-- 功能行为是否严格按照文档定义执行  
-- 异常、边界、不完整输入是否正确处理  
-- 若存在跨步骤流程，需验证流程一致性  
-- 结果与工程事实描述保持一致  
-
----
-
-### 4. 输出测试结果（不保存文件）
-
-仅在当前对话中输出：
-- Test Case  
-- Expected vs Verified  
-- Pass / Fail  
-- Snapshot（如必要）  
-- Issues  
-
-禁止保存到任何文件。
-
----
-
-## D. Frontend（前端）
-
-### 1. 更新 `@walkthrough.md`
-
-如用户交互流程、界面行为或触发事件发生变化，必须同步更新：
-- 用户路径  
-- 状态变化  
-- 事件触发逻辑  
-- 加载 / 错误处理流程  
-
-（新增）walkthrough.md 必须体现“前端工程事实（Frontend Engineering Facts）”，包含：
-- 页面结构（Page Layout）
-- 用户操作路径（User Flow）
-- API 调用点（何时、为何发起请求）
-- UI 字段 → 数据字段的映射关系（Data Mapping）
-- 状态变化逻辑（State Updates）
-- 错误处理与异常分支
-- 此文档在联调阶段是 **QA 的 UI 测试依据**，与 Backend phase 文档共同构成前后端统一的验收契约。
----
-
-### 2. 更新 `@docs/api_spec.md`
-如发现字段不完整、契约不一致、语义不明确，应予标注并通知 Backend。
-
----
-
-### 3. 数据渲染责任
-
-Frontend 必须确保：
-
-- 能使用 Backend Micro-Doc 的示例数据成功渲染 UI  
-- 建立 UI 字段 → 数据来源 → 语义说明 的映射规则  
-- 在 walkthrough.md 中清楚描述渲染依赖，使未来 Agent 能无缝接手  
-
----
-
-## E. 自动报告（Auto Reporting）
+> ⚠ **下方内容全部为示例，不属于本项目真实问题。**  
+> QA 创建真实 Issue 时必须替换掉所有示例内容。
 
 ```
-DoD 已执行 ✔
-已同步文档：
-- task.md
-- implementation_plan.md
-- product_features.md
-- docs/phase{number}_{module}.md（Backend Micro-Doc）
-QA 测试结果已在当前会话输出（未保存文件）
+目标仓库：ganksolo/douzizhu  
+Bug 类别（归属）：FE_bug | BE_bug | DevOps_bug | Contract_bug  
+指派：FE Agent / BE Agent / DevOps Agent  
+
+---
+
+# 🐞 Bug 标题
+[示例] 首页轮播图在移动端无法滑动
+
+# 📌 描述
+（示例）移动端 Safari 中滑动事件无效。
+
+# 🔬 复现步骤
+1. 打开……
+2. 滑动……
+3. 出现……
+
+# 🎯 预期行为
+（示例）应该可以滑动……
+
+# 🧨 实际行为
+（示例）无法滑动……
+
+# 🏷 Labels
+FE_bug
+
+# 📎 额外信息（可选）
+设备、系统、截图、日志
 ```
 
 ---
 
-## F. 禁止事项（Disallowed Behaviors）
+# 6. Frontend Rules（前端规则）
 
-- Backend 未产出 phase 文档  
-- 在 phase 文档中写入测试结果  
-- Backend 与 QA 编辑同一文档  
-- QA 测试结果被保存为文件  
-- 忽略 API Spec / Walkthrough 导致上下文不完整  
-- 未读取历史 phase 文档就进入下一阶段  
-- 未执行完整 DoD 即宣布完成  
+- 必须维护 walkthrough.md  
+- 必须维护 ws_events.md  
+- 必须渲染 SyncState  
+- Contract_bug = 等待 BE 修复 → 前端同步 → Ready for QA
 
 ---
 
-## G. 全局目标（Project Objectives）
+# 7. Backend Rules（后端规则）
 
-该工程协议确保：
+- 必须维护 phase 文档（工程事实）  
+- 必须维护 api_spec & openapi  
+- Contract_bug = BE 主责（先修复，再通知 FE）
 
-- 可复现性 (Reproducibility)  
-- 可回溯性 (Traceability)  
-- 可交接性 (Transferability)  
-- 可测试性 (Testability)  
-- 可扩展性 (Scalability)  
-- 跨模型一致性 (Model-Invariance)  
-- 多 Agent 协作可预测性 (Predictability)
+---
+
+# 8. QA Rules（测试规则）
+
+- 不得修改代码  
+- 不得修复 Bug  
+- 只负责验证、分类、记录  
+- 必须创建 Issue  
+- 必须执行 Regression  
+- 更新 backend_test_plan.md
+
+---
+
+# 9. 禁止事项（Disallowed Behaviors）
+
+- Backend 未写 phase 文档  
+- QA 写入代码或修复问题  
+- FE 修改后端工程事实  
+- 前后端契约不一致  
+- 未执行 DoD 就标记完成  
+- 未通过 QA Regression 就提交到下一阶段
+
+---
+
+# 10. 工程目标（Project Objectives）
+
+让本项目成为：
+
+- 可由不同 Agent 无缝接手  
+- 可在不同模型间无损迁移  
+- 可从任意 Phase 恢复上下文  
+- 可自动化联调  
+- 可自动化测试  
+- 可自动化修复  
+- 具备真正 AI-Driven 工程体系的项目
+

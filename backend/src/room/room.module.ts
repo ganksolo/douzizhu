@@ -1,6 +1,7 @@
 import { Module, forwardRef } from '@nestjs/common';
 import { RoomService } from './room.service';
 import { RoomGateway } from './room.gateway';
+import { RoomController } from './room.controller';
 import { CacheModule } from '@nestjs/cache-manager';
 import { GameModule } from '../game/game.module';
 import { ReconnectService } from './services/reconnect.service';
@@ -12,6 +13,7 @@ import { RoomCleanerService } from './services/room-cleaner.service';
         CacheModule.register(),
         forwardRef(() => GameModule),
     ],
+    controllers: [RoomController],
     providers: [
         RoomService,
         RoomGateway,

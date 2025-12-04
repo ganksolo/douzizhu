@@ -479,6 +479,79 @@ To fully automate these tests in the CI pipeline, we recommend the following app
 - ✅ ESLint: No linting errors
 - ✅ Dev Server: `npm run dev` runs on port 5173
 
+### 5.24 Phase 22.3: Lobby System (Tri-Source Verification)
+
+**Scope**: Verify frontend lobby system with tri-source verification (Frontend Facts + Backend Facts + Contract)
+**Type**: Documentation Compliance & Contract Verification
+**Files**:
+- Frontend: `LobbyPage.tsx`, `lobby.store.ts`, `api.ts`
+- Backend: `RoomService`, `RoomGateway` (expected: `RoomController`)
+- Contract: `docs/api_spec.md` (Section: `/rooms` endpoints)
+**Last Executed**: 2025-12-04 (Tri-Source Verification)
+**Status**: ❌ **FAILED** (Critical Contract-Backend Mismatch)
+
+| Test Case | Description | Method | Result |
+|-----------|-------------|--------|--------|
+| **TC-DOC-001** | Frontend Facts Documentation | DoD Compliance | ❌ FAIL |
+| **TC-CONTRACT-001** | GET /rooms Endpoint | API Contract | ❌ FAIL |
+| **TC-CONTRACT-002** | POST /rooms Endpoint | API Contract | ❌ FAIL |
+
+**Critical Findings**:
+
+1. **❌ Missing Frontend Facts Documentation**
+   - **Source**: `project_rules.md` Section D.1
+   - **Issue**: `walkthrough.md` or `docs/frontend_walkthrough.md` has NO Phase 22.3 documentation.
+   - **Impact**: QA lacks Frontend Engineering Facts for testing (Page Layout, User Flow, API Trigger Points, Data Mapping).
+   - **DoD Status**: ❌ **Incomplete**
+
+2. ** Backend REST API Not Implemented**
+   - **Source**: `api_spec.md` Lines 178-248
+   - **Contract Expects**:
+     - `POST /rooms` (Create Room)
+     - `GET /rooms` (List Rooms)
+   - **Backend Reality**:
+     - `RoomService`: Only WebSocket logic (join/leave/kick/ready)
+     - `RoomGateway`: Only WebSocket handlers (/room namespace)
+     - **NO `RoomController`** exists
+   - **Frontend Calls**: `api.room.list()` → `GET /rooms`, `api.room.create()` → `POST /rooms`
+   - **Impact**: Frontend will receive **404 errors** on Lobby page load.
+   - **DoD Status**: ❌ **Critical Blocker**
+
+3. **⚠️ Partial Backend Facts**
+   - **Source**: `docs/phase21.1_room_core.md`
+   - **Coverage**: WebSocket-based room management (join/leave/kick)
+   - **Missing**: REST API design, room creation flow, room listing logic
+
+**Tri-Source Analysis**:
+
+| Source | Status | Notes |
+|--------|--------|-------|
+| **Frontend Facts** | ❌ Missing | No walkthrough for Phase 22.3 |
+| **Backend Facts** | ⚠️ Partial | Only WebSocket logic documented |
+| **API Contract** | ✅ Exists | `/rooms` endpoints defined in `api_spec.md` |
+| **Backend Code** | ❌ Missing | No `RoomController`, no REST endpoints |
+| **Frontend Code** | ✅ Implemented | Lobby UI fully functional (calls non-existent API) |
+
+**Next Steps (Blocker Resolution)**:
+
+1. **Implement Backend REST API** (Priority: Critical)
+   - Create `backend/src/room/room.controller.ts`
+   - Implement `@Get()` for `GET /rooms` (list rooms from Redis)
+   - Implement `@Post()` for `POST /rooms` (create room in Redis)
+   - Register controller in `RoomModule`
+
+2. **Update Frontend Facts** (DoD Requirement)
+   - Document Phase 22.3 in `walkthrough.md` or `docs/frontend_walkthrough.md`
+   - Include: LobbyPage Layout, API Trigger Points, Data Mapping (Room → UI)
+
+3. **Sync OpenAPI Documentation**
+   - After Backend implementation, verify `docs/openapi.yaml` reflects `/rooms` endpoints
+
+**Test Execution Summary**:
+- **Total Tests**: 3 (Documentation + Contract Checks)
+- **Pass Rate**: 0%
+- **Blockers**: 2 Critical (Missing Backend API + Missing Frontend Facts)
+
 ### 5.23 Frontend Core UI (Phase 22.2)
 
 **Scope**: Verify core UI components and basic user interactions.

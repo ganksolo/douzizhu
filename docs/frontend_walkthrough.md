@@ -250,3 +250,135 @@ window.socketTest.disconnect();
 
 ### 3. Verification
 - Validated "Login -> Join -> Ready -> Game Start" flow manually.
+
+---
+
+## Phase 22.3: Lobby System & Routing
+
+### Overview
+Implemented a full room lobby system with room list display, PvP/PvE room creation, and navigation routing. This phase completes the pre-game user flow from login to entering a specific game room.
+
+---
+
+### 1. Architecture Changes
+
+#### Routing (`App.tsx`)
+**Routes**:
+- `/login`: Guest login page
+- `/lobby`: Room list and creation (Protected by AuthGuard)
+- `/room/:roomId`: Game room page (Protected by AuthGuard)
+
+**Login Flow**:
+- `LoginPage` now redirects to `/lobby` instead of `/room/1`
+- Users select or create rooms from the lobby before entering
+
+---
+
+### 2. New Components
+
+#### LobbyPage (`frontend/src/pages/LobbyPage.tsx`)
+
+**Page Layout**:
+- **Header**: Display username and total active rooms count
+- **Room List Panel** (Left 2/3):
+  - Scrollable list of available rooms
+  - Each room displays: name, hostId (truncated), current/max players
+  - "FULL" badge when `currentPlayers === maxPlayers`
+  - Click to join room
+  - Auto-refresh every 5 seconds
+- **Create Panel** (Right 1/3):
+  - "Create 3-Player PvP" button (real players)
+  - "Solo Practice (3 AI)" button (PvE mode)
+
+**User Flow**:
+1. User logs in -> Navigates to `/lobby`
+2. Lobby loads room list via `api.room.list()`
+3. User clicks "Create PvP" -> Calls `api.room.create({ type: 'PVP' })`
+4. Backend returns `{ success: true, data: { roomId: '...' } }`
+5. Frontend navigates to `/room/${roomId}`
+6. RoomPage emits `join_room` WebSocket event
+
+---
+
+### 3. API Integration Points
+
+#### API Calls (`frontend/src/services/api.ts`)
+
+**Room List API**:
+```typescript
+api.room.list({ status: 'waiting', page: 1, limit: 20 })
+```
+- **Endpoint**: `GET /rooms?status=waiting&page=1&limit=20`
+- **Trigger**: `LobbyPage` mount + 5-second interval
+- **Response**: `{ success: true, data: { rooms: Room[], pagination: {...} } }`
+
+**Room Creation API**:
+```typescript
+api.room.create({ type: 'PVP' | 'PVE', botCount?: number })
+```
+- **Endpoint**: `POST /rooms`
+- **Trigger**: User clicks "Create PvP" or "Create PvE" button
+- **Payload**: `{ name: '[PvP] Room...' | '[PvE] Solo Practice', maxPlayers: 3, isPrivate: false }`
+- **Response**: `{ success: true, data: { roomId, name, hostId, ... } }`
+
+---
+
+### 4. State Management
+
+#### Lobby Store (`frontend/src/store/lobby.store.ts`)
+
+**State**:
+- `rooms: Room[]` - List of available rooms
+- `isLoading: boolean` - API loading state
+- `error: string | null` - Error message
+- `currentPage: number` - Pagination state
+- `totalPages: number` - Pagination state
+
+**Actions**:
+- `fetchRooms(page?)` - Call `api.room.list()` and update rooms
+- `createRoom(config)` - Call `api.room.create()` and return roomId
+- `clearError()` - Reset error state
+
+---
+
+### 5. Data Mapping
+
+**Room API → Lobby UI**:
+
+| API Field | UI Display | Location |
+|-----------|------------|----------|
+| `roomId` | Used for navigation | `navigate(/room/${roomId})` |
+| `name` | Room title | Room card heading |
+| `hostId` | Host display (truncated) | Room card subheading |
+| `currentPlayers` | Player count | `{currentPlayers}/{maxPlayers}` badge |
+| `maxPlayers` | Max capacity | `{currentPlayers}/{maxPlayers}` badge |
+| `status` | Filter criteria | Only show `status === 'waiting'` |
+
+---
+
+### 6. Error Handling
+
+**Scenarios**:
+- **API Failure**: Display error banner with message and close button
+- **Empty Room List**: Show "No active rooms" placeholder
+- **Room Full**: Disable join button and show "FULL" badge
+
+---
+
+### 7. Navigation Flow
+
+```
+Login -> /lobby (Auto-refresh every 5s)
+      |
+      |-> Click "Create PvP" -> POST /rooms -> /room/:roomId
+      |
+      |-> Click "Join Room" -> /room/:roomId -> emit('join_room')
+```
+
+---
+
+**Status**: ✅ Phase 22.3 Complete  
+**Date**: 2025-12-04  
+**Key Files**: `LobbyPage.tsx`, `lobby.store.ts`, `api.ts` (room endpoints)  
+**Backend Dependencies**: `RoomController` (GET /rooms, POST /rooms)  
+**Next Phase**: Phase 23 - Game UI Implementation

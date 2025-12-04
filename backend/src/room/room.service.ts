@@ -271,15 +271,17 @@ export class RoomService {
     /**
      * Helper: Create Room
      */
-    private async createRoom(roomId: string, ownerId: string): Promise<void> {
+    async createRoom(roomId: string, ownerId: string, config: any = {}): Promise<void> {
         const client = this.getRedisClient();
+        if (!client) throw new Error('Redis client not available');
+
         const metaKey = this.getMetaKey(roomId);
 
-        await client.hset(metaKey, {
-            ownerId,
-            status: 'waiting',
-            config: JSON.stringify({ baseScore: 1 }),
-        });
+        // Use field-value pairs format instead of object
+        await client.hset(metaKey, 'ownerId', ownerId);
+        await client.hset(metaKey, 'status', 'waiting');
+        await client.hset(metaKey, 'config', JSON.stringify(config));
+
         // Set expiry for cleanup (24h)
         await client.expire(metaKey, 86400);
         await client.expire(this.getPlayersKey(roomId), 86400);

@@ -41,6 +41,32 @@ export interface MatchRecord {
     playedAt: string;
 }
 
+export interface Room {
+    roomId: string;
+    name: string;
+    hostId: string;
+    currentPlayers: number;
+    maxPlayers: number;
+    isPrivate: boolean;
+    status: 'waiting' | 'playing' | 'finished';
+    createdAt?: string;
+}
+
+export interface RoomListResponse {
+    rooms: Room[];
+    pagination: {
+        page: number;
+        limit: number;
+        total: number;
+        totalPages: number;
+    };
+}
+
+export interface CreateRoomConfig {
+    type: 'PVP' | 'PVE';
+    botCount?: number;
+}
+
 // Create Axios instance
 const apiClient: AxiosInstance = axios.create({
     baseURL: API_BASE_URL,
@@ -122,6 +148,35 @@ export const api = {
          */
         getMe: async (): Promise<UserEntity> => {
             const response = await apiClient.get<ApiResponse<UserEntity>>('/users/me');
+            return response.data.data;
+        },
+    },
+
+    /**
+     * Room Management APIs
+     */
+    room: {
+        /**
+         * List available game rooms
+         * Endpoint: GET /rooms
+         */
+        list: async (params?: { status?: string; page?: number; limit?: number }): Promise<RoomListResponse> => {
+            const response = await apiClient.get<ApiResponse<RoomListResponse>>('/rooms', { params });
+            return response.data.data;
+        },
+
+        /**
+         * Create new game room
+         * Endpoint: POST /rooms
+         * Note: Using name prefix as workaround for PvP/PvE distinction
+         */
+        create: async (config: CreateRoomConfig): Promise<Room> => {
+            const payload = {
+                name: config.type === 'PVE' ? '[PvE] Solo Practice' : `[PvP] Room ${Date.now()}`,
+                maxPlayers: 3, // Dou Dizhu is 3-player
+                isPrivate: false,
+            };
+            const response = await apiClient.post<ApiResponse<Room>>('/rooms', payload);
             return response.data.data;
         },
     },

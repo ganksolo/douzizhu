@@ -2,6 +2,7 @@ import React, { useEffect } from 'react';
 import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { useAuthStore } from './store/auth.store';
 import { LoginPage } from './pages/LoginPage';
+import { LobbyPage } from './pages/LobbyPage';
 import { RoomPage } from './pages/RoomPage';
 
 // AuthGuard Component
@@ -26,6 +27,14 @@ function App() {
     <BrowserRouter>
       <Routes>
         <Route path="/login" element={<LoginPage />} />
+        <Route
+          path="/lobby"
+          element={
+            <AuthGuard>
+              <LobbyPage />
+            </AuthGuard>
+          }
+        />
         <Route
           path="/room/:roomId"
           element={
