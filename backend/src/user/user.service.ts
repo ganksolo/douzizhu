@@ -26,6 +26,26 @@ export class UserService {
     }
 
     /**
+     * Create a new user with username and password
+     */
+    async createUser(username: string, passwordHash: string, email?: string): Promise<User> {
+        // Check if username exists
+        const existing = await this.userRepository.findByNickname(username);
+        if (existing) {
+            throw new Error('Username already exists');
+        }
+
+        return await this.userRepository.create({
+            nickname: username,
+            auth_type: AuthType.PASSWORD,
+            passwordHash: passwordHash,
+            email: email,
+            avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=' + username,
+            lastLogin: new Date(),
+        });
+    }
+
+    /**
      * Find user by ID
      */
     async findById(id: string): Promise<User> {
@@ -34,6 +54,13 @@ export class UserService {
             throw new NotFoundException(`User with ID ${id} not found`);
         }
         return user;
+    }
+
+    /**
+     * Find user by username
+     */
+    async findByUsername(username: string): Promise<User | null> {
+        return await this.userRepository.findByNickname(username);
     }
 
     /**

@@ -14,17 +14,52 @@ export class AuthService {
      * Login as a guest user
      * Creates a new guest account and returns JWT
      */
+    /**
+     * Login as a guest user
+     * Creates a new guest account and returns JWT
+     */
     async guestLogin() {
         const user = await this.userService.createGuest();
-        const payload = { username: user.nickname, sub: user.id };
+        return this.generateToken(user);
+    }
 
+    /**
+     * Register a new user
+     */
+    async register(username: string, password: string, email?: string) {
+        // Mock hashing for prototype (In production, use bcrypt)
+        const passwordHash = `hashed_${password}`;
+        const user = await this.userService.createUser(username, passwordHash, email);
+        return this.generateToken(user);
+    }
+
+    /**
+     * Login with username and password
+     */
+    async login(username: string, password: string) {
+        const user = await this.userService.findByUsername(username);
+        if (!user) {
+            return null;
+        }
+
+        // Mock hashing check (In production, use bcrypt.compare)
+        const passwordHash = `hashed_${password}`;
+        if (user.passwordHash !== passwordHash) {
+            return null;
+        }
+
+        return this.generateToken(user);
+    }
+
+    private generateToken(user: User) {
+        const payload = { username: user.nickname, sub: user.id };
         return {
-            access_token: this.jwtService.sign(payload),
-            user: {
-                id: user.id,
-                nickname: user.nickname,
-                avatar: user.avatar,
-                auth_type: user.auth_type,
+            success: true,
+            data: {
+                userId: user.id,
+                username: user.nickname,
+                token: this.jwtService.sign(payload),
+                expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
             }
         };
     }

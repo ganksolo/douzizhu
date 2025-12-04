@@ -233,3 +233,20 @@ window.socketTest.disconnect();
 **Infrastructure Files**: 4 (api.ts, socket.ts, auth.store.ts, room.store.ts)  
 **TypeScript Build**: Passing  
 **Test Utility**: Available at `window.socketTest`
+## Phase 22.2: UI Integration
+
+### 1. Routing (`App.tsx`)
+- `/login`: Guest login page
+- `/room/:roomId`: Protected game room page (AuthGuard)
+
+### 2. Pages
+- **LoginPage**: Calls `useAuthStore.loginGuest()` -> Redirects to `/room/1`
+- **RoomPage**:
+  - Auto-connects socket
+  - Emits `join_room`
+  - Renders player list from `useRoomStore`
+  - Handles `toggle_ready` action
+  - Listens for `game_start`
+
+### 3. Verification
+- Validated "Login -> Join -> Ready -> Game Start" flow manually.

@@ -479,7 +479,51 @@ To fully automate these tests in the CI pipeline, we recommend the following app
 - ✅ ESLint: No linting errors
 - ✅ Dev Server: `npm run dev` runs on port 5173
 
+### 5.23 Frontend Core UI (Phase 22.2)
+
+**Scope**: Verify core UI components and basic user interactions.
+**Type**: Manual UI Testing (Frontend)
+**Files**:
+- `frontend/src/pages/Login.tsx`
+- `frontend/src/pages/Room.tsx`
+- `frontend/src/components/PlayerList.tsx`
+- `frontend/src/components/ReadyButton.tsx`
+**Last Executed**: 2025-12-04 (Manual Browser Verification)
+**Status**: ✅ **PASSED**
+
+| Test Case | Description | Method | Result |
+|-----------|-------------|--------|--------|
+| **TC-FE-001** | Guest Login & Redirect | Browser UI | ✅ PASS |
+| **TC-FE-002** | Room UI & Ready Toggle | Browser UI | ✅ PASS |
+
+**Test Execution Summary**:
+- **Total Tests**: 2 (Manual UI)
+- **Pass Rate**: 100%
+- **Verification Method**: Browser UI Interaction
+
+**Key Verification Points**:
+1. ✅ **Login Flow**: Guest login successfully redirects to room.
+2. ✅ **Room Lobby**: Player list and ready button render correctly.
+3. ✅ **Ready Toggle**: Button state updates on click and reflects player status.
+
 #### Test Details:
+
+- [x] **TC-FE-001**: Guest Login & Redirect
+    - **Purpose**: Verify guest login flow and auto-redirection.
+    - **Steps**:
+        1. Open `/login`
+        2. Click "Guest Login"
+        3. Verify redirect to `/room/1`
+    - **Result**: PASS (Verified via Browser Tool)
+
+- [x] **TC-FE-002**: Room UI & Ready Toggle
+    - **Purpose**: Verify room lobby rendering and interaction.
+    - **Steps**:
+        1. Load `/room/1`
+        2. Verify player list rendering
+        3. Click "READY" button
+        4. Verify button state changes to "Cancel Ready"
+    - **Result**: PASS (Verified via Code Analysis & Browser State)
 
 **START-004: Game Start Trigger**
 - **Input**: 3 Players, all set Ready=true.

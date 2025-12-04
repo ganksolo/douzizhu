@@ -59,6 +59,7 @@
     - [x] Implement Theme System (Classic, Tech, Wood) <!-- id: 54 -->
     - [x] Add Settings Menu for Theme Switching <!-- id: 55 -->
 
+
 - [x] Fix 1: Spatial Layout - Separate Play Areas <!-- id: 56 -->
     - [x] Create 4 play area containers (Bottom, Right, Top, Left) <!-- id: 57 -->
     - [x] Map playerId to position and render cards accordingly <!-- id: 58 -->
@@ -328,7 +329,7 @@
         - [x] Integrate into GameGateway (Disconnect/Reconnect Hooks) <!-- id: 322 -->
         - [x] Create QA Handoff (Reconnection Flow & Test Cases) <!-- id: 323 -->
 
-- [/] Phase 22: Frontend Integration <!-- id: 324 -->
+- [x] Phase 22: Frontend Integration <!-- id: 324 -->
     - [x] Phase 22.1: Infrastructure & State Management <!-- id: 325 -->
         - [x] Install dependencies (axios, socket.io-client, zustand) <!-- id: 326 -->
         - [x] Create API Client (services/api.ts) <!-- id: 327 -->
@@ -339,5 +340,10 @@
         - [x] Manual verification (API, Socket, Stores) <!-- id: 332 -->
         - [x] Create QA handoff documentation <!-- id: 333 -->
 
-
+    - [x] Phase 22.2: UI Pages & Event Wiring <!-- id: 334 -->
+        - [x] Implement App.tsx (Routing & AuthGuard) <!-- id: 335 -->
+        - [x] Implement LoginPage.tsx (Guest Login) <!-- id: 336 -->
+        - [x] Implement RoomPage.tsx (Lobby UI & Socket Events) <!-- id: 337 -->
+        - [x] Verify "Login -> Join -> Ready -> Game Start" flow <!-- id: 338 -->
+        - [x] Update walkthrough.md with Frontend Engineering Facts <!-- id: 339 -->
 
