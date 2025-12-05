@@ -44,7 +44,7 @@ export class RoomGateway {
                 return;
             }
 
-            const players = await this.roomService.joinRoom(data.roomId, { id: userId, nickname, avatar }, client);
+            const players = await this.roomService.joinRoom(data.roomId, { id: userId, nickname, avatar });
 
             client.join(data.roomId);
 

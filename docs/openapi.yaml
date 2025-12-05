@@ -136,21 +136,26 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/GamePlayer'
-        lastAction:
+        lastPlayedCards:
           type: object
           properties:
             playerId:
               type: string
               format: uuid
-            type:
-              type: string
             cards:
               type: array
               items:
-                type: object
-            timestamp:
-              type: string
-              format: date-time
+                type: object # standardized to object/string based on implementation
+            seatIndex:
+              type: integer
+        bottomCards:
+          type: array
+          items:
+            type: integer
+        myHand:
+          type: array
+          items:
+            type: integer
 
     GamePlayer:
       type: object

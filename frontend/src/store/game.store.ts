@@ -1,4 +1,5 @@
 import { create } from 'zustand';
+import { parseCardList } from '../utils/cardUtils';
 
 // --- Types ---
 export type GamePhase = 'INIT' | 'DEALING' | 'PLAYING' | 'GAME_OVER';
@@ -24,7 +25,7 @@ export interface GameState {
     mySeatId: number | null;
     currentTurn: number | null; // seatIndex
     bottomCards: number[];
-    lastPlayed: LastPlayedState | null;
+    lastPlayedCards: LastPlayedState | null;
     myHand: number[]; // Local player's hand cards (sorted)
 
     // Actions
@@ -43,21 +44,36 @@ export const useGameStore = create<GameState>((set, get) => ({
     mySeatId: null,
     currentTurn: null,
     bottomCards: [],
-    lastPlayed: null,
+    lastPlayedCards: null,
     myHand: [],
+
+
 
     // Actions
     setSyncState: (data: any) => {
         console.log('[GameStore] sync_state:', data);
         // Map backend data to store state
-        // Assuming backend sends: { phase, players, currentTurn, bottomCards, lastPlayed, ... }
+        // Assuming backend sends: { phase, players, currentTurn, bottomCards, lastPlayedCards, ... }
+
+        // Parse cards from strings to numbers
+        const myHand = data.myHand ? parseCardList(data.myHand).sort((a, b) => b - a) : [];
+        const bottomCards = data.bottomCards ? parseCardList(data.bottomCards) : [];
+
+        let lastPlayedCards = null;
+        if (data.lastPlayedCards) {
+            lastPlayedCards = {
+                seatIndex: data.lastPlayedCards.seatIndex,
+                cards: parseCardList(data.lastPlayedCards.cards)
+            };
+        }
+
         set({
             phase: data.phase || 'INIT',
             players: data.players || [],
             currentTurn: data.currentTurn ?? null,
-            bottomCards: data.bottomCards || [],
-            lastPlayed: data.lastPlayed || null,
-            myHand: data.myHand ? [...data.myHand].sort((a, b) => b - a) : [], // Auto-sort desc
+            bottomCards,
+            lastPlayedCards,
+            myHand,
         });
     },
 
@@ -71,7 +87,7 @@ export const useGameStore = create<GameState>((set, get) => ({
             players: [],
             currentTurn: null,
             bottomCards: [],
-            lastPlayed: null,
+            lastPlayedCards: null,
             myHand: [],
             // mySeatId typically persists if in the same room, but can clear if leaving
         });

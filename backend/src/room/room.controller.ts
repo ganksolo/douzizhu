@@ -1,148 +1,105 @@
-import { Controller, Get, Post, Body, Query, UseGuards, Request, BadRequestException } from '@nestjs/common';
-import { AuthGuard } from '@nestjs/passport';
+import { Controller, Get, Post, Body, Param, Query, UseGuards, Request, NotFoundException, BadRequestException, Delete } from '@nestjs/common';
 import { RoomService } from './room.service';
-
-interface CreateRoomDto {
-    name?: string;
-    maxPlayers?: number;
-    isPrivate?: boolean;
-    password?: string;
-    type?: 'PVP' | 'PVE';
-    difficulty?: 'EASY' | 'MEDIUM' | 'HARD';
-    botCount?: number;
-}
-
-interface RoomListQuery {
-    status?: 'waiting' | 'playing' | 'finished';
-    page?: number;
-    limit?: number;
-}
+import { AuthGuard } from '@nestjs/passport';
+import { v4 as uuidv4 } from 'uuid';
 
 @Controller('rooms')
 export class RoomController {
     constructor(private readonly roomService: RoomService) { }
 
-    /**
-     * GET /rooms - List available rooms
-     * Query params: status, page, limit
-     */
-    @UseGuards(AuthGuard('jwt'))
     @Get()
-    async listRooms(@Query() query: RoomListQuery, @Request() req) {
-        const page = parseInt(String(query.page || '1'));
-        const limit = Math.min(parseInt(String(query.limit || '20')), 100);
-        const statusFilter = query.status;
-
-        try {
-            // Get all room IDs from Redis
-            const allRoomIds = await this.roomService.getAllRoomIds();
-
-            // Fetch room details
-            const roomPromises = allRoomIds.map(async (roomId) => {
-                try {
-                    const meta = await this.roomService.getRoomMeta(roomId);
-                    const players = await this.roomService.getPlayers(roomId);
-
-                    if (!meta) return null;
-
-                    // Filter by status if provided
-                    if (statusFilter && meta.status !== statusFilter) {
-                        return null;
-                    }
-
-                    // Parse config from meta if available
-                    // Note: meta is a flat hash, config might be a stringified field?
-                    // Original createRoom stored it as 'config' field in Redis, requiring parsing if we want deep fields.
-                    // But RoomService.createRoom says: await client.hset(metaKey, 'config', JSON.stringify(config));
-                    // getRoomMeta returns raw hash. We need to handle this.
-                    // For now, simple return.
-
-                    return {
-                        roomId,
-                        name: `Room ${roomId}`, // Could be stored in config
-                        hostId: meta.ownerId,
-                        currentPlayers: players.length,
-                        maxPlayers: 4, // 4-player default now
-                        isPrivate: false,
-                        status: meta.status,
-                        createdAt: new Date().toISOString(), // Could track in Redis
-                    };
-                } catch (err) {
-                    console.error(`Failed to fetch room ${roomId}:`, err);
-                    return null;
-                }
-            });
-
-            const rooms = (await Promise.all(roomPromises)).filter((r) => r !== null);
-
-            // Pagination
-            const total = rooms.length;
-            const totalPages = Math.ceil(total / limit);
-            const startIndex = (page - 1) * limit;
-            const endIndex = startIndex + limit;
-            const paginatedRooms = rooms.slice(startIndex, endIndex);
-
-            return {
-                success: true,
-                data: {
-                    rooms: paginatedRooms,
-                    pagination: {
-                        page,
-                        limit,
-                        total,
-                        totalPages,
-                    },
-                },
-            };
-        } catch (error) {
-            console.error('Error listing rooms:', error);
-            throw new BadRequestException('Failed to list rooms');
-        }
+    @UseGuards(AuthGuard('jwt'))
+    async getRooms(@Query('page') page: number = 1, @Query('limit') limit: number = 20) {
+        return this.roomService.getRooms(page, limit);
     }
 
-    /**
-     * POST /rooms - Create a new room
-     * Body: name, maxPlayers, isPrivate, password, type, difficulty, botCount
-     */
+    @Get(':id')
     @UseGuards(AuthGuard('jwt'))
+    async getRoom(@Param('id') id: string) {
+        const meta = await this.roomService.getRoomMeta(id);
+        if (!meta) throw new NotFoundException('Room not found');
+        const players = await this.roomService.getPlayers(id);
+        return {
+            roomId: id,
+            ...meta,
+            // Parse config if exists
+            config: meta.config ? JSON.parse(meta.config) : {},
+            players,
+            currentPlayers: players.length
+        };
+    }
+
     @Post()
-    async createRoom(@Body() body: CreateRoomDto, @Request() req) {
-        const userId = req.user.sub;
+    @UseGuards(AuthGuard('jwt'))
+    async createRoom(@Body() body: any, @Request() req) {
+        // body: { name, type, difficulty, botCount, isPrivate, password }
+        const roomId = uuidv4();
+        const userId = req.user.userId;
 
-        try {
-            // Generate unique room ID
-            const roomId = `${Date.now()}-${Math.random().toString(36).substring(2, 8)}`;
+        // Default config
+        const config = {
+            name: body.name || `${req.user.username}'s Room`,
+            type: body.type || 'PVP',
+            difficulty: body.difficulty || 'MEDIUM',
+            botCount: body.botCount || 0,
+            isPrivate: body.isPrivate || false,
+            password: body.password || '',
+            maxPlayers: body.maxPlayers || 4
+        };
 
-            // Determine maxPlayers based on type
-            const maxPlayers = body.type === 'PVE' ? 4 : (body.maxPlayers || 3);
-            const botCount = body.type === 'PVE' ? (body.botCount ?? 3) : 0; // Default PVE has 3 bots
+        const createdRoomId = await this.roomService.createRoom(roomId, userId, config);
 
-            // Create room in Redis
-            await this.roomService.createRoom(roomId, userId, {
-                name: body.name || `Room ${roomId}`,
-                maxPlayers,
-                isPrivate: body.isPrivate || false,
-                type: body.type || 'PVP',
-                difficulty: body.difficulty || 'MEDIUM',
-                botCount
-            });
+        // Auto-join the creator to the room
+        await this.roomService.joinRoom(createdRoomId, {
+            id: userId,
+            nickname: req.user.username,
+            avatar: req.user.avatar || 'default_avatar'
+        });
 
-            return {
-                success: true,
-                data: {
-                    roomId,
-                    name: body.name || `Room ${roomId}`,
-                    hostId: userId,
-                    maxPlayers: body.maxPlayers || 3,
-                    currentPlayers: 0, // Creator hasn't joined yet
-                    isPrivate: body.isPrivate || false,
-                    status: 'waiting',
-                    createdAt: new Date().toISOString(),
-                },
-            };
-        } catch (error) {
-            console.error('Error creating room:', error);
-            throw new BadRequestException('Failed to create room');
+        return {
+            success: true,
+            data: {
+                roomId: createdRoomId,
+                ...config,
+                hostId: userId,
+                status: 'waiting',
+                currentPlayers: 1
+            }
+        };
+    }
+
+    @Post(':id/join')
+    @UseGuards(AuthGuard('jwt'))
+    async joinRoom(@Param('id') roomId: string, @Body() body: any, @Request() req) {
+        const password = body.password;
+        const meta = await this.roomService.getRoomMeta(roomId);
+        if (!meta) throw new NotFoundException('Room not found');
+
+        const config = meta.config ? JSON.parse(meta.config) : {};
+        if (config.isPrivate && config.password !== password) {
+            throw new BadRequestException('Invalid password');
         }
+
+        const players = await this.roomService.joinRoom(roomId, {
+            id: req.user.userId,
+            nickname: req.user.username,
+            avatar: req.user.avatar || 'default_avatar'
+        });
+
+        return {
+            success: true,
+            data: {
+                roomId,
+                playerId: req.user.userId,
+                players
+            }
+        };
+    }
+
+    @Post(':id/leave')
+    @UseGuards(AuthGuard('jwt'))
+    async leaveRoom(@Param('id') roomId: string, @Request() req) {
+        await this.roomService.leaveRoom(roomId, req.user.userId);
+        return { success: true, message: 'Left room successfully' };
     }
 }

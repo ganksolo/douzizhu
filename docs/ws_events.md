@@ -172,10 +172,10 @@ This document defines all WebSocket events used for real-time communication betw
   roomId: string,
   currentState: 'INIT' | 'DEALING' | 'PLAYING' | 'GAME_END',
   phase?: string,
-  currentTurn?: string,        // userId
+  currentTurn?: string,        // userId (seatIndex in logic usually, but here string?)
   players: {
     [userId: string]: {
-      seat: number,
+      seatIndex: number,       // Changed from seat to seatIndex to match BE
       username: string,
       avatar: string,
       online: boolean,
@@ -185,10 +185,13 @@ This document defines all WebSocket events used for real-time communication betw
       lastActive: number
     }
   },
-  lastMove?: {
-    userId: string,
-    cards: Card[]
+  lastPlayedCards?: {          // Updated from lastMove to lastPlayedCards to match state-serializer
+    playerId: string,
+    cards: Card[],
+    seatIndex: number          // Added in Phase 23.4
   },
+  bottomCards?: number[],      // Added in Phase 23.4 (Fog of war applied)
+  myHand?: number[],           // Added in Phase 23.3
   multiplier?: number
 }
 ```

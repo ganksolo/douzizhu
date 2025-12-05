@@ -4,7 +4,7 @@ export const DebugStatePanel = () => {
     const mySeatId = useGameStore((state) => state.mySeatId);
     const currentTurn = useGameStore((state) => state.currentTurn);
     const phase = useGameStore((state) => state.phase);
-    const lastPlayed = useGameStore((state) => state.lastPlayed);
+    const lastPlayedCards = useGameStore((state) => state.lastPlayedCards);
     const getRelativeSeat = useGameStore((state) => state.getRelativeSeat);
 
     // Helper to get direction text for turn
@@ -31,7 +31,7 @@ export const DebugStatePanel = () => {
 
                 <span className="text-gray-400">Last Play:</span>
                 <span className="text-orange-300">
-                    {lastPlayed ? `S${lastPlayed.seatIndex}: [${lastPlayed.cards.length}]` : 'None'}
+                    {lastPlayedCards ? `S${lastPlayedCards.seatIndex}: [${lastPlayedCards.cards.length}]` : 'None'}
                 </span>
             </div>
 

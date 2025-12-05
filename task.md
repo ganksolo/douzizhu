@@ -368,6 +368,9 @@
             - [ ] Frontend Facts: ❌ BLOCKED (See Issue #2) <!-- id: 353 -->
             - [ ] API Contract: ❌ BLOCKED (See Issue #3) <!-- id: 354 -->
 
+- [x] Fix 6: Resolve Issue #8 (Missing Lobby Documentation) <!-- id: 355 -->
+    - [x] Append Phase 22 to walkthrough.md <!-- id: 356 -->
+
 - [x] Phase 22.5: Frontend Upgrade: 4-Player UI <!-- id: 22.5 -->
   - [x] RoomPage 4-Player Layout (Cross/Corner) <!-- id: 22.5.1 -->
   - [x] Relative Seat Mapping Algo (Bottom/Right/Top/Left) <!-- id: 22.5.2 -->
@@ -403,3 +406,21 @@
   - [x] Implement Table Area (Last Played Visuals) <!-- id: 23.3.3 -->
   - [x] Implement Phase Indicators (Toast, Active Ring) <!-- id: 23.3.4 -->
   - [x] Verify PvE Visuals <!-- id: 23.3.5 -->
+
+- [x] Phase 23.4: Backend Patch: Sync State Field Completion <!-- id: 23.4 -->
+  - [x] Verify/Add seats.handCount <!-- id: 23.4.1 -->
+  - [x] Verify/Add lastPlayed.seatIndex <!-- id: 23.4.2 -->
+  - [x] Verify/Add bottomCards fog-of-war logic <!-- id: 23.4.3 -->
+
+- [x] Phase 23.5: Fix Issue #7 (SyncState Mismatch) <!-- id: 23.5 -->
+  - [x] Update Frontend GameStore to use lastPlayedCards <!-- id: 23.5.1 -->
+  - [x] Update API Spec and WS Events md <!-- id: 23.5.2 -->
+  - [x] Verify Backend StateSerializer (Keep lastPlayedCards) <!-- id: 23.5.3 -->
+  - [x] Fix Syntax Error in DebugStatePanel.tsx <!-- id: 23.5.4 -->
+  - [ ] Regression Test: Verify GameBoard UI (LastPlayedCards) <!-- id: 23.5.5 -->
+
+- [x] Phase 24: REST API Implementation (Fix Issue #9) <!-- id: 24 -->
+  - [x] Implement RoomService search & pagination <!-- id: 24.1 -->
+  - [x] Implement RoomController (GET/POST) <!-- id: 24.2 -->
+  - [x] Update RoomGateway (Signature Fix) <!-- id: 24.3 -->
+  - [x] Verify API with curl/Postman <!-- id: 24.4 -->

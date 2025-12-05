@@ -772,6 +772,32 @@ Implemented a secure authentication system using JWT (JSON Web Tokens). Supports
 
 ---
 
+# Phase 24: REST API Implementation for Rooms
+
+## Overview
+Implemented `RoomController` and enhanced `RoomService` to provide standard REST endpoints for room management, fixing Issue #9.
+
+## Key Features
+- **List Rooms**: GET /rooms (Pagination support)
+- **Create Room**: POST /rooms (Returns roomId)
+- **Join Room**: POST /rooms/:id/join (REST-based join)
+- **Room Details**: GET /rooms/:id
+
+## Implementation Details
+- **Architecture**:
+  - `RoomController` currently handles HTTP requests.
+  - `RoomService` decoupled from WebSocket-specifics (`socket` param removed from `joinRoom`).
+- **Data Access**: Use Redis scanning/keys for room listing (paginated in memory).
+
+## Verification
+- **Unit Tests**:
+  - `RoomController` tests: 100% pass.
+  - `RoomService` tests: 100% pass.
+- **Micro-Doc**: `docs/phase24_rest_api.md`.
+
+---
+
+
 # Phase 20.3: System Integration (Socket & Stats)
 
 ## Overview

@@ -651,7 +651,7 @@ Retrieves full details of a specific match, including replay actions.
   "players": [...],
   "currentTurn": 2,
   "bottomCards": [1, 2, 3],
-  "lastPlayed": { "seatIndex": 1, "cards": [...] },
+  "lastPlayedCards": { "seatIndex": 1, "cards": [...] },
   "myHand": [1, 2, 3, 4, 5]
 }
 ```

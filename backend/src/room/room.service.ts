@@ -99,9 +99,41 @@ export class RoomService implements OnModuleInit, OnModuleDestroy {
     }
 
     /**
+     * Get rooms with pagination
+     */
+    async getRooms(page: number = 1, limit: number = 20): Promise<{ rooms: any[], total: number }> {
+        const client = this.getRedisClient();
+        const allKeys = await this.getAllRoomIds();
+        const total = allKeys.length;
+
+        // Simple memory pagination (Redis SCAN is better for large datasets, but keys() is used in getAllRoomIds anyway)
+        const startIndex = (page - 1) * limit;
+        const endIndex = startIndex + limit;
+        const pageKeys = allKeys.slice(startIndex, endIndex);
+
+        const rooms: any[] = [];
+        for (const roomId of pageKeys) {
+            const meta = await this.getRoomMeta(roomId);
+            if (meta) {
+                const seatsKey = this.getSeatsKey(roomId);
+                const playerCount = await client.hlen(seatsKey);
+                rooms.push({
+                    roomId,
+                    ...meta,
+                    currentPlayers: playerCount,
+                    // Parse config if it exists
+                    config: meta.config ? JSON.parse(meta.config) : {}
+                });
+            }
+        }
+
+        return { rooms, total };
+    }
+
+    /**
      * Join a room
      */
-    async joinRoom(roomId: string, user: { id: string; nickname: string; avatar: string }, socket: Socket): Promise<RoomPlayer[]> {
+    async joinRoom(roomId: string, user: { id: string; nickname: string; avatar: string }): Promise<RoomPlayer[]> {
         const client = this.getRedisClient();
         if (!client) throw new Error('Redis client not available');
 
@@ -347,7 +379,7 @@ export class RoomService implements OnModuleInit, OnModuleDestroy {
     /**
      * Helper: Create Room
      */
-    async createRoom(roomId: string, ownerId: string, config: any = {}): Promise<void> {
+    async createRoom(roomId: string, ownerId: string, config: any = {}): Promise<string> {
         const client = this.getRedisClient();
         if (!client) throw new Error('Redis client not available');
 
@@ -364,6 +396,7 @@ export class RoomService implements OnModuleInit, OnModuleDestroy {
         await client.expire(seatsKey, 86400);
 
         this.logger.log(`Room ${roomId} created by ${ownerId}`);
+        return roomId;
     }
 
     /**

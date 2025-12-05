@@ -30,7 +30,7 @@ export const GameBoard = () => {
     const getRelativeSeat = useGameStore((state) => state.getRelativeSeat);
     const currentTurn = useGameStore((state) => state.currentTurn);
     const bottomCards = useGameStore((state) => state.bottomCards);
-    const lastPlayed = useGameStore((state) => state.lastPlayed);
+    const lastPlayedCards = useGameStore((state) => state.lastPlayedCards);
     const myHand = useGameStore((state) => state.myHand);
     const phase = useGameStore((state) => state.phase);
 
@@ -55,8 +55,8 @@ export const GameBoard = () => {
     };
 
     // --- Table Area Rendering ---
-    // If lastPlayed exists, determine its relative position to show visually on table
-    const lastPlayedPosition = lastPlayed ? getRelativeSeat(lastPlayed.seatIndex) : null;
+    // If lastPlayedCards exists, determine its relative position to show visually on table
+    const lastPlayedPosition = lastPlayedCards ? getRelativeSeat(lastPlayedCards.seatIndex) : null;
 
     // Helper to render played cards
     const renderPlayedCards = (cards: number[]) => (
@@ -102,28 +102,28 @@ export const GameBoard = () => {
                     {/* Top Player's Turn */}
                     {lastPlayedPosition === 'top' && (
                         <div className="absolute top-0 left-1/2 -translate-x-1/2">
-                            {renderPlayedCards(lastPlayed!.cards)}
+                            {renderPlayedCards(lastPlayedCards!.cards)}
                         </div>
                     )}
 
                     {/* Left Player's Turn */}
                     {lastPlayedPosition === 'left' && (
                         <div className="absolute left-10 top-1/2 -translate-y-1/2">
-                            {renderPlayedCards(lastPlayed!.cards)}
+                            {renderPlayedCards(lastPlayedCards!.cards)}
                         </div>
                     )}
 
                     {/* Right Player's Turn */}
                     {lastPlayedPosition === 'right' && (
                         <div className="absolute right-10 top-1/2 -translate-y-1/2">
-                            {renderPlayedCards(lastPlayed!.cards)}
+                            {renderPlayedCards(lastPlayedCards!.cards)}
                         </div>
                     )}
 
                     {/* Bottom Player's Turn (My last play) */}
                     {lastPlayedPosition === 'bottom' && (
                         <div className="absolute bottom-0 left-1/2 -translate-x-1/2">
-                            {renderPlayedCards(lastPlayed!.cards)}
+                            {renderPlayedCards(lastPlayedCards!.cards)}
                         </div>
                     )}
                 </div>

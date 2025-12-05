@@ -1086,3 +1086,47 @@ python3 tests/qa_verification.py
     - `api_spec.md` updated to include `myHand` in `sync_state`.
     - `frontend_walkthrough.md` updated with Phase 23.3 facts.
 
+### Phase 23.4: Backend Sync State Patch
+
+#### TC-BE-23.4-001: Sync State Fields Verification
+- **Description**: Verify `handCount`, `lastPlayedCards.seatIndex`, and `bottomCards` logic.
+- **Status**: ✅ **PASSED**
+- **Reason**:
+    - `state-serializer.service.ts` explicitly sanitizes and injects these fields.
+    - `handCount` calculated from hand length or preserved.
+    - `lastPlayedCards.seatIndex` injected from player lookups.
+    - `bottomCards` hidden if not in Playing/GameEnd state.
+    - **Note**: Field name mismatch identified (`lastPlayedCards` vs `lastPlayed`). Raised as Contract Bug.
+
+### Phase 23.5: Fix Issue #7 (Regression)
+
+#### TC-FIX-007: SyncState Field Consistency
+- **Description**: Verify `lastPlayedCards` contract alignment across Backend, Frontend, and Docs.
+- **Status**: ✅ **PASSED**
+- **Verification**:
+    - **Backend**: `StateSerializer` injects `seatIndex` into `lastPlayedCards`.
+    - **Frontend**: `GameStore` parses `lastPlayedCards` and `GameBoard` renders it.
+    - **Docs**: `ws_events.md` and `api_spec.md` confirm `lastPlayedCards` usage.
+- **Result**: Issue #7 is RESOLVED.
+
+### Phase 22.3: Fix Issue #8 (Regression)
+
+#### TC-FIX-008: Frontend Facts Documentation coverage
+- **Description**: Verify `docs/frontend_walkthrough.md` covers Phase 22.3 (Lobby) facts.
+- **Status**: ✅ **PASSED**
+- **Verification**:
+    - **LobbyPage Layout**: Documented in Section 2.
+    - **API Triggers**: Documented in Section 3.
+    - **Data Mapping**: Documented in Section 5.
+- **Result**: Issue #8 is RESOLVED.
+
+### Phase 24: Fix Issue #9 (Regression)
+
+#### TC-FIX-009: Backend REST API for Rooms
+- **Description**: Verify existence and logic of `GET /rooms` and `POST /rooms`.
+- **Status**: ✅ **PASSED**
+- **Verification**:
+    - **Controller**: `RoomController` maps `@Get` and `@Post` correctly.
+    - **Service**: `RoomService.getRooms` implements Redis key scanning and pagination.
+    - **Contract**: Endpoints match `api_spec.md` definitions.
+- **Result**: Issue #9 is RESOLVED.
