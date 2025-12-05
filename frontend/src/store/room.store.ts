@@ -12,13 +12,15 @@ export interface RoomPlayer {
     avatar?: string;  // WebSocket extension
     online?: boolean; // WebSocket extension
     lastActive?: number;
+    seatId?: number; // 0, 1, 2
+    isBot?: boolean; // Phase 22.4 AI support
 }
 
 /**
  * Room Status
  * Based on phase21.1_room_core.md
  */
-export type RoomStatus = 'waiting' | 'playing';
+export type RoomStatus = 'waiting' | 'playing' | 'finished';
 
 interface RoomState {
     // State
@@ -26,18 +28,18 @@ interface RoomState {
     players: RoomPlayer[];
     roomStatus: RoomStatus;
     mySeatId: number | null;
+    roomConfig: { // Phase 22.4 Room Config
+        type: 'PVP' | 'PVE';
+        botCount: number;
+    } | null;
 
     // Actions
-    setRoomData: (data: {
-        roomId: string;
-        players: RoomPlayer[];
-        roomStatus: RoomStatus;
-    }) => void;
+    setRoomData: (data: { roomId: string; players: RoomPlayer[]; roomStatus: RoomStatus; config?: { type: 'PVP' | 'PVE'; botCount: number; } }) => void;
     updatePlayerReady: (userId: string, isReady: boolean) => void;
     addPlayer: (player: RoomPlayer) => void;
     removePlayer: (userId: string) => void;
     setMySeatId: (seatId: number) => void;
-    reset: () => void;
+    resetRoom: () => void;
 }
 
 /**
@@ -54,6 +56,7 @@ export const useRoomStore = create<RoomState>((set) => ({
     players: [],
     roomStatus: 'waiting',
     mySeatId: null,
+    roomConfig: null,
 
     /**
      * Set full room data (from player_list_update event)
@@ -66,6 +69,7 @@ export const useRoomStore = create<RoomState>((set) => ({
             roomId: data.roomId,
             players: data.players,
             roomStatus: data.roomStatus,
+            roomConfig: data.config || null,
         });
     },
 
@@ -114,9 +118,8 @@ export const useRoomStore = create<RoomState>((set) => ({
      */
     removePlayer: (userId) => {
         console.log('[Room] Removing player:', userId);
-
         set((state) => ({
-            players: state.players.filter((player) => player.userId !== userId),
+            players: state.players.filter((p) => p.userId !== userId),
         }));
     },
 
@@ -132,7 +135,7 @@ export const useRoomStore = create<RoomState>((set) => ({
     /**
      * Reset room state (on leave or rematch)
      */
-    reset: () => {
+    resetRoom: () => {
         console.log('[Room] Resetting room state');
 
         set({
@@ -140,6 +143,7 @@ export const useRoomStore = create<RoomState>((set) => ({
             players: [],
             roomStatus: 'waiting',
             mySeatId: null,
+            roomConfig: null,
         });
     },
 }));

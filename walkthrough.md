@@ -878,7 +878,9 @@ Implemented the "Ready" mechanism and automatic game start logic. When 3 players
 ## Steps Executed
 
 ### 1. Ready Logic
-- **Service**: `RoomService` with Redis integration (Manual `ioredis` instantiation)es Redis.
+- **Service**: `RoomService` with Redis integration (Manual `ioredis` instantiation)
+
+*   **(New) Issue #3 Fix**: Corrected API Specification gap. Added `type` (PVP/PVE), `difficulty`, and `botCount` to `docs/api_spec.md` and `docs/openapi.yaml` to support upcoming PvE room creation features.es Redis.
 - **Gateway**: `handleToggleReady` broadcasts updates.
 
 ### 2. Game Start Logic

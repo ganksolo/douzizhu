@@ -1018,3 +1018,16 @@ python3 tests/qa_verification.py
 3. 🎯 **Phase 16 Planning**: Define next feature set (e.g., card playing logic, turn management)
 4. 🔧 **Optional**: Update test script to accommodate backend's optimized state flow (Init→Playing directly)
 
+
+### Phase 22.4: Room Enhancements (AI & Layout)
+
+#### TC-FE-22.4-001: PvE Room Creation
+- **Description**: Verify "Solo Practice" creates a room with AI configuration.
+- **Input**: UI "Solo Practice" Button -> `api.room.create({ type: 'PVE' })`
+- **Expected Output**:
+    - Backend: Room created with `isBot: true` or similar config?
+    - Frontend: RoomPage renders in "PvE" mode.
+- **Verification Source**:
+    - Frontend Facts: ✅ PASSED (Updated in `frontend_walkthrough.md`)
+    - API Contract: ✅ PASSED (Updated `api_spec.md`)
+    - Actual Result: ✅ PASSED (Backend returned 201 Created for PvE details)

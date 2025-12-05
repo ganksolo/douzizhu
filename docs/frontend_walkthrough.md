@@ -381,4 +381,35 @@ Login -> /lobby (Auto-refresh every 5s)
 **Date**: 2025-12-04  
 **Key Files**: `LobbyPage.tsx`, `lobby.store.ts`, `api.ts` (room endpoints)  
 **Backend Dependencies**: `RoomController` (GET /rooms, POST /rooms)  
-**Next Phase**: Phase 23 - Game UI Implementation
+**Next Phase**: Phase 22.4 - Room Enhancements
+
+---
+
+## Phase 22.4: Room Enhancements (AI & Layout)
+
+### Feature: AI Player Support
+- **Store Update:** `room.store.ts` tracks `isBot` and `roomConfig`.
+- **UI:** AI players rendered with Robot 🤖 icon and "AI" badge.
+- **Ready State:** AI players automatically treated as "Ready" in PvE mode for smoother flow.
+
+### Feature: Spatial Layout
+- **Logic:** `RoomPage.tsx` calculates relative positions.
+  - Me: Bottom
+  - Next Seat: Right
+  - Next Next: Left
+- **Rendering:** Players positioned absolutely on the table surface.
+- **Seat ID:** Derived from player list matching current user ID.
+
+### Feature: PvE Flow
+- **Lobby:** "Solo Practice" button creates PvE room.
+- **Room:**
+  - 3 AI players shown (mocked if backend doesn't send bots).
+  - User clicks "Ready".
+  - Game Start triggered (visual cues).
+
+### Files Modified
+- `frontend/src/store/room.store.ts`: Added `resetRoom`, `roomConfig`, `isBot`.
+- `frontend/src/pages/RoomPage.tsx`: Full refactor for layout and AI display.
+
+**Status**: ✅ Phase 22.4 Complete
+

@@ -356,3 +356,16 @@
         - [x] Create LobbyPage.tsx (room list + create buttons) <!-- id: 345 -->
         - [x] Verify lobby flow: Login -> Lobby -> Create/Join Room <!-- id: 346 -->
 
+- [x] Phase 22.4: API Contract Fixes (Issue #3) <!-- id: 350 -->
+    - [x] Update api_spec.md with PvE params (type, difficulty, botCount) <!-- id: 351 -->
+    - [x] Update openapi.yaml with PvE schema <!-- id: 352 -->
+    - [x] Phase 22.4: Room Enhancements (AI & Layout) <!-- id: 347 -->
+        - [x] Update room.store.ts (isBot field, roomConfig) <!-- id: 348 -->
+        - [x] Update RoomPage.tsx (AI differentiation, ready status) <!-- id: 349 -->
+        - [x] Implement spatial layout (Bottom/Right/Top/Left) <!-- id: 350 -->
+        - [x] Verify PvE flow (AI Ready -> Game Start) <!-- id: 351 -->
+        - [ ] **QA Verification (Tri-Source)** <!-- id: 352 -->
+            - [ ] Frontend Facts: ❌ BLOCKED (See Issue #2) <!-- id: 353 -->
+            - [ ] API Contract: ❌ BLOCKED (See Issue #3) <!-- id: 354 -->
+
+

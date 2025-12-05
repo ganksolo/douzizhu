@@ -185,6 +185,9 @@ Authorization: Bearer <REFRESH_TOKEN>
 {
   "name": "string (optional)",
   "maxPlayers": 4,
+  "type": "string (optional, enum: 'PVP' | 'PVE', default: 'PVP')",
+  "difficulty": "string (optional, enum: 'EASY' | 'MEDIUM' | 'HARD', default: 'MEDIUM')",
+  "botCount": "number (optional, default: 0)",
   "isPrivate": false,
   "password": "string (optional, for private rooms)"
 }
@@ -200,6 +203,9 @@ Authorization: Bearer <REFRESH_TOKEN>
     "hostId": "uuid",
     "maxPlayers": 4,
     "currentPlayers": 1,
+    "type": "PVP",
+    "difficulty": "MEDIUM",
+    "botCount": 0,
     "isPrivate": false,
     "status": "waiting",
     "createdAt": "iso8601_timestamp"
