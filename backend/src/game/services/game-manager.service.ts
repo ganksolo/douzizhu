@@ -4,6 +4,7 @@ import { GameRedisService } from './game-redis.service';
 import { InitState } from '../engine/states/init.state';
 import { DealingState } from '../engine/states/dealing.state';
 import { PlayingState } from '../engine/states/playing.state';
+import { GameEndState } from '../engine/states/game-end.state';
 
 @Injectable()
 export class GameManagerService {
@@ -15,6 +16,7 @@ export class GameManagerService {
         private initState: InitState,
         private dealingState: DealingState,
         private playingState: PlayingState,
+        private gameEndState: GameEndState,
     ) { }
 
     getOrCreateRoom(roomId: string): GameContext {
@@ -25,6 +27,7 @@ export class GameManagerService {
                 this.initState,
                 this.dealingState,
                 this.playingState,
+                this.gameEndState,
             );
             context.roomData.roomId = roomId;
             this.rooms.set(roomId, context);

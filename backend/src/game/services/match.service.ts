@@ -97,15 +97,20 @@ export class MatchService {
      * Calculate score for a player based on game outcome
      */
     private calculatePlayerScore(player: Player, winnerId: string, roomData: RoomData): number {
-        const basePoints = 100;
+        const basePoints = 100; // Base stake
         const isLandlord = player.id === roomData.landlordId;
         const landlordWon = winnerId === roomData.landlordId;
         const multiplier = roomData.multiplier || 1;
+        const unitScore = basePoints * multiplier;
+
+        // 4-Player Scoring (1 Landlord vs 3 Peasants)
+        // Landlord Win: +3x, Peasants: -1x
+        // Landlord Loss: -3x, Peasants: +1x
 
         if (isLandlord) {
-            return landlordWon ? basePoints * multiplier : -basePoints * multiplier;
+            return landlordWon ? (3 * unitScore) : (-3 * unitScore);
         } else {
-            return landlordWon ? -basePoints * multiplier / 3 : basePoints * multiplier / 3;
+            return landlordWon ? (-1 * unitScore) : (1 * unitScore);
         }
     }
 

@@ -146,7 +146,8 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect, On
                     id: playerId,
                     name: username || `User-${playerId}`,
                     hand: [],
-                    isReady: true
+                    isReady: true,
+                    seatIndex: -1
                 });
                 await gameContext.saveSnapshot();
             }

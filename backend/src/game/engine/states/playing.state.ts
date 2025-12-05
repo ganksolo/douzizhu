@@ -5,6 +5,7 @@ import { UserAction, ActionType } from '../../types/game.types';
 import { AIService } from '../../services/ai.service';
 import { RulesService } from '../../services/rules.service';
 import { CardConverter } from '../../utils/card-converter';
+import { GameEndState } from './game-end.state';
 
 @Injectable()
 export class PlayingState extends BaseState {
@@ -12,7 +13,8 @@ export class PlayingState extends BaseState {
 
     constructor(
         private aiService: AIService,
-        private rulesService: RulesService
+        private rulesService: RulesService,
+        private gameEndState: GameEndState
     ) {
         super();
     }
@@ -60,6 +62,13 @@ export class PlayingState extends BaseState {
                     }
                 }
                 player.handCount = player.hand.length;
+
+                // Win Condition Check
+                if (player.handCount === 0) {
+                    this.logger.log(`Player ${player.id} has 0 cards. WINNER!`);
+                    context.transitionTo(this.gameEndState);
+                    return; // Stop processing, game ended
+                }
             }
 
             this.advanceTurn(context);

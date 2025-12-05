@@ -191,7 +191,7 @@ export const LobbyPage = () => {
                                             <span className="text-xl">👥</span>
                                             <span className="font-bold">真人对战</span>
                                         </div>
-                                        <p className="text-sm opacity-90">3人经典模式</p>
+                                        <p className="text-sm opacity-90">4人两副牌模式</p>
                                     </div>
                                 </button>
 

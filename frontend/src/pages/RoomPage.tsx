@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { useRoomStore, type RoomPlayer } from '../store/room.store';
 import { SocketService } from '../services/socket';
 import { useAuthStore } from '../store/auth.store';
+import { GamePage } from './GamePage';
 
 export const RoomPage = () => {
     const { roomId } = useParams<{ roomId: string }>();
@@ -11,14 +12,14 @@ export const RoomPage = () => {
     // Store State
     const players = useRoomStore((state) => state.players);
     const roomConfig = useRoomStore((state) => state.roomConfig);
+    const roomStatus = useRoomStore((state) => state.roomStatus);
     const setRoomData = useRoomStore((state) => state.setRoomData);
     const updatePlayerReady = useRoomStore((state) => state.updatePlayerReady);
     const addPlayer = useRoomStore((state) => state.addPlayer);
     const removePlayer = useRoomStore((state) => state.removePlayer);
     const currentUser = useAuthStore((state) => state.user);
 
-    // Derived State
-    const mySeatId = players.find(p => p.userId === currentUser?.userId)?.seatId;
+
 
     // Socket Events
     useEffect(() => {
@@ -54,8 +55,13 @@ export const RoomPage = () => {
 
         const handleGameStart = () => {
             console.log('[Room] Game Started!');
-            alert('Game Started! (Logic to be implemented)');
-            // navigate to game board or change view mode
+            // Update store status to trigger re-render
+            setRoomData({
+                roomId,
+                players: useRoomStore.getState().players,
+                config: useRoomStore.getState().roomConfig || undefined,
+                roomStatus: 'playing'
+            });
         };
 
         const handleError = (data: { message: string }) => {
@@ -82,7 +88,6 @@ export const RoomPage = () => {
             SocketService.off('player_ready_update', handleReadyUpdate);
             SocketService.off('game_start', handleGameStart);
             SocketService.off('error', handleError);
-            // Don't disconnect socket here, just leave logic conceptually
         };
     }, [roomId, currentUser, setRoomData, addPlayer, removePlayer, updatePlayerReady, navigate]);
 
@@ -98,38 +103,37 @@ export const RoomPage = () => {
         }
     };
 
+    // If game is playing, render GamePage
+    if (roomStatus === 'playing') {
+        return <GamePage />;
+    }
+
     // --- Spatial Layout Logic ---
     // Dou Dizhu is 3 players.
     // Fixed Positions relative to Me (Bottom):
     // If I sit at S, then (S+1)%3 is Right, (S+2)%3 is Left.
     // If I'm not seated yet (observer), just show list or default view.
 
-    const getPlayerRole = (seatId: number | undefined): 'bottom' | 'right' | 'left' => {
-        if (seatId === undefined) return 'bottom'; // Fallback
-        if (mySeatId === null || mySeatId === undefined) return 'bottom'; // Observer view (todo)
-
-        const diff = (seatId - mySeatId + 3) % 3;
-        if (diff === 0) return 'bottom'; // Me
-        if (diff === 1) return 'right';  // Right player
-        return 'left';   // Left player (diff 2)
-    };
+    // --- Spatial Layout Logic ---
+    const getPlayerByRelativePos = useRoomStore((state) => state.getPlayerByRelativePos);
 
     // Helper to render a player seat
-    const renderSeat = (position: 'bottom' | 'right' | 'left') => {
-        // Find player at this relative position
-        const player = players.find(p => getPlayerRole(p.seatId) === position);
+    const renderSeat = (position: 'bottom' | 'right' | 'top' | 'left') => {
+        // Find player at this relative position using the store selector
+        const player = getPlayerByRelativePos(position);
 
         // Empty seat state
         if (!player) {
             return (
                 <div className={`
-                    w-32 h-44 border-2 border-dashed border-gray-300 rounded-xl flex items-center justify-center
-                    bg-gray-50/50 backdrop-blur-sm
-                    ${position === 'bottom' ? 'mb-8' : ''}
-                    ${position === 'right' ? 'mr-8' : ''}
-                    ${position === 'left' ? 'ml-8' : ''}
-                `}>
-                    <span className="text-gray-400">Empty</span>
+                w-32 h-44 border-2 border-dashed border-gray-300 rounded-xl flex items-center justify-center
+                bg-gray-50/50 backdrop-blur-sm
+                ${position === 'bottom' ? 'mb-8' : ''}
+                ${position === 'right' ? 'mr-8' : ''}
+                ${position === 'top' ? 'mt-8' : ''}
+                ${position === 'left' ? 'ml-8' : ''}
+            `}>
+                    <span className="text-gray-400">Waiting...</span>
                 </div>
             );
         }
@@ -142,11 +146,12 @@ export const RoomPage = () => {
 
         return (
             <div className={`
-                relative flex flex-col items-center gap-3 transition-all
-                ${position === 'bottom' ? 'mb-8 scale-110' : ''}
-                ${position === 'right' ? 'mr-8' : ''}
-                ${position === 'left' ? 'ml-8' : ''}
-            `}>
+            relative flex flex-col items-center gap-3 transition-all
+            ${position === 'bottom' ? 'mb-8 scale-110' : ''}
+            ${position === 'right' ? 'mr-8' : ''}
+            ${position === 'top' ? 'mt-8' : ''}
+            ${position === 'left' ? 'ml-8' : ''}
+        `}>
                 {/* Ready Status Bubble */}
                 {displayReady && (
                     <div className="absolute -top-4 right-0 z-10 bg-green-500 text-white p-1 rounded-full shadow-lg border-2 border-white">
@@ -158,10 +163,10 @@ export const RoomPage = () => {
 
                 {/* Avatar */}
                 <div className={`
-                    w-24 h-24 rounded-full border-4 shadow-xl overflow-hidden bg-white
-                    ${displayReady ? 'border-green-500' : 'border-gray-300'}
-                    ${player.isBot ? 'ring-4 ring-blue-200' : ''}
-                `}>
+                w-24 h-24 rounded-full border-4 shadow-xl overflow-hidden bg-white
+                ${displayReady ? 'border-green-500' : 'border-gray-300'}
+                ${player.isBot ? 'ring-4 ring-blue-200' : ''}
+            `}>
                     {player.isBot ? (
                         <div className="w-full h-full bg-blue-100 flex items-center justify-center text-4xl">
                             🤖
@@ -181,7 +186,6 @@ export const RoomPage = () => {
                         {player.username}
                         {player.isBot && <span className="text-xs bg-blue-500 px-1 rounded">AI</span>}
                     </div>
-                    {/* Role badge (Landlord/Peasant) would go here later */}
                 </div>
             </div>
         );
@@ -204,12 +208,17 @@ export const RoomPage = () => {
                 {/* Center Table Info */}
                 <div className="absolute text-center opacity-30 pointer-events-none">
                     <div className="text-6xl text-green-900 font-bold mb-2">♠♥♣♦</div>
-                    <div className="text-xl text-green-100 font-serif">Dou Dizhu</div>
+                    <div className="text-xl text-green-100 font-serif">Dou Dizhu (4P)</div>
                 </div>
 
                 {/* Left Player */}
                 <div className="absolute left-0 top-1/2 -translate-y-1/2 pb-20">
                     {renderSeat('left')}
+                </div>
+
+                {/* Top Player (Opposite) */}
+                <div className="absolute top-20 left-1/2 -translate-x-1/2">
+                    {renderSeat('top')}
                 </div>
 
                 {/* Right Player */}

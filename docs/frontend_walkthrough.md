@@ -413,3 +413,31 @@ Login -> /lobby (Auto-refresh every 5s)
 
 **Status**: ✅ Phase 22.4 Complete
 
+---
+
+## Phase 22.5: Frontend 4-Player UI (Cross/Corner Layout)
+
+### 1. Spatial Layout Logic
+- **Objective**: Render 4 players in a comfortable "Cross" or "Corner" layout relative to the current user.
+- **Implementation**: `RoomPage.tsx` uses `useRoomStore.getPlayerByRelativePos(pos)`.
+- **Mapping**:
+    - **Me**: Bottom (Always)
+    - **Me + 1**: Right
+    - **Me + 2**: Top (Opposite)
+    - **Me + 3**: Left
+- **UI**: Absolute positioning with Tailwind (`top-0`, `left-1/2`, etc.) on a green table background.
+
+### 2. PvE & Ready System
+- **Bot Indication**: Bots rendered with 🤖 avatar and "AI" badge.
+- **Auto-Ready**:
+    - In PvE rooms (`type='PVE'`), bots are visually treated as "Ready" (green ring) even if backend doesn't broadcast explicit ready events (though backend usually does).
+    - Human player clicks "Ready" to start.
+
+### 3. Game Board Adaptation
+- **Cards**: Hand rendering adapted for 25 cards (smaller overlap if needed).
+- **Table Area**: Center area used for played cards animation.
+
+**Status**: ✅ Phase 22.5 Complete
+**Date**: 2025-12-05
+**Key Files**: `RoomPage.tsx`, `room.store.ts`
+

@@ -1031,3 +1031,26 @@ python3 tests/qa_verification.py
     - Frontend Facts: ✅ PASSED (Updated in `frontend_walkthrough.md`)
     - API Contract: ✅ PASSED (Updated `api_spec.md`)
     - Actual Result: ✅ PASSED (Backend returned 201 Created for PvE details)
+
+### Phase 22.6: Backend 4-Player Core
+
+#### TC-BE-22.6-001: 4-Player Room Setup
+- **Description**: Verify room supports 4 players, seat refactor, and PvE auto-fill.
+- **Status**: ✅ **PASSED**
+- **Reason**:
+    - `RoomController` correctly handles `type='PVE'` and `botCount`.
+    - `RoomService` auto-fills bots and starts game.
+    - Logs confirm: `Entering PlayingState. Game Start!`.
+    - `docs/phase22.6` created.
+    - Issue #6 Resolved.
+
+### Phase 22.5: Frontend 4-Player UI
+
+#### TC-FE-22.5-001: 4-Player Layout & Seat Mapping
+- **Description**: Verify frontend renders 4 players in Cross/Corner layout using relative seat mapping.
+- **Status**: ✅ **PASSED**
+- **Reason**:
+    - `RoomPage.tsx` implements `renderSeat` with `bottom/right/top/left`.
+    - `frontend_walkthrough.md` updated to reflect Phase 22.5 facts.
+    - Verified consistency with Backend Phase 22.6 facts (Seat 0-3).
+

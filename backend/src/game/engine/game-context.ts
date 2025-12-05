@@ -5,6 +5,7 @@ import { GameRedisService } from '../services/game-redis.service';
 import { InitState } from './states/init.state';
 import { DealingState } from './states/dealing.state';
 import { PlayingState } from './states/playing.state';
+import { GameEndState } from './states/game-end.state';
 
 @Injectable()
 export class GameContext {
@@ -19,12 +20,14 @@ export class GameContext {
         @Inject(forwardRef(() => InitState)) private initState: InitState,
         @Inject(forwardRef(() => DealingState)) private dealingState: DealingState,
         @Inject(forwardRef(() => PlayingState)) private playingState: PlayingState,
+        @Inject(forwardRef(() => GameEndState)) private gameEndState: GameEndState,
     ) {
         // Initialize with empty data, will be set up properly in InitState
         this.roomData = {
             roomId: '',
             players: [],
             deck: [],
+            bottomCards: [],
             multiplier: 1,
         };
     }
@@ -100,6 +103,9 @@ export class GameContext {
                 break;
             case 'PlayingState':
                 this.currentState = this.playingState;
+                break;
+            case 'GameEndState':
+                this.currentState = this.gameEndState;
                 break;
             default:
                 this.logger.error(`Unknown state name: ${snapshot.stateName}`);

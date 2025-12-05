@@ -37,12 +37,14 @@ export interface Player {
     isReady: boolean;
     handCount?: number;
     isRobot?: boolean;
+    seatIndex: number; // 0-3
 }
 
 export interface RoomData {
     roomId: string;
     players: Player[];
     deck: string[];
+    bottomCards: string[]; // Phase 22.6: 8 Cards
     currentTurn?: string; // playerId
     landlordId?: string;
     lastPlayedCards?: {

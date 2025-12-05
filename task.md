@@ -368,4 +368,18 @@
             - [ ] Frontend Facts: ❌ BLOCKED (See Issue #2) <!-- id: 353 -->
             - [ ] API Contract: ❌ BLOCKED (See Issue #3) <!-- id: 354 -->
 
+- [x] Phase 22.5: Frontend Upgrade: 4-Player UI <!-- id: 22.5 -->
+  - [x] RoomPage 4-Player Layout (Cross/Corner) <!-- id: 22.5.1 -->
+  - [x] Relative Seat Mapping Algo (Bottom/Right/Top/Left) <!-- id: 22.5.2 -->
+  - [x] GameBoard 4-Player Adapt (HandCards, TableArea) <!-- id: 22.5.3 -->
+  - [x] AI Indicators & Ready Logic <!-- id: 22.5.4 -->
+
+- [x] Phase 22.6: Backend Upgrade: 4-Player Core (PVP + PVE) <!-- id: 22.6 -->
+  - [x] Seat System Refactor (room:{id}:seats, 0-3 index) <!-- id: 22.6.1 -->
+  - [x] PvE Mode (AI Auto-fill in tryStartGame) <!-- id: 22.6.2 -->
+  - [x] 4-Player Dealing (2 Decks, 108 Cards, Bottom 8) <!-- id: 22.6.3 -->
+  - [x] PlayingState & Scoring Update (Turn Mod 4, 1L vs 3P) <!-- id: 22.6.4 -->
+  - [x] Documentation (Micro-doc & API Update) <!-- id: 22.6.5 -->
+    - [x] QA Handoff Generation <!-- id: 366 -->
+
 

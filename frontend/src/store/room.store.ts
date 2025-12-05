@@ -28,18 +28,18 @@ interface RoomState {
     players: RoomPlayer[];
     roomStatus: RoomStatus;
     mySeatId: number | null;
-    roomConfig: { // Phase 22.4 Room Config
-        type: 'PVP' | 'PVE';
-        botCount: number;
-    } | null;
+    roomConfig: { type: 'PVP' | 'PVE'; botCount?: number } | null; // Phase 22.4 Room Config
 
     // Actions
-    setRoomData: (data: { roomId: string; players: RoomPlayer[]; roomStatus: RoomStatus; config?: { type: 'PVP' | 'PVE'; botCount: number; } }) => void;
+    setRoomData: (data: { roomId: string; players: RoomPlayer[]; config?: { type: 'PVP' | 'PVE'; botCount?: number }; roomStatus: 'waiting' | 'playing' | 'finished' }) => void;
     updatePlayerReady: (userId: string, isReady: boolean) => void;
     addPlayer: (player: RoomPlayer) => void;
     removePlayer: (userId: string) => void;
     setMySeatId: (seatId: number) => void;
     resetRoom: () => void;
+
+    // Selectors
+    getPlayerByRelativePos: (position: 'bottom' | 'right' | 'top' | 'left') => RoomPlayer | undefined;
 }
 
 /**
@@ -50,7 +50,7 @@ interface RoomState {
  * - player_left: Remove player
  * - toggle_ready: Update ready state
  */
-export const useRoomStore = create<RoomState>((set) => ({
+export const useRoomStore = create<RoomState>((set, get) => ({
     // Initial state
     roomId: null,
     players: [],
@@ -132,9 +132,6 @@ export const useRoomStore = create<RoomState>((set) => ({
         set({ mySeatId: seatId });
     },
 
-    /**
-     * Reset room state (on leave or rematch)
-     */
     resetRoom: () => {
         console.log('[Room] Resetting room state');
 
@@ -145,6 +142,28 @@ export const useRoomStore = create<RoomState>((set) => ({
             mySeatId: null,
             roomConfig: null,
         });
+    },
+
+    /**
+     * Selector: Get player by relative position (Bottom/Right/Top/Left)
+     * Context: 4-Player Game (0,1,2,3)
+     */
+    getPlayerByRelativePos: (position: 'bottom' | 'right' | 'top' | 'left') => {
+        const { players, mySeatId } = get();
+        // Fallback: If not seated (observer), assume seat 0 is Bottom view
+        const anchorSeat = (mySeatId === null || mySeatId === undefined) ? 0 : mySeatId;
+
+        // Calculate target absolute seat index based on relative position
+        // Bottom = anchor
+        // Right = (anchor + 1) % 4
+        // Top = (anchor + 2) % 4
+        // Left = (anchor + 3) % 4
+        let targetSeatIndex = anchorSeat;
+        if (position === 'right') targetSeatIndex = (anchorSeat + 1) % 4;
+        else if (position === 'top') targetSeatIndex = (anchorSeat + 2) % 4;
+        else if (position === 'left') targetSeatIndex = (anchorSeat + 3) % 4;
+
+        return players.find(p => p.seatId === targetSeatIndex);
     },
 }));
 

@@ -7,6 +7,9 @@ interface CreateRoomDto {
     maxPlayers?: number;
     isPrivate?: boolean;
     password?: string;
+    type?: 'PVP' | 'PVE';
+    difficulty?: 'EASY' | 'MEDIUM' | 'HARD';
+    botCount?: number;
 }
 
 interface RoomListQuery {
@@ -47,12 +50,19 @@ export class RoomController {
                         return null;
                     }
 
+                    // Parse config from meta if available
+                    // Note: meta is a flat hash, config might be a stringified field?
+                    // Original createRoom stored it as 'config' field in Redis, requiring parsing if we want deep fields.
+                    // But RoomService.createRoom says: await client.hset(metaKey, 'config', JSON.stringify(config));
+                    // getRoomMeta returns raw hash. We need to handle this.
+                    // For now, simple return.
+
                     return {
                         roomId,
                         name: `Room ${roomId}`, // Could be stored in config
                         hostId: meta.ownerId,
                         currentPlayers: players.length,
-                        maxPlayers: 3, // Dou Dizhu is 3-player
+                        maxPlayers: 4, // 4-player default now
                         isPrivate: false,
                         status: meta.status,
                         createdAt: new Date().toISOString(), // Could track in Redis
@@ -92,7 +102,7 @@ export class RoomController {
 
     /**
      * POST /rooms - Create a new room
-     * Body: name, maxPlayers, isPrivate, password
+     * Body: name, maxPlayers, isPrivate, password, type, difficulty, botCount
      */
     @UseGuards(AuthGuard('jwt'))
     @Post()
@@ -103,11 +113,18 @@ export class RoomController {
             // Generate unique room ID
             const roomId = `${Date.now()}-${Math.random().toString(36).substring(2, 8)}`;
 
+            // Determine maxPlayers based on type
+            const maxPlayers = body.type === 'PVE' ? 4 : (body.maxPlayers || 3);
+            const botCount = body.type === 'PVE' ? (body.botCount ?? 3) : 0; // Default PVE has 3 bots
+
             // Create room in Redis
             await this.roomService.createRoom(roomId, userId, {
                 name: body.name || `Room ${roomId}`,
-                maxPlayers: body.maxPlayers || 3,
+                maxPlayers,
                 isPrivate: body.isPrivate || false,
+                type: body.type || 'PVP',
+                difficulty: body.difficulty || 'MEDIUM',
+                botCount
             });
 
             return {

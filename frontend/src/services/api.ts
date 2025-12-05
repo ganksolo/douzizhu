@@ -173,7 +173,7 @@ export const api = {
         create: async (config: CreateRoomConfig): Promise<Room> => {
             const payload = {
                 name: config.type === 'PVE' ? '[PvE] Solo Practice' : `[PvP] Room ${Date.now()}`,
-                maxPlayers: 3, // Dou Dizhu is 3-player
+                maxPlayers: 4, // Dou Dizhu is 4-player (2 decks)
                 isPrivate: false,
             };
             const response = await apiClient.post<ApiResponse<Room>>('/rooms', payload);

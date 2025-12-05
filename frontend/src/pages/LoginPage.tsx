@@ -69,7 +69,7 @@ export const LoginPage = () => {
 
                 {/* Footer */}
                 <div className="text-center mt-8 text-white text-sm opacity-75">
-                    <p>支持3人对战 · 经典斗地主规则</p>
+                    <p>支持4人对战 · 经典斗地主规则</p>
                 </div>
             </div>
         </div>

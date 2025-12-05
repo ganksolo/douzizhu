@@ -78,7 +78,7 @@ This document defines all WebSocket events used for real-time communication betw
 **Backend Behavior**:
 - Updates `ready` field in Redis
 - Emits `player_list_update`
-- If all 3 players ready → triggers `game_start`
+- If all real players ready (and count >= 1) → triggers `game_start` (fills empty seats with Bots)
 
 **Based on**: `phase21.2_game_start_flow.md`
 
@@ -450,7 +450,7 @@ This document defines all WebSocket events used for real-time communication betw
 [Client] emit('toggle_ready', { roomId: 'room-1', isReady: true })
 [Server] → on('player_list_update', { players: [{ isReady: true }, ...] })
 
-[All 3 Players Ready]
+[All Players Ready]
 [Server] → on('game_start', { roomId: 'room-1' })
 [Server] → on('sync_state', { currentState: 'DEALING', ... })
 ```
@@ -499,6 +499,6 @@ This document defines all WebSocket events used for real-time communication betw
 
 ---
 
-**Last Updated**: 2025-12-03  
-**Phase**: 22.1 (Frontend Infrastructure)  
-**Source**: Phase 15, 18.3, 21.1, 21.2, 21.3 Micro-Docs
+**Last Updated**: 2025-12-05  
+**Phase**: 22.6 (Backend 4-Player Upgrade)  
+**Source**: Phase 15, 18.3, 21.1, 21.2, 21.3 Micro-Docs, Phase 22.6 Micro-Doc
