@@ -1054,3 +1054,24 @@ python3 tests/qa_verification.py
     - `frontend_walkthrough.md` updated to reflect Phase 22.5 facts.
     - Verified consistency with Backend Phase 22.6 facts (Seat 0-3).
 
+### Phase 23.1: Frontend GameBoard Data Mapping
+
+#### TC-FE-23.1-001: Game Store & Sync State
+- **Description**: Verify `sync_state` event maps to `GameStore` and relative seat logic.
+- **Status**: ✅ **PASSED**
+- **Reason**:
+    - `game.store.ts` implements `setSyncState` and `getRelativeSeat`.
+    - `api_spec.md` updated to include `sync_state` definition.
+    - `frontend_walkthrough.md` updated with Phase 23.1 facts.
+
+### Phase 23.2: GameBoard Layout & Components
+
+#### TC-FE-23.2-001: UI Components Verification
+- **Description**: Verify `Card`, `PlayerHand`, and `GameTable` rendering and behavior.
+- **Status**: ✅ **PASSED** (Offline Mode)
+- **Reason**:
+    - `Card.tsx` renders suits/ranks correctly.
+    - `PlayerHand.tsx` handles selection and fanning.
+    - `GameTable.tsx` orchestrates UI flow (verified via `useGameLoop` mock).
+    - `frontend_walkthrough.md` updated with Component facts.
+

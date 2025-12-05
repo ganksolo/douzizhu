@@ -438,6 +438,50 @@ Login -> /lobby (Auto-refresh every 5s)
 - **Table Area**: Center area used for played cards animation.
 
 **Status**: ✅ Phase 22.5 Complete
+
+---
+
+## Phase 23.1: GameBoard Data Mapping
+
+### 1. Game Store (`game.store.ts`)
+- **State**: `phase`, `players` (with `seatIndex`), `currentTurn`, `bottomCards`, `lastPlayed`.
+- **Actions**: `setSyncState(payload)` - Hydrates full game state from backend.
+- **Selectors**: `getRelativeSeat(targetSeat)` - Maps backend `seatIndex` (0-3) to UI Grid (Bottom/Right/Top/Left).
+
+### 2. Socket Integration
+- **Event**: `sync_state`.
+- **Trigger**: Emitted by backend on every state change (join, deal, play, turn).
+- **Payload**: Full `GameContext` snapshot.
+
+### 3. Debug Tools
+- **DebugStatePanel**: Overlay component to visualize raw `gameState` for verification during development.
+
+**Status**: ✅ Phase 23.1 Complete
+
+---
+
+## Phase 23.2: GameBoard UI Components
+
+### 1. Card Components (`Card.tsx`, `PlayerHand.tsx`)
+- **Card**: Renders individual poker cards with Suit (♠♥♣♦), Rank, and Joker visuals. Supports "Small" and "Back" variants.
+- **PlayerHand**: Container for a fan of cards. Supports:
+  - **Selection**: Click-to-select, box-selection (simulated).
+  - **Layout**: Dynamic spacing based on card count.
+  - **States**: Human (Interactive) vs AI (Hidden/Backs).
+
+### 2. Game Table (`GameTable.tsx`)
+- **Rich UI**:
+  - **Avatar System**: User/AI visualization with layout positioning (Top/Left/Right/Bottom).
+  - **Orchestration**: Currently driven by `useGameLoop` (Offline Mock) for component development.
+  - **Animations**: Shuffling, Dealing, and Playing motion effects using `framer-motion`.
+  - **Controls**: Bidding and Playing buttons (Play/Pass/Hint).
+  - **Bottom Cards**: Dedicated display area for landlord cards.
+
+### 3. Verification State
+- **Mode**: Components verified in Offline Mode.
+- **Next Step**: Wire `GameTable` components to `useGameStore` for online multiplayer (Phase 23.3).
+
+**Status**: ✅ Phase 23.2 Complete
 **Date**: 2025-12-05
-**Key Files**: `RoomPage.tsx`, `room.store.ts`
+**Key Files**: `Card.tsx`, `PlayerHand.tsx`, `GameTable.tsx`
 

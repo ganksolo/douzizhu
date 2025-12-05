@@ -643,6 +643,19 @@ Retrieves full details of a specific match, including replay actions.
 
 ### Events (Server → Client)
 
+#### 0. Sync State (Primary State Update)
+```json
+{
+  "type": "sync_state",
+  "phase": "PLAYING",
+  "players": [...],
+  "currentTurn": 2,
+  "bottomCards": [1, 2, 3],
+  "lastPlayed": { "seatIndex": 1, "cards": [...] }
+}
+```
+**Description**: Full state snapshot sent on every change. Frontend uses this to hydrate `GameStore`.
+
 #### 1. Room Updated (Player List)
 ```json
 {

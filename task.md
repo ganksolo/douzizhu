@@ -382,4 +382,18 @@
   - [x] Documentation (Micro-doc & API Update) <!-- id: 22.6.5 -->
     - [x] QA Handoff Generation <!-- id: 366 -->
 
+- [ ] Phase 23.1: Frontend GameBoard Data Mapping <!-- id: 23.1 -->
+  - [x] Create game.store.ts (State: gameState, currentTurn, etc.) <!-- id: 23.1.1 -->
+  - [x] Implement Relative Seat Mapping (Bottom/Right/Top/Left) <!-- id: 23.1.2 -->
+  - [x] Implement sync_state Action & Socket Listener <!-- id: 23.1.3 -->
+  - [x] Create DebugStatePanel Component <!-- id: 23.1.4 -->
+  - [x] **QA Verification (Tri-Source)** <!-- id: 23.1.5 -->
+
+- [x] Phase 23.2: Frontend GameBoard Layout & Components <!-- id: 23.2 -->
+  - [x] Create Card Component (Basic CSS) <!-- id: 23.2.1 -->
+  - [x] Create PlayerAvatar Component (Turn Indicator, HandCount) <!-- id: 23.2.2 -->
+  - [x] Create GameBoard Container (Absolute Layout) <!-- id: 23.2.3 -->
+  - [x] Implement Bottom Cards (Dipai) Area <!-- id: 23.2.4 -->
+  - [x] Verify Game Start Transition <!-- id: 23.2.5 -->
+
 
