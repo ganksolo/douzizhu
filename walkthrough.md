@@ -878,7 +878,7 @@ Implemented the "Ready" mechanism and automatic game start logic. When 3 players
 ## Steps Executed
 
 ### 1. Ready Logic
-- **Service**: `RoomService.toggleReady` updates Redis.
+- **Service**: `RoomService` with Redis integration (Manual `ioredis` instantiation)es Redis.
 - **Gateway**: `handleToggleReady` broadcasts updates.
 
 ### 2. Game Start Logic

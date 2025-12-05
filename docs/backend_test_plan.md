@@ -78,6 +78,14 @@ This document outlines the test plan for the Dou Dizhu backend game engine. It s
     [player-B] Saw Player A play cards: [ '♠3' ]
     ```
 
+#### TC-API-ROOM-002: Create Room (POST /rooms)
+- **Description**: Verify creating a new room via REST API.
+- **Input**: `POST /rooms` with `{ name: "Fixed Room", maxPlayers: 3 }`
+- **Expected Output**:
+    - Status: 201 Created
+    - Body: `{ success: true, data: { roomId: "..." } }`
+- **Actual Result**: ✅ PASSED (Issue #1 Resolved via Direct Redis Client)
+
 ### 3.3 Security & Data Sanitization (Fog of War)
 
 #### TC-SEC-001: Hand Card Masking

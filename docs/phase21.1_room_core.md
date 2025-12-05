@@ -4,6 +4,11 @@
 **Module**: `RoomModule`
 **Responsibility**: Manages room lifecycle (Create, Join, Leave, Destroy) and persistent state using Redis.
 
+## 1.1 Technical Implementation Note
+**Redis Client**: `RoomService` uses a manually instantiated `ioredis` client instead of the standard NestJS `CacheModule` injection.
+- **Reason**: `cache-manager` v7 + `store-ioredis` proved unreliable for critical `HSET`/`HGETALL` operations required by the Room Meta system.
+- **Config**: Reads `REDIS_HOST`, `REDIS_PORT`, `REDIS_PASSWORD` directly from `ConfigService`.
+
 ## 2. Data Structure (Redis)
 
 ### Room Meta

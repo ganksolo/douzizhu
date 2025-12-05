@@ -351,6 +351,7 @@ Upgrade the room system to support advanced features (kick, ready state, owner t
 #### [NEW] `backend/src/room/`
 - `room.module.ts`: Registers Room components.
 - `room.service.ts`: Handles Redis operations and room logic (Join/Leave/Kick).
+  - **Note**: Uses manual `ioredis` instantiation (bypassing `CacheModule`) for reliable Hash operations.
 - `room.gateway.ts`: Handles WebSocket events (`join_room`, `leave_room`, `kick_player`) in `room` namespace.
 
 #### [MODIFY] `backend/src/app.module.ts`

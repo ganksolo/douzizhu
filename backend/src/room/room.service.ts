@@ -1,9 +1,15 @@
-import { Injectable, Inject, Logger, BadRequestException, ForbiddenException } from '@nestjs/common';
+import { Injectable, Inject, Logger, BadRequestException, ForbiddenException, OnModuleInit, OnModuleDestroy } from '@nestjs/common';
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import type { Cache } from 'cache-manager';
 import { Socket } from 'socket.io';
+// import { GameGateway } from '../game/game.gateway'; // Circular dependency risk or missing export?
+// The user code seems to have GameGateway in '../game/game.gateway' based on previous view_file, 
+// but wait, I saw 'GameGateway' in logs before? 
+// Let's look at `game.module.ts` exports or `game.gateway.ts` location.
+// Actually, `RoomService` had `GameManagerService` import before.
 import { GameManagerService } from '../game/services/game-manager.service';
-import { Player } from '../game/types/game.types';
+import { ConfigService } from '@nestjs/config';
+import Redis from 'ioredis';
 
 export interface RoomMeta {
     ownerId: string;
@@ -22,13 +28,42 @@ export interface RoomPlayer {
 }
 
 @Injectable()
-export class RoomService {
-    private logger = new Logger(RoomService.name);
+export class RoomService implements OnModuleInit, OnModuleDestroy {
+    private readonly logger = new Logger(RoomService.name);
+    private redisClient: Redis;
 
     constructor(
         @Inject(CACHE_MANAGER) private cacheManager: Cache,
+        // private gameGateway: GameGateway, // Temporarily remove if not used or path invalid
         private gameManager: GameManagerService,
+        private configService: ConfigService,
     ) { }
+
+    onModuleInit() {
+        // [Plan A] Direct Redis Connection to bypass CacheModule issues
+        const host = this.configService.get<string>('REDIS_HOST', 'localhost');
+        const port = this.configService.get<number>('REDIS_PORT', 6379);
+        const password = this.configService.get<string>('REDIS_PASSWORD');
+
+        this.redisClient = new Redis({
+            host,
+            port,
+            password,
+            retryStrategy: (times) => Math.min(times * 50, 2000),
+        });
+
+        this.redisClient.on('error', (err) => {
+            this.logger.error('Redis Client Error:', err);
+        });
+
+        this.logger.log(`RoomService connected to Redis at ${host}:${port}`);
+    }
+
+    onModuleDestroy() {
+        if (this.redisClient) {
+            this.redisClient.disconnect();
+        }
+    }
 
     private getMetaKey(roomId: string): string {
         return `room:${roomId}:meta`;
@@ -38,32 +73,11 @@ export class RoomService {
         return `room:${roomId}:players`;
     }
 
-    private getRedisClient(): any {
-        const cache = this.cacheManager as any;
-
-        // Handle MultiCache (stores array)
-        if (cache.stores && Array.isArray(cache.stores) && cache.stores.length > 0) {
-            const store = cache.stores[0];
-
-            if (store.client) return store.client;
-
-            if (store.store) {
-                if (store.store.client) return store.store.client;
-                // Sometimes the store itself is the redis client wrapper
-                if (typeof store.store.keys === 'function') return store.store;
-            }
-
-            // Try to find client in store directly if it's ioredis
-            if (typeof store.keys === 'function') return store;
+    private getRedisClient(): Redis {
+        if (!this.redisClient) {
+            throw new Error('Redis client not initialized');
         }
-
-        // Handle single store
-        if (cache.store) {
-            if (cache.store.client) return cache.store.client;
-            if (typeof cache.store.keys === 'function') return cache.store;
-        }
-
-        return cache;
+        return this.redisClient;
     }
 
     /**

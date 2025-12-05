@@ -314,6 +314,7 @@
         - [x] Create RoomModule/Service/Gateway <!-- id: 309 -->
         - [x] Implement Redis Schema (room:meta, room:players) <!-- id: 310 -->
         - [x] Implement Join/Leave/Kick Logic <!-- id: 311 -->
+        - [x] Fix: Switch to manual ioredis instantiation (RoomService) <!-- id: 311-fix -->
         - [x] Create QA Handoff (Redis Structure) <!-- id: 312 -->
 
     - [x] Phase 21.2: Ready System & Game Start <!-- id: 313 -->
