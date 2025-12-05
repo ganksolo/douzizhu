@@ -484,4 +484,36 @@ Login -> /lobby (Auto-refresh every 5s)
 **Status**: ✅ Phase 23.2 Complete
 **Date**: 2025-12-05
 **Key Files**: `Card.tsx`, `PlayerHand.tsx`, `GameTable.tsx`
+**Note**: `GameTable.tsx` was refactored/moved to `components/game/GameBoard.tsx` in Phase 23.3.
+
+---
+
+## Phase 23.3: Frontend GameBoard Dynamic Rendering
+
+### 1. GameStore Updates (`game.store.ts`)
+- **State**: Added `myHand` (number array) to store local player's cards.
+- **Action**: `setSyncState` now extracts and sorts `myHand` (descending) from the backend payload.
+- **Contract**: Relies on `sync_state` event providing `myHand`.
+
+### 2. GameBoard Component (`GameBoard.tsx`)
+- **Refactor**: Replaced initial `GameTable.tsx` with `components/game/GameBoard.tsx`.
+- **Dynamic Rendering**:
+    - **My Hand**: Renders `myHand` keys using `Card` component. Supports selection (click to toggle).
+    - **Dipai (Bottom Cards)**: Renders `bottomCards` or valid placeholders in the center.
+    - **Played Cards**: Renders `lastPlayed` cards positioned relative to the player who played them (using `getRelativeSeat`).
+- **Interactive UI**:
+    - **Play/Pass Buttons**: Currently UI-only (connected to store actions in future).
+    - **Selection State**: Local state `selectedCards` tracks user input.
+- **Visuals**:
+    - **Table Texture**: Radial gradient green background.
+    - **Animations**: Hover effects for cards.
+    - **Phase Indicators**: "Dealing cards..." overlay.
+
+### 3. Verification
+- **PvE Visuals**: Verified rendering of AI avatars and 4-player layout (Bottom/Right/Top/Left).
+- **Data Flow**: `useGameStore` correctly hydrates `GameBoard` from `sync_state` (mocked in testing).
+
+**Status**: ✅ Phase 23.3 Complete
+**Date**: 2025-12-05
+**Key Files**: `components/game/GameBoard.tsx`, `store/game.store.ts`
 

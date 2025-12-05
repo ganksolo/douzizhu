@@ -651,10 +651,11 @@ Retrieves full details of a specific match, including replay actions.
   "players": [...],
   "currentTurn": 2,
   "bottomCards": [1, 2, 3],
-  "lastPlayed": { "seatIndex": 1, "cards": [...] }
+  "lastPlayed": { "seatIndex": 1, "cards": [...] },
+  "myHand": [1, 2, 3, 4, 5]
 }
 ```
-**Description**: Full state snapshot sent on every change. Frontend uses this to hydrate `GameStore`.
+**Description**: Full state snapshot sent on every change. Frontend uses this to hydrate `GameStore`. `myHand` contains the sorted card values for the current user.
 
 #### 1. Room Updated (Player List)
 ```json

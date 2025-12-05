@@ -25,6 +25,7 @@ export interface GameState {
     currentTurn: number | null; // seatIndex
     bottomCards: number[];
     lastPlayed: LastPlayedState | null;
+    myHand: number[]; // Local player's hand cards (sorted)
 
     // Actions
     setSyncState: (data: any) => void;
@@ -43,6 +44,7 @@ export const useGameStore = create<GameState>((set, get) => ({
     currentTurn: null,
     bottomCards: [],
     lastPlayed: null,
+    myHand: [],
 
     // Actions
     setSyncState: (data: any) => {
@@ -55,6 +57,7 @@ export const useGameStore = create<GameState>((set, get) => ({
             currentTurn: data.currentTurn ?? null,
             bottomCards: data.bottomCards || [],
             lastPlayed: data.lastPlayed || null,
+            myHand: data.myHand ? [...data.myHand].sort((a, b) => b - a) : [], // Auto-sort desc
         });
     },
 
@@ -69,6 +72,7 @@ export const useGameStore = create<GameState>((set, get) => ({
             currentTurn: null,
             bottomCards: [],
             lastPlayed: null,
+            myHand: [],
             // mySeatId typically persists if in the same room, but can clear if leaving
         });
     },

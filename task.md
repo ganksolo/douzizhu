@@ -397,3 +397,9 @@
   - [x] Verify Game Start Transition <!-- id: 23.2.5 -->
 
 
+- [x] Phase 23.3: Frontend GameBoard Dynamic Rendering <!-- id: 23.3 -->
+  - [x] Update GameStore (Add `myHand`) <!-- id: 23.3.1 -->
+  - [x] Implement My Hand Rendering (Selection, Sorting) <!-- id: 23.3.2 -->
+  - [x] Implement Table Area (Last Played Visuals) <!-- id: 23.3.3 -->
+  - [x] Implement Phase Indicators (Toast, Active Ring) <!-- id: 23.3.4 -->
+  - [x] Verify PvE Visuals <!-- id: 23.3.5 -->
