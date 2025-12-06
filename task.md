@@ -443,5 +443,17 @@
     - [x] Flush stale Redis data (backend) <!-- id: 403 -->
 
 - [x] Fix 11: Resolve Issue #16 (Lobby hostId Crash) <!-- id: 410 -->
-    - [x] Defensive check for hostId in LobbyPage <!-- id: 411 -->
-    - [x] Update test registry <!-- id: 412 -->
+
+- [x] Phase 25: Frontend Authentication Implementation <!-- id: 420 -->
+    - [x] Update API Client (api.ts) with auth endpoints <!-- id: 421 -->
+    - [x] Update Auth Store (auth.store.ts) with login/register actions <!-- id: 422 -->
+    - [x] Create RegisterPage.tsx with validation <!-- id: 423 -->
+    - [x] Update LoginPage.tsx (Guest/Account tabs) <!-- id: 424 -->
+    - [x] Update App.tsx routing <!-- id: 425 -->
+    - [x] Implement useToast hook (Basic) <!-- id: 426 -->
+
+- [x] Phase 26: User Authentication Logic (Bcrypt) <!-- id: 430 -->
+    - [x] Install bcryptjs dependencies <!-- id: 431 -->
+    - [x] Update AuthService: Hashed registration <!-- id: 432 -->
+    - [x] Update AuthService: Secure login <!-- id: 433 -->
+    - [x] Verify AuthController endpoints <!-- id: 434 -->

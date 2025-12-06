@@ -1,5 +1,6 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
+import * as bcrypt from 'bcryptjs';
 import { UserService } from '../user/user.service';
 import { User } from '../user/user.entity';
 
@@ -27,8 +28,8 @@ export class AuthService {
      * Register a new user
      */
     async register(username: string, password: string, email?: string) {
-        // Mock hashing for prototype (In production, use bcrypt)
-        const passwordHash = `hashed_${password}`;
+        // Hash password with bcrypt (salt rounds: 10)
+        const passwordHash = await bcrypt.hash(password, 10);
         const user = await this.userService.createUser(username, passwordHash, email);
         return this.generateToken(user);
     }
@@ -37,15 +38,20 @@ export class AuthService {
      * Login with username and password
      */
     async login(username: string, password: string) {
-        const user = await this.userService.findByUsername(username);
+        const user = await this.userService.findForAuth(username);
+
         if (!user) {
-            return null;
+            throw new NotFoundException('User not found');
         }
 
-        // Mock hashing check (In production, use bcrypt.compare)
-        const passwordHash = `hashed_${password}`;
-        if (user.passwordHash !== passwordHash) {
-            return null;
+        if (user.auth_type !== 'password' || !user.passwordHash) {
+            throw new UnauthorizedException('Invalid credentials');
+        }
+
+        const isMatch = await bcrypt.compare(password, user.passwordHash);
+
+        if (!isMatch) {
+            throw new UnauthorizedException('Invalid credentials');
         }
 
         return this.generateToken(user);

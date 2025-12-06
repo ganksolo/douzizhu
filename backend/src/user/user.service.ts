@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, ConflictException } from '@nestjs/common';
 import { UserRepository } from './user.repository';
 import { User, AuthType } from './user.entity';
 import { MatchRepository } from '../game/match/match.repository';
@@ -32,7 +32,7 @@ export class UserService {
         // Check if username exists
         const existing = await this.userRepository.findByNickname(username);
         if (existing) {
-            throw new Error('Username already exists');
+            throw new ConflictException('Username already exists');
         }
 
         return await this.userRepository.create({
@@ -61,6 +61,13 @@ export class UserService {
      */
     async findByUsername(username: string): Promise<User | null> {
         return await this.userRepository.findByNickname(username);
+    }
+
+    /**
+     * Find user for authentication (includes password hash)
+     */
+    async findForAuth(username: string): Promise<User | null> {
+        return await this.userRepository.findWithPassword(username);
     }
 
     /**

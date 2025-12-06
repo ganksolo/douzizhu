@@ -12,6 +12,8 @@ interface AuthState {
 
     // Actions
     loginGuest: () => Promise<void>;
+    login: (username: string, password: string) => Promise<void>;
+    register: (username: string, password: string) => Promise<void>;
     logout: () => void;
     restoreSession: () => void;
     clearError: () => void;
@@ -80,6 +82,68 @@ export const useAuthStore = create<AuthState>((set) => ({
                 isLoading: false,
                 error: error.response?.data?.message || error.message || 'Login failed',
             });
+            throw error;
+        }
+    },
+
+    /**
+     * Standard Login Flow
+     */
+    login: async (username, password) => {
+        set({ isLoading: true, error: null });
+
+        try {
+            const response = await api.auth.login(username, password);
+            console.log('[Auth] Login successful:', response.username);
+
+            const user: UserEntity = {
+                userId: response.userId,
+                username: response.username,
+            };
+
+            localStorage.setItem('auth_token', response.token);
+            localStorage.setItem('auth_user', JSON.stringify(user));
+
+            set({
+                user,
+                token: response.token,
+                isAuthenticated: true,
+                isLoading: false,
+                error: null,
+            });
+
+            SocketService.connect(response.token);
+
+        } catch (error: any) {
+            console.error('[Auth] Login failed:', error);
+            set({
+                user: null,
+                token: null,
+                isAuthenticated: false,
+                isLoading: false,
+                error: error.response?.data?.message || error.message || 'Login failed',
+            });
+            throw error;
+        }
+    },
+
+    /**
+     * Register Flow
+     * Note: This strictly registers. Use login() afterwards for session.
+     */
+    register: async (username, password) => {
+        set({ isLoading: true, error: null });
+
+        try {
+            await api.auth.register(username, password);
+            set({ isLoading: false, error: null });
+        } catch (error: any) {
+            console.error('[Auth] Registration failed:', error);
+            set({
+                isLoading: false,
+                error: error.response?.data?.message || error.message || 'Registration failed',
+            });
+            throw error;
         }
     },
 

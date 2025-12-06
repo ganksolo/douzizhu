@@ -34,11 +34,7 @@ export class AuthController {
      */
     @Post('login')
     async login(@Body() body: any) {
-        const result = await this.authService.login(body.username, body.password);
-        if (!result) {
-            throw new UnauthorizedException('Invalid credentials');
-        }
-        return result;
+        return this.authService.login(body.username, body.password);
     }
 
     /**
@@ -50,4 +46,5 @@ export class AuthController {
     getProfile(@Request() req) {
         return req.user;
     }
+
 }

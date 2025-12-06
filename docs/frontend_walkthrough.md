@@ -1472,3 +1472,27 @@ Modified `LobbyPage.tsx` to add a defensive check:
 **Status**: ✅ Fixed
 **Date**: 2025-12-06
 **Key Files**: `src/pages/LobbyPage.tsx`
+
+---
+
+## Phase 25: Frontend Authentication Implementation
+
+### 1. Goal
+Implement persistent user accounts (Register/Login) alongside the existing Guest Login, enabling users to maintain their stats and history.
+
+### 2. Changes
+- **API Client**: Added `register`, `login` methods to `api.ts`. Updated `loginGuest` to use `/auth/guest-login`.
+- **Store**: Updated `auth.store.ts` to handle registration and login actions.
+- **Components**:
+    - **RegisterPage**: New form with username/password validation.
+    - **LoginPage**: Updated with "Guest" and "Account" tabs.
+    - **Toast System**: Implemented Global Toast Store (`toast.store.ts`) and UI (`ToastContainer.tsx`) for reliable feedback.
+- **Routing**: Added `/register` route in `App.tsx`.
+
+### 3. Verification
+- **Build**: Passed `tsc` and `vite build`.
+- **Flow**: Supports Login -> Register -> Login -> Lobby.
+
+**Status**: ✅ Phase 25 Complete
+**Date**: 2025-12-06
+**Key Files**: `LoginPage.tsx`, `RegisterPage.tsx`, `api.ts`, `auth.store.ts`

@@ -32,6 +32,8 @@
     "@nestjs/swagger": "^11.2.3",
     "@nestjs/typeorm": "^11.0.0",
     "@nestjs/websockets": "^11.1.9",
+    "@types/bcryptjs": "^2.4.6",
+    "bcryptjs": "^3.0.3",
     "cache-manager": "^7.2.5",
     "cache-manager-ioredis-yet": "^2.1.2",
     "ioredis": "^5.8.2",

@@ -28,6 +28,13 @@ export class UserRepository {
         return await this.repository.findOne({ where: { nickname } });
     }
 
+    async findWithPassword(nickname: string): Promise<User | null> {
+        return await this.repository.createQueryBuilder('user')
+            .addSelect('user.passwordHash')
+            .where('user.nickname = :nickname', { nickname })
+            .getOne();
+    }
+
     async update(id: string, data: Partial<User>): Promise<void> {
         await this.repository.update(id, data);
     }

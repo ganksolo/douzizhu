@@ -117,14 +117,7 @@ apiClient.interceptors.response.use(
     }
 );
 
-// Helper to generate random guest credentials
-const generateGuestCredentials = () => {
-    const randomId = Math.random().toString(36).substring(2, 8);
-    return {
-        username: `Guest_${randomId}`,
-        password: `pass_${randomId}` // Min 6 chars required
-    };
-};
+
 
 // API Methods
 export const api = {
@@ -133,12 +126,36 @@ export const api = {
      */
     auth: {
         /**
-         * Guest login - actually registers a new user with random credentials
-         * Endpoint: POST /auth/register
+         * Guest login - creates a guest account
+         * Endpoint: POST /auth/guest-login
          */
         loginGuest: async (): Promise<AuthResponseData> => {
-            const credentials = generateGuestCredentials();
-            const response = await apiClient.post<ApiResponse<AuthResponseData>>('/auth/register', credentials);
+            const response = await apiClient.post<ApiResponse<AuthResponseData>>('/auth/guest-login');
+            return response.data.data;
+        },
+
+        /**
+         * Register a new user account
+         * Endpoint: POST /auth/register
+         */
+        register: async (username: string, password: string, email?: string): Promise<AuthResponseData> => {
+            const response = await apiClient.post<ApiResponse<AuthResponseData>>('/auth/register', {
+                username,
+                password,
+                email
+            });
+            return response.data.data;
+        },
+
+        /**
+         * Login with existing credentials
+         * Endpoint: POST /auth/login
+         */
+        login: async (username: string, password: string): Promise<AuthResponseData> => {
+            const response = await apiClient.post<ApiResponse<AuthResponseData>>('/auth/login', {
+                username,
+                password
+            });
             return response.data.data;
         },
 
