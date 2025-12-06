@@ -1130,3 +1130,47 @@ python3 tests/qa_verification.py
     - **Service**: `RoomService.getRooms` implements Redis key scanning and pagination.
     - **Contract**: Endpoints match `api_spec.md` definitions.
 - **Result**: Issue #9 is RESOLVED.
+
+### Phase 24: Fix Issue #12 (Regression)
+
+#### TC-FIX-012: RoomController Response Contract
+- **Description**: Verify `RoomController` endpoints return `{ success: true, data: ... }`.
+- **Status**: ✅ **PASSED**
+- **Verification**:
+    - **Code Inspection**: `RoomController.getRooms` wraps result in `{ success: true, data: result }`.
+    - **Code Inspection**: `RoomController.getRoom` wraps result in `{ success: true, data: ... }`.
+- **Result**: Issue #12 is RESOLVED.
+
+
+#### TC-FIX-013: RoomController Pagination Object
+- **Description**: Verify `RoomController.getRooms` returns `pagination` object with correct fields.
+- **Status**: ✅ **PASSED**
+- **Verification**:
+    - **Code Inspection**: `RoomController.ts` computes `totalPages` and returns `{ pagination: { page, limit, total, totalPages } }`.
+- **Result**: Issue #13 is RESOLVED.
+
+
+#### TC-FIX-014: Room Object Structure
+- **Description**: Verify room objects in `GET /rooms` contain flattened fields (`name`, `hostId`, etc.).
+- **Status**: ✅ **PASSED**
+- **Verification**:
+    - **Code Inspection**: `RoomService.getRooms` flattens config object and maps `ownerId` to `hostId`.
+- **Result**: Issue #14 is RESOLVED.
+
+
+#### TC-FIX-015: Lobby Page Data Robustness
+- **Description**: Verify LobbyPage handles malformed/stale room data without crashing.
+- **Status**: ✅ **PASSED**
+- **Verification**:
+    - **Frontend Code**: Added defensive check `(room.name || '').includes('[PvE]')` in `LobbyPage.tsx`.
+    - **Backend Ops**: `scripts/flush_rooms.ts` provided for cleaning stale Redis data.
+- **Result**: Issue #15 is RESOLVED.
+
+
+#### TC-FIX-016: Lobby Page hostId Robustness
+- **Description**: Verify LobbyPage handles undefined `hostId` without crashing.
+- **Status**: ✅ **PASSED**
+- **Verification**:
+    - **Frontend Code**: Added defensive check `(room.hostId || 'Unknown').substring(...)` in `LobbyPage.tsx`.
+- **Result**: Issue #16 is RESOLVED.
+

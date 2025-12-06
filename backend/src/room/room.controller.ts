@@ -10,7 +10,20 @@ export class RoomController {
     @Get()
     @UseGuards(AuthGuard('jwt'))
     async getRooms(@Query('page') page: number = 1, @Query('limit') limit: number = 20) {
-        return this.roomService.getRooms(page, limit);
+        const result = await this.roomService.getRooms(page, limit);
+        const totalPages = Math.ceil(result.total / limit);
+        return {
+            success: true,
+            data: {
+                rooms: result.rooms,
+                pagination: {
+                    page: Number(page),
+                    limit: Number(limit),
+                    total: result.total,
+                    totalPages
+                }
+            }
+        };
     }
 
     @Get(':id')
@@ -19,13 +32,25 @@ export class RoomController {
         const meta = await this.roomService.getRoomMeta(id);
         if (!meta) throw new NotFoundException('Room not found');
         const players = await this.roomService.getPlayers(id);
+
+        const configObj = meta.config ? JSON.parse(meta.config) : {};
+
         return {
-            roomId: id,
-            ...meta,
-            // Parse config if exists
-            config: meta.config ? JSON.parse(meta.config) : {},
-            players,
-            currentPlayers: players.length
+            success: true,
+            data: {
+                roomId: id,
+                name: configObj.name || `Room ${id.substr(0, 6)}`,
+                hostId: meta.ownerId,
+                currentPlayers: players.length,
+                maxPlayers: configObj.maxPlayers || 4,
+                status: meta.status,
+                type: configObj.type || 'PVP',
+                difficulty: configObj.difficulty || 'MEDIUM',
+                isPrivate: configObj.isPrivate || false,
+                botCount: configObj.botCount || 0,
+                players,
+                config: configObj
+            }
         };
     }
 

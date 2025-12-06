@@ -424,3 +424,24 @@
   - [x] Implement RoomController (GET/POST) <!-- id: 24.2 -->
   - [x] Update RoomGateway (Signature Fix) <!-- id: 24.3 -->
   - [x] Verify API with curl/Postman <!-- id: 24.4 -->
+
+- [x] Fix 7: Resolve Issue #12 (RoomController Contract) <!-- id: 370 -->
+    - [x] Wrap getRooms response in ApiResponse <!-- id: 371 -->
+    - [x] Wrap getRoom response in ApiResponse <!-- id: 372 -->
+
+- [x] Fix 8: Resolve Issue #13 (Pagination Contract) <!-- id: 380 -->
+    - [x] Add pagination object to getRooms response <!-- id: 381 -->
+    - [x] Calculate totalPages <!-- id: 382 -->
+
+- [x] Fix 9: Resolve Issue #14 (Room Object Format) <!-- id: 390 -->
+    - [x] Flatten config fields (name, maxPlayers) <!-- id: 391 -->
+    - [x] Map ownerId to hostId <!-- id: 392 -->
+
+- [x] Fix 10: Resolve Issue #15 (LobbyPage Crash) <!-- id: 400 -->
+    - [x] prevent crash on undefined room.name in LobbyPage <!-- id: 401 -->
+    - [x] Fix RoomController.getRoom response format (backend) <!-- id: 402 -->
+    - [x] Flush stale Redis data (backend) <!-- id: 403 -->
+
+- [x] Fix 11: Resolve Issue #16 (Lobby hostId Crash) <!-- id: 410 -->
+    - [x] Defensive check for hostId in LobbyPage <!-- id: 411 -->
+    - [x] Update test registry <!-- id: 412 -->

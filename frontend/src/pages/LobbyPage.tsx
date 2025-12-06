@@ -114,7 +114,7 @@ export const LobbyPage = () => {
 
                                 {rooms.map((room) => {
                                     const isFull = room.currentPlayers === room.maxPlayers;
-                                    const isPvE = room.name.includes('[PvE]');
+                                    const isPvE = (room.name || '').includes('[PvE]');
 
                                     return (
                                         <button
@@ -143,7 +143,7 @@ export const LobbyPage = () => {
                                                         )}
                                                     </div>
                                                     <p className="text-sm text-gray-500">
-                                                        房主: {room.hostId.substring(0, 8)}...
+                                                        房主: {(room.hostId || 'Unknown').substring(0, 8)}...
                                                     </p>
                                                 </div>
                                                 <div className="flex items-center gap-3">

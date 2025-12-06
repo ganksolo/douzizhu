@@ -117,12 +117,21 @@ export class RoomService implements OnModuleInit, OnModuleDestroy {
             if (meta) {
                 const seatsKey = this.getSeatsKey(roomId);
                 const playerCount = await client.hlen(seatsKey);
+                const configObj = meta.config ? JSON.parse(meta.config) : {};
+
                 rooms.push({
                     roomId,
-                    ...meta,
+                    name: configObj.name || `Room ${roomId.substr(0, 6)}`,
+                    hostId: meta.ownerId,
                     currentPlayers: playerCount,
-                    // Parse config if it exists
-                    config: meta.config ? JSON.parse(meta.config) : {}
+                    maxPlayers: configObj.maxPlayers || 4,
+                    status: meta.status,
+                    type: configObj.type || 'PVP',
+                    difficulty: configObj.difficulty || 'MEDIUM',
+                    isPrivate: configObj.isPrivate || false,
+                    botCount: configObj.botCount || 0,
+                    // Keep original config for detailed view if needed, but top-level fields are critical
+                    config: configObj
                 });
             }
         }

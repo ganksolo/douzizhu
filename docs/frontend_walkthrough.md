@@ -1457,3 +1457,18 @@ Login -> /lobby (Auto-refresh every 5s)
 **Date**: 2025-12-05
 **Key Files**: `components/game/GameBoard.tsx`, `store/game.store.ts`
 
+
+---
+
+## Fix 10: Resolve Issue #15 (LobbyPage Crash)
+
+### 1. Problem
+`LobbyPage` was crashing with `TypeError: Cannot read properties of undefined (reading 'includes')` because `room.name` could be undefined for stale room data in Redis.
+
+### 2. Fix
+Modified `LobbyPage.tsx` to add a defensive check:
+- Changed `room.name.includes('[PvE]')` to `(room.name || '').includes('[PvE]')`.
+
+**Status**: ✅ Fixed
+**Date**: 2025-12-06
+**Key Files**: `src/pages/LobbyPage.tsx`
