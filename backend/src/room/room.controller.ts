@@ -171,4 +171,51 @@ export class RoomController {
             data: bot
         };
     }
+
+    @Post(':id/fill-bots')
+    @UseGuards(AuthGuard('jwt'))
+    async fillBots(@Param('id') roomId: string) {
+        const bots = await this.roomService.fillBotsToRoom(roomId);
+
+        if (bots.length === 0) {
+            return {
+                success: true,
+                message: 'Room is already full',
+                data: { botsAdded: 0, bots: [] }
+            };
+        }
+
+        // Emit events for each bot via Socket
+        const allPlayers = await this.roomService.getPlayers(roomId);
+
+        // Broadcast full player list update
+        this.gameGateway.server.to(roomId).emit('player_list_update', {
+            roomId,
+            players: allPlayers
+        });
+
+        // Emit individual player_joined events for each bot
+        for (const bot of bots) {
+            this.gameGateway.server.to(roomId).emit('player_joined', {
+                userId: bot.userId,
+                username: bot.nickname,
+                isBot: true,
+                seat: bot.seat
+            });
+        }
+
+        // Try Start Game
+        const started = await this.roomService.tryStartGame(roomId);
+        if (started) {
+            this.gameGateway.server.to(roomId).emit('game_start', { roomId });
+        }
+
+        return {
+            success: true,
+            data: {
+                botsAdded: bots.length,
+                bots: bots
+            }
+        };
+    }
 }

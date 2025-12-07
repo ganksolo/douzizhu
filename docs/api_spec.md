@@ -343,6 +343,38 @@ Authorization: Bearer <REFRESH_TOKEN>
 
 ---
 
+#### `POST /rooms/:roomId/fill-bots`
+**Description**: Fill all empty seats with AI bots in one request. This is the recommended endpoint for PVE games to improve UX by eliminating multiple clicks.
+
+**Headers**: Requires authentication
+
+**Response** (200 OK):
+```json
+{
+  "success": true,
+  "data": {
+    "botsAdded": 3,
+    "bots": [
+      {
+        "userId": "bot-xxx-0",
+        "seat": 1,
+        "nickname": "Bot 2",
+        "avatar": "string",
+        "isBot": true,
+        "isReady": true
+      }
+    ]
+  }
+}
+```
+
+**Note**: If room is already full, returns `botsAdded: 0`.
+
+**Errors**:
+- 404: Room not found
+
+---
+
 #### `POST /rooms/:roomId/leave`
 **Description**: Leave current room
 

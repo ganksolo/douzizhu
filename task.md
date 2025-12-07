@@ -515,3 +515,40 @@
   - [x] Implement Auto-Start Logic (room.service.ts) <!-- id: 35.4 -->
   - [x] Verify Avatar/Username Consistency <!-- id: 35.5 -->
   - [x] Browser Testing and Verification <!-- id: 35.6 -->
+- [ ] Phase 36: Frontend Gameplay UI State Integration <!-- id: 36 -->
+  - [x] Review & Enhance game.store.ts <!-- id: 36.1 -->
+  - [x] Implement sync_state Listener (GamePage) <!-- id: 36.2 -->
+  - [x] Render Player Hands <!-- id: 36.3 -->
+  - [x] Render Last Played Cards (Table) <!-- id: 36.4 -->
+  - [x] Implement Turn Indicator <!-- id: 36.5 -->
+  - [x] Integrate Game Controls <!-- id: 36.6 -->
+  - [x] Browser Testing & Verification <!-- id: 36.7 -->
+  - [x] Fix RoomPage Auto-Sit Issue <!-- id: 36.8 -->
+- [x] Phase 37: GitHub Issue #18 - Fill All Empty Seats with Bots (Backend) <!-- id: 37 -->
+  - [x] Implement fillBotsToRoom in RoomService <!-- id: 37.1 -->
+  - [x] Add /rooms/:id/fill-bots endpoint in RoomController <!-- id: 37.2 -->
+  - [x] Update api_spec.md documentation <!-- id: 37.3 -->
+  - [x] Update openapi.yaml documentation (API Dual-Write) <!-- id: 37.4 -->
+  - [x] Create verification script <!-- id: 37.5 -->
+  - [x] Execute verification and confirm success <!-- id: 37.6 -->
+- [ ] Phase 38: GitHub Issue #18 - Fill All Empty Seats (Frontend) <!-- id: 38 -->
+  - [x] Add fillBots API method in api.ts <!-- id: 38.1 -->
+  - [x] Update handleAddBot to use fillBots <!-- id: 38.2 -->
+  - [x] Update button text to "Fill AI Players" <!-- id: 38.3 -->
+  - [ ] Browser testing and verification <!-- id: 38.4 -->
+  - [x] Fix React Hooks order error (white screen) <!-- id: 38.5 -->
+  - [x] Add BIDDING phase UI controls <!-- id: 38.6 -->
+- [x] Phase 39: GameBoard UI/UX Optimization <!-- id: 39 -->
+  - [x] Center dipai with backdrop blur container <!-- id: 39.1 -->
+  - [x] Add framer-motion animations <!-- id: 39.2 -->
+  - [x] Add game control handlers (handleBid/Play/Pass/Hint) <!-- id: 39.4 -->
+  - [x] Browser testing and verification <!-- id: 39.5 -->
+- [x] Phase 40: GitHub Issue #19 - sync_state Missing Fields (Backend) <!-- id: 40 -->
+  - [x] Update StateSerializer to add currentTurn field <!-- id: 40.1 -->
+  - [x] Update StateSerializer to add phase field (derived from state) <!-- id: 40.2 -->
+  - [x] Create verification script <!-- id: 40.3 -->
+  - [x] Execute verification and confirm fix <!-- id: 40.4 -->
+- [x] Phase 41: Fix Visual & Logic Bugs (Issues #20, Avatar, Layout) <!-- id: 41 -->
+  - [x] Fix Card style (remove corner flowers) <!-- id: 41.1 -->
+  - [x] Fix Avatar inconsistency (pass avatar prop) <!-- id: 41.2 -->
+  - [x] Fix Missing Buttons (reactive mySeatId sync) <!-- id: 41.3 -->

@@ -34,27 +34,20 @@ export const Card = ({ suit, rank, isSelected, onClick, scale = 1, hidden = fals
         <div
             onClick={onClick}
             className={`
-                bg-white border border-gray-300 rounded-lg shadow-xl flex items-center justify-center 
-                relative cursor-pointer transition-transform duration-200 select-none
+                bg-white border border-gray-300 rounded-lg shadow-xl flex flex-col items-center justify-center 
+                relative cursor-pointer transition-transform duration-200 select-none gap-1
                 ${isSelected ? '-translate-y-4' : ''}
             `}
             style={{ width: `${80 * scale}px`, height: `${120 * scale}px` }}
         >
-            {/* Top Left Corner */}
-            <div className={`absolute top-1 left-1 flex flex-col items-center leading-none ${isRed ? 'text-red-500' : 'text-black'}`}>
-                <span className="text-sm font-bold">{rank}</span>
-                <span className="text-xs">{suitSymbol}</span>
+            {/* Rank at top */}
+            <div className={`text-2xl font-bold ${isRed ? 'text-red-500' : 'text-black'}`} style={{ fontSize: `${28 * scale}px` }}>
+                {rank}
             </div>
 
-            {/* Center Symbol */}
-            <div className={`text-3xl ${isRed ? 'text-red-500' : 'text-black'}`}>
+            {/* Large Center Suit Symbol */}
+            <div className={`${isRed ? 'text-red-500' : 'text-black'}`} style={{ fontSize: `${48 * scale}px` }}>
                 {suitSymbol}
-            </div>
-
-            {/* Bottom Right Corner (Inverted) */}
-            <div className={`absolute bottom-1 right-1 flex flex-col items-center leading-none rotate-180 ${isRed ? 'text-red-500' : 'text-black'}`}>
-                <span className="text-sm font-bold">{rank}</span>
-                <span className="text-xs">{suitSymbol}</span>
             </div>
         </div>
     );

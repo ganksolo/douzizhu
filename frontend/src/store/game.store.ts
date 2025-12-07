@@ -2,7 +2,7 @@ import { create } from 'zustand';
 import { parseCardList } from '../utils/cardUtils';
 
 // --- Types ---
-export type GamePhase = 'INIT' | 'DEALING' | 'PLAYING' | 'GAME_OVER';
+export type GamePhase = 'INIT' | 'DEALING' | 'BIDDING' | 'PLAYING' | 'GAME_OVER';
 
 export interface GamePlayer {
     userId: string;

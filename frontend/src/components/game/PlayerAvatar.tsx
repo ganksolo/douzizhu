@@ -2,13 +2,17 @@ import { motion } from 'framer-motion';
 
 interface PlayerAvatarProps {
     username: string;
+    avatar?: string; // ✅ Issue #20: Add avatar prop
     isTurn?: boolean;
     handCount?: number;
     position: 'bottom' | 'top' | 'left' | 'right';
     isBot?: boolean;
 }
 
-export const PlayerAvatar = ({ username, isTurn, handCount, position, isBot }: PlayerAvatarProps) => {
+export const PlayerAvatar = ({ username, avatar, isTurn, handCount, position, isBot }: PlayerAvatarProps) => {
+    // Use provided avatar or fallback to dicebear generated avatar
+    const avatarUrl = avatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${username}`;
+
     return (
         <div className={`flex flex-col items-center relative gap-2 ${position === 'right' ? 'flex-row-reverse' : position === 'left' ? 'flex-row' : ''}`}>
             {/* Avatar Circle */}
@@ -30,7 +34,7 @@ export const PlayerAvatar = ({ username, isTurn, handCount, position, isBot }: P
                     ${isTurn ? 'border-yellow-400' : 'border-white'}
                 `}>
                     <img
-                        src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${username}`}
+                        src={avatarUrl}
                         alt={username}
                         className="w-full h-full object-cover"
                     />

@@ -240,7 +240,6 @@ export class RoomService implements OnModuleInit, OnModuleDestroy {
             online: true,
             isReady: true, // Bots are always ready
             lastActive: Date.now(),
-            // @ts-ignore
             isBot: true
         };
 
@@ -248,6 +247,40 @@ export class RoomService implements OnModuleInit, OnModuleDestroy {
         this.logger.log(`Added Bot ${botId} to room ${roomId} at seat ${targetSeat}`);
 
         return bot;
+    }
+
+    /**
+     * Fill all empty seats with AI bots
+     * @param roomId Room ID
+     * @param maxCount Optional limit on number of bots to add (default: fill all)
+     * @returns Array of added bots
+     */
+    async fillBotsToRoom(roomId: string, maxCount?: number): Promise<RoomPlayer[]> {
+        const client = this.getRedisClient();
+        const seatsKey = this.getSeatsKey(roomId);
+        const meta = await this.getRoomMeta(roomId);
+        const config = meta?.config ? JSON.parse(meta.config) : {};
+        const maxPlayers = config.maxPlayers || 4;
+
+        const currentSeats = await client.hgetall(seatsKey);
+        const currentPlayerCount = Object.keys(currentSeats).length;
+        const emptySeats = maxPlayers - currentPlayerCount;
+
+        // Determine how many bots to add
+        const botsToAdd = maxCount !== undefined ? Math.min(emptySeats, maxCount) : emptySeats;
+
+        if (botsToAdd <= 0) {
+            return [];
+        }
+
+        const bots: RoomPlayer[] = [];
+        for (let i = 0; i < botsToAdd; i++) {
+            const bot = await this.addBotToRoom(roomId);
+            bots.push(bot);
+        }
+
+        this.logger.log(`Filled ${botsToAdd} bot(s) to room ${roomId}`);
+        return bots;
     }
 
     /**

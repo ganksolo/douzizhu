@@ -109,8 +109,8 @@ export const RoomPage = () => {
         SocketService.on('game_start', handleGameStart);
         SocketService.on('error', handleError);
 
-        // Auto Join on Mount (as observer)
-        SocketService.emit('join_room', { roomId, mode: 'observe' });
+        // Auto Join on Mount (auto-sit by default)
+        SocketService.emit('join_room', { roomId });
 
         return () => {
             SocketService.off('player_list_update', handlePlayerList);
@@ -137,18 +137,21 @@ export const RoomPage = () => {
         }
     };
 
-    const handleSit = (seatIndex: number) => {
-        console.log('[RoomPage] Sitting at seat:', seatIndex);
-        SocketService.emit('sit_down', { roomId, seatIndex });
-    };
+
 
     const handleAddBot = async () => {
         if (!roomId) return;
         try {
-            await api.room.addBot(roomId);
-            toast({ message: 'Requesting AI player...', type: 'info' });
+            // Fix Issue #18: Fill all empty seats with one click
+            const result = await api.room.fillBots(roomId);
+            const count = result.botsAdded;
+            if (count > 0) {
+                toast({ message: `Added ${count} AI player${count > 1 ? 's' : ''}!`, type: 'success' });
+            } else {
+                toast({ message: 'Room is already full', type: 'info' });
+            }
         } catch (error: any) {
-            toast({ title: 'Failed to add bot', message: error.message || 'Unknown error', type: 'error' });
+            toast({ title: 'Failed to add bots', message: error.message || 'Unknown error', type: 'error' });
         }
     };
 
@@ -172,33 +175,28 @@ export const RoomPage = () => {
     const maxSeats = roomConfig?.maxPlayers || 4;
     const hasEmptySeats = players.length < maxSeats;
 
+    // --- Spatial Layout Logic (Must be before early return for hooks rules) ---
+    const getPlayerByRelativePos = useRoomStore((state) => state.getPlayerByRelativePos);
+
     // If game is playing, render GamePage
     if (roomStatus === 'playing') {
         return <GamePage />;
     }
 
-    // --- Spatial Layout Logic ---
-    const getPlayerByRelativePos = useRoomStore((state) => state.getPlayerByRelativePos);
-
     // Render Logic
     const renderSeatWrapper = (pos: 'bottom' | 'right' | 'top' | 'left') => {
         const player = getPlayerByRelativePos(pos);
-        // Calculate absolute seat index for this position
-        const mySeat = useRoomStore.getState().mySeatId ?? 0;
-        let absoluteSeatIndex = mySeat;
-        if (pos === 'right') absoluteSeatIndex = (mySeat + 1) % 4;
-        else if (pos === 'top') absoluteSeatIndex = (mySeat + 2) % 4;
-        else if (pos === 'left') absoluteSeatIndex = (mySeat + 3) % 4;
 
-        // Show "Sit Here" button on empty seats only if I am not seated yet
-        const showSit = !me && !player;
+        // Show "Sit Here" button is no longer needed since we auto-sit
+        // but keep the structure for future manual seat selection if needed
+        const showSit = false;
 
         return (
             <PlayerSeat
                 player={player}
                 position={pos}
                 isCurrentUser={player?.userId === currentUser?.userId}
-                onSit={() => handleSit(absoluteSeatIndex)}
+                onSit={() => { }} // No-op since we auto-sit
                 showSitButton={showSit}
             />
         );
@@ -226,7 +224,7 @@ export const RoomPage = () => {
                         onClick={handleAddBot}
                         className="bg-blue-600 hover:bg-blue-500 text-white px-4 py-1 rounded-full shadow-lg text-sm font-bold flex items-center gap-2 transition-transform active:scale-95"
                     >
-                        <span>+</span> Add AI
+                        <span>🤖</span> Fill AI Players
                     </button>
                 )}
             </div>

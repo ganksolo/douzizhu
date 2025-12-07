@@ -52,10 +52,22 @@ export class StateSerializer {
         // Clear archaic 'deck' field if still present to avoid confusion
         sanitizedData.deck = [];
 
-        // 4. Add metadata
+        // 4. Derive phase from currentStateName
+        const phaseMap: { [key: string]: string } = {
+            'InitState': 'INIT',
+            'DealingState': 'DEALING',
+            'BiddingState': 'BIDDING',
+            'PlayingState': 'PLAYING',
+            'GameEndState': 'GAME_END'
+        };
+        const phase = phaseMap[currentStateName] || 'UNKNOWN';
+
+        // 5. Add metadata with currentTurn and phase
         return {
             ...sanitizedData,
             currentState: currentStateName,
+            currentTurn: sanitizedData.currentTurn || null,  // Expose currentTurn from roomData
+            phase: phase,  // Derived phase name
             timestamp: Date.now(),
         };
     }

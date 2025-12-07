@@ -6,9 +6,10 @@ import sys
 import json
 
 # Configuration
-BASE_URL = 'http://127.0.0.1:3001'
-WS_URL = 'http://127.0.0.1:3001'
+BASE_URL = 'http://localhost:3001'
+WS_URL = 'http://localhost:3001'
 ROOM_ID = f"qa-regr-23-5-5-{uuid.uuid4().hex[:8]}"
+
 
 class GameClient:
     def __init__(self, name):
@@ -25,12 +26,37 @@ class GameClient:
         self.current_turn_seat = -1
         self.events = []
         
-        # ... (Event Handlers)
+        # Event Handlers
+        @self.sio.event(namespace='/game')
+        def connect():
+            self.connected = True
+            print(f"[{self.name}] Connected to /game")
+
+        @self.sio.event(namespace='/game')
+        def disconnect():
+            self.connected = False
+            print(f"[{self.name}] Disconnected from /game")
+
+        @self.sio.on('sync_state', namespace='/game')
+        def on_sync_state(data):
+            self.current_state = data.get('currentState')
+            self.player_list = data.get('players', [])
+            self.events.append({'type': 'sync_state', 'data': data})
+            # print(f"[{self.name}] 🔔 State: {self.current_state}")
+
+        @self.sio.on('game_start', namespace='/game')
+        def on_game_start(data):
+            self.events.append({'type': 'game_start', 'data': data})
+            print(f"[{self.name}] Game Start Event!")
+
+        @self.sio.on('error', namespace='/game')
+        def on_error(data):
+            print(f"[{self.name}] Error: {data}")
 
     def login(self):
         try:
-            # Guest Login
-            response = requests.post(f"{BASE_URL}/auth/guest-login", json={})
+            # Guest Login (disable proxies for localhost)
+            response = requests.post(f"{BASE_URL}/auth/guest-login", json={}, proxies={'http': None, 'https': None})
             if response.status_code == 201 or response.status_code == 200:
                 data = response.json()['data']
                 self.userId = data['userId'] # Use real ID from server
@@ -42,6 +68,7 @@ class GameClient:
         except Exception as e:
             print(f"[{self.name}] Login request failed: {e}")
             sys.exit(1)
+
 
     def connect(self):
         if not self.token:
@@ -103,6 +130,31 @@ def run_tests():
     clients = [GameClient(f"P{i}") for i in range(4)]
     
     try:
+        # 0. Create Room (First client creates it via REST API)
+        print("\u003e\u003e\u003e Creating test room...")
+        creator = clients[0]
+        creator.login()
+        
+        create_response = requests.post(
+            f"{BASE_URL}/rooms",
+            json={"name": f"QA Test {ROOM_ID[:8]}", "maxPlayers": 4, "type": "PVP"},
+            headers={"Authorization": f"Bearer {creator.token}"},
+            proxies={'http': None, 'https': None}
+        )
+        
+        if create_response.status_code != 201:
+            print(f"❌ FAIL: Could not create room. Status: {create_response.status_code}")
+            print(create_response.text)
+            return
+            
+        room_data = create_response.json()['data']
+        actual_room_id = room_data['roomId']
+        print(f"\u003e\u003e\u003e Room created: {actual_room_id}")
+        
+        # Override ROOM_ID with actual room ID from server
+        global ROOM_ID
+        ROOM_ID = actual_room_id
+        
         # 1. Connect and Join
         for i, c in enumerate(clients):
             c.connect()

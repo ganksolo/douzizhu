@@ -186,12 +186,13 @@ export const api = {
         /**
          * Create new game room
          * Endpoint: POST /rooms
-         * Note: Using name prefix as workaround for PvP/PvE distinction
+         * Fix: Issue #17 - Added type field for PVE auto-fill support
          */
         create: async (config: CreateRoomConfig): Promise<Room> => {
             const payload = {
                 name: config.type === 'PVE' ? '[PvE] Solo Practice' : `[PvP] Room ${Date.now()}`,
                 maxPlayers: 4, // Dou Dizhu is 4-player (2 decks)
+                type: config.type, // ✅ Fix Issue #17: Enable backend PVE detection
                 isPrivate: false,
             };
             const response = await apiClient.post<ApiResponse<Room>>('/rooms', payload);
@@ -201,9 +202,19 @@ export const api = {
         /**
          * Add an AI bot to the room
          * Endpoint: POST /rooms/:roomId/ai
+         * @deprecated Use fillBots for better UX in PVE
          */
         addBot: async (roomId: string): Promise<RoomPlayer> => {
             const response = await apiClient.post<ApiResponse<RoomPlayer>>(`/rooms/${roomId}/ai`);
+            return response.data.data;
+        },
+
+        /**
+         * Fill all empty seats with AI bots (Issue #18 Fix)
+         * Endpoint: POST /rooms/:roomId/fill-bots
+         */
+        fillBots: async (roomId: string): Promise<{ botsAdded: number; bots: RoomPlayer[] }> => {
+            const response = await apiClient.post<ApiResponse<{ botsAdded: number; bots: RoomPlayer[] }>>(`/rooms/${roomId}/fill-bots`);
             return response.data.data;
         },
 

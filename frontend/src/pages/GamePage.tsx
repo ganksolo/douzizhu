@@ -12,13 +12,14 @@ export const GamePage = () => {
     const setSyncState = useGameStore((state) => state.setSyncState);
 
     // Initialize Game Store Seat
+    const myRoomSeat = useRoomStore((state) => state.mySeatId);
+
     useEffect(() => {
         // Sync mySeatId from RoomStore to GameStore
-        const myRoomSeat = useRoomStore.getState().mySeatId;
         if (myRoomSeat !== null && myRoomSeat !== undefined) {
             setMySeatId(myRoomSeat);
         }
-    }, [setMySeatId]);
+    }, [myRoomSeat, setMySeatId]);
 
     // Socket Listener for Game State
     useEffect(() => {

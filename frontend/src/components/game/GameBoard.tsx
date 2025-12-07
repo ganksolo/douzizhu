@@ -3,10 +3,11 @@ import { useRoomStore } from '../../store/room.store';
 import { PlayerAvatar } from './PlayerAvatar';
 import { Card } from './Card';
 import { useState, useMemo } from 'react';
-import { GameControls } from './GameControls';
 import { PlayerHand } from '../PlayerHand';
 import { Clock } from 'lucide-react';
 import type { Card as CardType } from '../../types';
+import { motion, AnimatePresence } from 'framer-motion';
+import { SocketService } from '../../services/socket';
 
 // --- Card Logic Helpers ---
 const getCardData = (value: number): CardType => {
@@ -83,6 +84,37 @@ export const GameBoard = () => {
     // If lastPlayedCards exists, determine its relative position to show visually on table
     const lastPlayedPosition = lastPlayedCards ? getRelativeSeat(lastPlayedCards.seatIndex) : null;
 
+    // --- Game Control Handlers ---
+    const handlePlay = () => {
+        if (selectedCards.length === 0) return;
+        console.log('[GameBoard] Playing cards:', selectedCards);
+        SocketService.emit('client_action', {
+            type: 'PLAY',
+            payload: { cards: selectedCards }
+        });
+        setSelectedCards([]); // Clear selection after play
+    };
+
+    const handlePass = () => {
+        console.log('[GameBoard] Passing turn');
+        SocketService.emit('client_action', {
+            type: 'PASS'
+        });
+    };
+
+    const handleHint = () => {
+        console.log('[GameBoard] Requesting hint');
+        // TODO: Implement hint logic with getHint utility
+    };
+
+    const handleBid = (bidAmount: number) => {
+        console.log('[GameBoard] Bidding:', bidAmount);
+        SocketService.emit('client_action', {
+            type: 'BID',
+            payload: { bid: bidAmount }
+        });
+    };
+
     // Helper to render played cards
     const renderPlayedCards = (cards: number[]) => (
         <div className="flex -space-x-8 scale-75 origin-center">
@@ -105,53 +137,112 @@ export const GameBoard = () => {
                 </div>
             )}
 
-            {/* --- Central Area (Dipai & Table) --- */}
-            <div className="absolute top-[18%] left-1/2 -translate-x-1/2 flex flex-col items-center gap-8 w-full max-w-3xl h-[400px]">
-                {/* Dipai (Bottom Cards) */}
-                <div className="flex gap-2">
+            {/* --- Central Area (Dipai & Bidding) --- */}
+            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 flex flex-col items-center gap-6 z-20">
+                {/* Dipai (Bottom Cards) - Centered */}
+                <motion.div
+                    initial={{ scale: 0.8, opacity: 0 }}
+                    animate={{ scale: 1, opacity: 1 }}
+                    transition={{ duration: 0.5, type: 'spring' }}
+                    className="flex gap-2 p-4 bg-black/50 backdrop-blur-md rounded-2xl border border-yellow-400/30 shadow-2xl"
+                >
                     {bottomCards.length > 0 ? (
                         bottomCards.map((val, i) => {
                             const data = getCardData(val);
-                            return <Card key={i} suit={data.suit as any} rank={data.rank} scale={0.6} />;
+                            return (
+                                <motion.div
+                                    key={i}
+                                    initial={{ y: -20, opacity: 0 }}
+                                    animate={{ y: 0, opacity: 1 }}
+                                    transition={{ delay: i * 0.05 }}
+                                >
+                                    <Card
+                                        suit={data.suit as any}
+                                        rank={phase === 'BIDDING' || phase === 'DEALING' ? '' : data.rank}
+                                        scale={0.7}
+                                        hidden={phase === 'BIDDING' || phase === 'DEALING'}
+                                    />
+                                </motion.div>
+                            );
                         })
                     ) : (
-                        // Hidden Dipai
                         Array(8).fill(0).map((_, i) => (
-                            <Card key={i} suit="spades" rank="" scale={0.6} hidden />
+                            <Card key={i} suit="spades" rank="" scale={0.7} hidden />
                         ))
                     )}
-                </div>
+                </motion.div>
 
-                {/* Table Played Cards Area (4 Quadrants) */}
-                <div className="relative w-full h-full">
+                {/* Bidding Prompt */}
+                {phase === 'BIDDING' && (
+                    <motion.div
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        className="text-white text-lg font-bold bg-black/60 px-6 py-2 rounded-full backdrop-blur-sm"
+                    >
+                        🎯 Bidding Phase
+                    </motion.div>
+                )}
+            </div>
+
+            {/* Table Played Cards Area (4 Quadrants) */}
+            <div className="absolute inset-0 pointer-events-none">
+                <AnimatePresence mode="wait">
                     {/* Top Player's Turn */}
-                    {lastPlayedPosition === 'top' && (
-                        <div className="absolute top-0 left-1/2 -translate-x-1/2">
-                            {renderPlayedCards(lastPlayedCards!.cards)}
-                        </div>
+                    {lastPlayedPosition === 'top' && lastPlayedCards && (
+                        <motion.div
+                            key="top-play"
+                            initial={{ y: -20, opacity: 0, scale: 0.8 }}
+                            animate={{ y: 0, opacity: 1, scale: 1 }}
+                            exit={{ y: -20, opacity: 0, scale: 0.8 }}
+                            transition={{ type: 'spring', stiffness: 300 }}
+                            className="absolute top-32 left-1/2 -translate-x-1/2"
+                        >
+                            {renderPlayedCards(lastPlayedCards.cards)}
+                        </motion.div>
                     )}
 
                     {/* Left Player's Turn */}
-                    {lastPlayedPosition === 'left' && (
-                        <div className="absolute left-10 top-1/2 -translate-y-1/2">
-                            {renderPlayedCards(lastPlayedCards!.cards)}
-                        </div>
+                    {lastPlayedPosition === 'left' && lastPlayedCards && (
+                        <motion.div
+                            key="left-play"
+                            initial={{ x: -20, opacity: 0, scale: 0.8 }}
+                            animate={{ x: 0, opacity: 1, scale: 1 }}
+                            exit={{ x: -20, opacity: 0, scale: 0.8 }}
+                            transition={{ type: 'spring', stiffness: 300 }}
+                            className="absolute left-32 top-1/2 -translate-y-1/2"
+                        >
+                            {renderPlayedCards(lastPlayedCards.cards)}
+                        </motion.div>
                     )}
 
                     {/* Right Player's Turn */}
-                    {lastPlayedPosition === 'right' && (
-                        <div className="absolute right-10 top-1/2 -translate-y-1/2">
-                            {renderPlayedCards(lastPlayedCards!.cards)}
-                        </div>
+                    {lastPlayedPosition === 'right' && lastPlayedCards && (
+                        <motion.div
+                            key="right-play"
+                            initial={{ x: 20, opacity: 0, scale: 0.8 }}
+                            animate={{ x: 0, opacity: 1, scale: 1 }}
+                            exit={{ x: 20, opacity: 0, scale: 0.8 }}
+                            transition={{ type: 'spring', stiffness: 300 }}
+                            className="absolute right-32 top-1/2 -translate-y-1/2"
+                        >
+                            {renderPlayedCards(lastPlayedCards.cards)}
+                        </motion.div>
                     )}
 
-                    {/* Bottom Player's Turn (My last play) */}
-                    {lastPlayedPosition === 'bottom' && (
-                        <div className="absolute bottom-0 left-1/2 -translate-x-1/2">
-                            {renderPlayedCards(lastPlayedCards!.cards)}
-                        </div>
+                    {/* Bottom Player's Turn */}
+                    {lastPlayedPosition === 'bottom' && lastPlayedCards && (
+                        <motion.div
+                            key="bottom-play"
+                            initial={{ y: 20, opacity: 0, scale: 0.8 }}
+                            animate={{ y: 0, opacity: 1, scale: 1 }}
+                            exit={{ y: 20, opacity: 0, scale: 0.8 }}
+                            transition={{ type: 'spring', stiffness: 300 }}
+                            className="absolute bottom-40 left-1/2 -translate-x-1/2"
+                        >
+                            {renderPlayedCards(lastPlayedCards.cards)}
+                        </motion.div>
                     )}
-                </div>
+                </AnimatePresence>
             </div>
 
 
@@ -162,6 +253,7 @@ export const GameBoard = () => {
                 {topPlayer && (
                     <PlayerAvatar
                         username={topPlayer.username}
+                        avatar={topPlayer.avatar}
                         position="top"
                         handCount={17} // Sync later
                         isBot={topPlayer.isBot}
@@ -175,6 +267,7 @@ export const GameBoard = () => {
                 {leftPlayer && (
                     <PlayerAvatar
                         username={leftPlayer.username}
+                        avatar={leftPlayer.avatar}
                         position="left"
                         handCount={17}
                         isBot={leftPlayer.isBot}
@@ -188,6 +281,7 @@ export const GameBoard = () => {
                 {rightPlayer && (
                     <PlayerAvatar
                         username={rightPlayer.username}
+                        avatar={rightPlayer.avatar}
                         position="right"
                         handCount={17}
                         isBot={rightPlayer.isBot}
@@ -214,6 +308,7 @@ export const GameBoard = () => {
                     {bottomPlayer && (
                         <PlayerAvatar
                             username={bottomPlayer.username}
+                            avatar={bottomPlayer.avatar}
                             position="bottom"
                             isBot={bottomPlayer.isBot}
                             isTurn={currentTurn === bottomPlayer.seatId}
@@ -221,20 +316,99 @@ export const GameBoard = () => {
                     )}
 
                     {currentTurn === bottomPlayer?.seatId && (
-                        <div className="absolute left-[34%] -top-8 flex items-center text-xs text-yellow-200 bg-yellow-900/80 px-3 py-1 rounded-full animate-pulse border border-yellow-500/30">
+                        <motion.div
+                            initial={{ opacity: 0, y: -10 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            className="absolute left-[34%] -top-10 flex items-center text-xs text-yellow-200 bg-yellow-900/80 px-3 py-1 rounded-full animate-pulse border border-yellow-500/30"
+                        >
                             <Clock size={14} className="mr-1.5" />
                             <span className="font-mono font-bold">30s</span>
-                        </div>
+                        </motion.div>
                     )}
 
-                    <GameControls
-                        isTurn={currentTurn === bottomPlayer?.seatId}
-                        selectedCount={selectedCards.length}
-                        canPass={canPass}
-                        onPlay={() => console.log('Play clicked with', selectedCards)} // Placeholder
-                        onPass={() => console.log('Pass clicked')} // Placeholder
-                        onHint={() => console.log('Hint clicked')} // Placeholder
-                    />
+                    {/* Game Control Buttons */}
+                    <div className="flex gap-4 items-center">
+                        {/* BIDDING Phase Buttons */}
+                        {phase === 'BIDDING' && currentTurn === bottomPlayer?.seatId && (
+                            <AnimatePresence>
+                                <motion.div
+                                    initial={{ opacity: 0, y: 20 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    exit={{ opacity: 0, y: -20 }}
+                                    className="flex gap-3"
+                                >
+                                    {[1, 2, 3].map(bid => (
+                                        <motion.button
+                                            key={bid}
+                                            onClick={() => handleBid(bid)}
+                                            whileHover={{ scale: 1.05, y: -2 }}
+                                            whileTap={{ scale: 0.95 }}
+                                            className="px-8 py-3 rounded-xl text-white font-bold shadow-xl transition-all bg-gradient-to-br from-yellow-500 to-amber-600 hover:from-yellow-400 hover:to-amber-500 border-2 border-yellow-300/50"
+                                        >
+                                            {bid} Point{bid > 1 ? 's' : ''}
+                                        </motion.button>
+                                    ))}
+                                    <motion.button
+                                        onClick={() => handleBid(0)}
+                                        whileHover={{ scale: 1.05, y: -2 }}
+                                        whileTap={{ scale: 0.95 }}
+                                        className="px-8 py-3 rounded-xl text-white font-bold shadow-xl transition-all bg-gradient-to-br from-gray-600 to-gray-700 hover:from-gray-500 hover:to-gray-600 border-2 border-gray-400/50"
+                                    >
+                                        Pass
+                                    </motion.button>
+                                </motion.div>
+                            </AnimatePresence>
+                        )}
+
+                        {/* PLAYING Phase Buttons */}
+                        {phase === 'PLAYING' && (
+                            <AnimatePresence>
+                                <motion.div
+                                    initial={{ opacity: 0, y: 20 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    exit={{ opacity: 0, y: -20 }}
+                                    className="flex gap-3"
+                                >
+                                    <motion.button
+                                        onClick={handlePlay}
+                                        disabled={currentTurn !== bottomPlayer?.seatId || selectedCards.length === 0}
+                                        whileHover={currentTurn === bottomPlayer?.seatId && selectedCards.length > 0 ? { scale: 1.05, y: -2 } : {}}
+                                        whileTap={currentTurn === bottomPlayer?.seatId && selectedCards.length > 0 ? { scale: 0.95 } : {}}
+                                        className={`px-8 py-3 rounded-xl text-white font-bold shadow-xl transition-all border-2 ${currentTurn === bottomPlayer?.seatId && selectedCards.length > 0
+                                            ? 'bg-gradient-to-br from-blue-500 to-blue-600 hover:from-blue-400 hover:to-blue-500 border-blue-300/50 cursor-pointer'
+                                            : 'bg-gray-500/50 border-gray-400/30 cursor-not-allowed opacity-50'
+                                            }`}
+                                    >
+                                        🃏 Play ({selectedCards.length})
+                                    </motion.button>
+                                    <motion.button
+                                        onClick={handleHint}
+                                        disabled={currentTurn !== bottomPlayer?.seatId}
+                                        whileHover={currentTurn === bottomPlayer?.seatId ? { scale: 1.05, y: -2 } : {}}
+                                        whileTap={currentTurn === bottomPlayer?.seatId ? { scale: 0.95 } : {}}
+                                        className={`px-8 py-3 rounded-xl text-white font-bold shadow-xl transition-all border-2 ${currentTurn === bottomPlayer?.seatId
+                                            ? 'bg-gradient-to-br from-green-500 to-green-600 hover:from-green-400 hover:to-green-500 border-green-300/50 cursor-pointer'
+                                            : 'bg-gray-500/50 border-gray-400/30 cursor-not-allowed opacity-50'
+                                            }`}
+                                    >
+                                        💡 Hint
+                                    </motion.button>
+                                    <motion.button
+                                        onClick={handlePass}
+                                        disabled={currentTurn !== bottomPlayer?.seatId || !canPass}
+                                        whileHover={currentTurn === bottomPlayer?.seatId && canPass ? { scale: 1.05, y: -2 } : {}}
+                                        whileTap={currentTurn === bottomPlayer?.seatId && canPass ? { scale: 0.95 } : {}}
+                                        className={`px-8 py-3 rounded-xl text-white font-bold shadow-xl transition-all border-2 ${currentTurn === bottomPlayer?.seatId && canPass
+                                            ? 'bg-gradient-to-br from-gray-600 to-gray-700 hover:from-gray-500 hover:to-gray-600 border-gray-400/50 cursor-pointer'
+                                            : 'bg-gray-500/50 border-gray-400/30 cursor-not-allowed opacity-50'
+                                            }`}
+                                    >
+                                        ⏭️ Pass
+                                    </motion.button>
+                                </motion.div>
+                            </AnimatePresence>
+                        )}
+                    </div>
                 </div>
             </div>
 
