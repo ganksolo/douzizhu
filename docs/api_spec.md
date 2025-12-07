@@ -317,6 +317,32 @@ Authorization: Bearer <REFRESH_TOKEN>
 
 ---
 
+#### `POST /rooms/:roomId/ai`
+**Description**: Add an AI bot to the room (fills first empty seat)
+
+**Headers**: Requires authentication
+
+**Response** (200 OK):
+```json
+{
+  "success": true,
+  "data": {
+    "userId": "string (bot-id)",
+    "seat": 0,
+    "nickname": "Bot 1",
+    "avatar": "string",
+    "isBot": true,
+    "isReady": true
+  }
+}
+```
+
+**Errors**:
+- 400: Room is full
+- 404: Room not found
+
+---
+
 #### `POST /rooms/:roomId/leave`
 **Description**: Leave current room
 

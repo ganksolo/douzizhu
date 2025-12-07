@@ -17,6 +17,7 @@ import { UserAction } from '../types/game.types';
 import { AuthService } from '../../auth/auth.service';
 import { ReconnectService } from '../../room/services/reconnect.service';
 import { AFKService } from '../../room/services/afk.service';
+import { BotService } from '../bot.service';
 
 @WebSocketGateway({
     cors: {
@@ -37,6 +38,7 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect, On
         private authService: AuthService,
         private reconnectService: ReconnectService,
         private afkService: AFKService,
+        private botService: BotService,
     ) { }
 
     afterInit() {
@@ -207,21 +209,6 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect, On
         this.logger.debug(`Broadcasting state for room ${roomId}: currentState=${currentStateName}, players=${rawData.players.length}`);
 
         for (const socket of sockets) {
-            // We need to know which playerId this socket belongs to.
-            // In a real app, this is mapped during connection/auth.
-            // For this demo, we'll assume the client sent their playerId in join_room and we stored it in socket.data
-            // But since we didn't implement that fully, let's try to find playerId from roomData based on some logic or just skip if unknown.
-
-            // Ideally: socket.data.playerId
-            // Let's assume we have a way to get playerId. For now, I'll iterate room players and match? No, that doesn't work.
-            // Let's assume the client sends a 'request_state' or we stored it.
-
-            // Simplified: We just broadcast to everyone, but we need to know WHO they are to sanitize.
-            // If we can't identify them, we can't sanitize properly (or we treat them as observer).
-
-            // Hack for demo: We will assume socket.handshake.query.playerId exists or similar.
-            // Let's assume socket.data.playerId was set in handleJoinRoom (we need to update that).
-
             const playerId = socket.data.playerId;
 
             const sanitizedState = this.stateSerializer.serializeForPlayer(
@@ -232,5 +219,9 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect, On
 
             socket.emit('sync_state', sanitizedState);
         }
+
+        // Check if it's a bot's turn
+        // We do this after broadcast so clients see the state update first
+        await this.botService.checkAndPlay(roomId, gameContext);
     }
 }

@@ -22,6 +22,7 @@ import { GameEndState } from './engine/states/game-end.state';
 import { AuthModule } from '../auth/auth.module';
 import { RoomModule } from '../room/room.module';
 import { MatchModule } from './match/match.module';
+import { BotService } from './bot.service';
 
 @Module({
     imports: [
@@ -49,7 +50,8 @@ import { MatchModule } from './match/match.module';
         PlayActionHandler,
         PassActionHandler,
         MatchService,
+        BotService,
     ],
-    exports: [GameContext, GameManagerService, RulesService, AIService],
+    exports: [GameContext, GameManagerService, RulesService, AIService, BotService],
 })
 export class GameModule { }

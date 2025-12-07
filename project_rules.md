@@ -19,8 +19,8 @@ Version: v7 — Merged (Context-Rich & AI-Optimized)
 
 | Domain (自治域) | 核心职责 | ✅ Write Access (允许写入/修改) | ❌ Read-Only (严禁修改) |
 | :--- | :--- | :--- | :--- |
-| **FE Domain** | UI, 交互, 状态渲染 | **`src/frontend/**/*`** (代码)<br>`docs/frontend_walkthrough.md`<br>`docs/ws_events.md` | `src/backend/*`<br>`docs/phase*.md`<br>`docs/api_spec.md` |
-| **BE Domain** | API, 逻辑, 数据存储 | **`src/backend/**/*`** (代码)<br>`docs/phase*.md` (工程事实)<br>`docs/api_spec.md`<br>`docs/openapi.yaml` | `src/frontend/*`<br>`docs/frontend_walkthrough.md`<br>`docs/backend_test_registry.md` |
+| **FE Domain** | UI, 交互, 状态渲染 | **`src/frontend/**/*`** (代码)<br>`docs/frontend_walkthrough.md`<br>`docs/ws_events.md` | `src/backend/*`<br>`docs/api_spec.md` |
+| **BE Domain** | API, 逻辑, 数据存储 | **`src/backend/**/*`** (代码)<br>`docs/phase{1[5-9],[2-9]*}*.md` (工程事实)<br>`docs/api_spec.md`<br>`docs/openapi.yaml` | `src/frontend/*`<br>`docs/frontend_walkthrough.md`<br>`docs/backend_test_registry.md` |
 | **QA Domain** | 验证, Bug 路由 | **`test/**/*`** (测试代码)<br>`docs/backend_test_registry.md`<br>`task.md` (Issue 管理) | **`src/**/*` (严禁改产品代码)**<br>严禁直接修复 Bug |
 | **Shared Domain**| 协作与规划 | `task.md`<br>`implementation_plan.md`<br>`docs/product_features.md` | `project_rules.md` (宪法) |
 
@@ -51,7 +51,7 @@ QA Agent 必须将问题归类为以下 4 类，并指派给对应 Agent：
 1.  **QA**: 标记 Issue 为 `Contract_bug` -> Assign to **BE**.
 2.  **BE**:
     * 修复后端代码 & API。
-    * 更新 `api_spec.md` 和 `phase` 文档。
+    * 更新 `api_spec.md` 和 `docs/phase{number}_{module}.md` 文档。
     * 标记 Issue: **"Ready for FE Sync"**.
 3.  **FE**:
     * 根据新 Spec 同步前端数据模型/UI。
@@ -67,7 +67,9 @@ QA Agent 必须将问题归类为以下 4 类，并指派给对应 Agent：
 - [ ] **Task**: 更新 `task.md` 状态。
 - [ ] **Architecture**: 若架构变动，更新 `implementation_plan.md`。
 - [ ] **Product**: 若功能变动，更新 `docs/product_features.md`。
-- [ ] **BE Facts**: (后端任务) 必须更新 `docs/phase*.md` 和 `api_spec.md`。
+- [ ] **BE Facts**: (后端任务) 
+    - 必须更新 `docs/api_spec.md`和`docs/openapi.yaml`
+    - 必须产出 `docs/docs/phase{number}_{module}.md`
 - [ ] **FE Facts**: (前端任务) 必须更新 `docs/frontend_walkthrough.md` 和 `ws_events.md`。
 
 ### 6.2 质量检查 (Quality Check)

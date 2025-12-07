@@ -10,12 +10,18 @@ import { ToastContainer } from './components/ui/ToastContainer';
 // AuthGuard Component
 const AuthGuard = ({ children }: { children: React.ReactElement }) => {
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
+  const isInitialized = useAuthStore((state) => state.isInitialized);
   const restoreSession = useAuthStore((state) => state.restoreSession);
   const location = useLocation();
 
   useEffect(() => {
     restoreSession();
   }, [restoreSession]);
+
+  if (!isInitialized) {
+    // Show a loading spinner or nothing while waiting for restoreSession
+    return <div className="min-h-screen flex items-center justify-center bg-gray-100">Loading...</div>;
+  }
 
   if (!isAuthenticated) {
     return <Navigate to="/login" state={{ from: location }} replace />;

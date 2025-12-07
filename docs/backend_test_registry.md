@@ -1196,3 +1196,17 @@ python3 tests/qa_verification.py
 - **Status**: ✅ **PASSED**
 - **Verification**: Code Inspection & API structure check.
 
+
+### 5.26 Auth Logic Upgrade (Phase 26)
+
+**Scope**: Verify secure password hashing and auth flow.
+**Type**: Manual Verification (API)
+**Last Executed**: 2025-12-07 (Manual Postman/Curl)
+**Status**: ✅ **PASSED**
+
+| Test Case | Description | Result |
+|-----------|-------------|--------|
+| **AUTH-SEC-001** | Register stores hashed password (not plain text) | ✅ PASS |
+| **AUTH-SEC-002** | Login with correct password succeeds | ✅ PASS |
+| **AUTH-SEC-003** | Login with incorrect password fails (401) | ✅ PASS |
+| **AUTH-SEC-004** | Login with non-existent user fails (404/401) | ✅ PASS |

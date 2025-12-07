@@ -8,6 +8,7 @@ interface AuthState {
     token: string | null;
     isAuthenticated: boolean;
     isLoading: boolean;
+    isInitialized: boolean;
     error: string | null;
 
     // Actions
@@ -29,6 +30,7 @@ export const useAuthStore = create<AuthState>((set) => ({
     token: null,
     isAuthenticated: false,
     isLoading: false,
+    isInitialized: false,
     error: null,
 
     /**
@@ -190,6 +192,7 @@ export const useAuthStore = create<AuthState>((set) => ({
                     user,
                     token,
                     isAuthenticated: true,
+                    isInitialized: true,
                 });
 
                 // Reconnect socket
@@ -200,9 +203,11 @@ export const useAuthStore = create<AuthState>((set) => ({
                 // Clear invalid data
                 localStorage.removeItem('auth_token');
                 localStorage.removeItem('auth_user');
+                set({ isInitialized: true });
             }
         } else {
             console.log('[Auth] No existing session found');
+            set({ isInitialized: true });
         }
     },
 

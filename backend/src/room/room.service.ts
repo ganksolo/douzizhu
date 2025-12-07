@@ -150,10 +150,13 @@ export class RoomService implements OnModuleInit, OnModuleDestroy {
         const seatsKey = this.getSeatsKey(roomId);
 
         // 1. Check if room exists
-        const metaExists = await client.exists(metaKey);
-        if (!metaExists) {
+        const meta = await this.getRoomMeta(roomId);
+        if (!meta) {
             await this.createRoom(roomId, user.id);
         }
+
+        const config = meta?.config ? JSON.parse(meta.config) : {};
+        const maxPlayers = config.maxPlayers || 4;
 
         // 2. Check if player already in room (idempotency)
         const currentSeats = await client.hgetall(seatsKey);
@@ -168,9 +171,9 @@ export class RoomService implements OnModuleInit, OnModuleDestroy {
             }
         }
 
-        // 3. Find first empty seat (0-3)
+        // 3. Find first empty seat (0 to maxPlayers-1)
         let targetSeat = -1;
-        for (let i = 0; i < 4; i++) {
+        for (let i = 0; i < maxPlayers; i++) {
             if (!currentSeats[i.toString()]) {
                 targetSeat = i;
                 break;
@@ -198,6 +201,98 @@ export class RoomService implements OnModuleInit, OnModuleDestroy {
         this.logger.log(`Player ${user.id} joined room ${roomId} at seat ${targetSeat}`);
 
         return await this.getPlayers(roomId);
+    }
+
+    /**
+    * Add an AI Bot to the room
+    */
+    async addBotToRoom(roomId: string): Promise<RoomPlayer> {
+        const client = this.getRedisClient();
+        const seatsKey = this.getSeatsKey(roomId);
+        const meta = await this.getRoomMeta(roomId);
+        const config = meta?.config ? JSON.parse(meta.config) : {};
+        const maxPlayers = config.maxPlayers || 4;
+
+        const currentSeats = await client.hgetall(seatsKey);
+
+        // Find empty seat
+        let targetSeat = -1;
+        for (let i = 0; i < maxPlayers; i++) {
+            if (!currentSeats[i.toString()]) {
+                targetSeat = i;
+                break;
+            }
+        }
+
+        if (targetSeat === -1) {
+            throw new BadRequestException('Room is full');
+        }
+
+        const botId = `bot-${Date.now()}-${targetSeat}`;
+        const bot: RoomPlayer = {
+            userId: botId,
+            seat: targetSeat,
+            nickname: `Bot ${targetSeat + 1}`,
+            avatar: `https://api.dicebear.com/7.x/bottts/svg?seed=${botId}`,
+            online: true,
+            ready: true, // Bots are always ready
+            lastActive: Date.now(),
+            // @ts-ignore
+            isBot: true
+        };
+
+        await client.hset(seatsKey, targetSeat.toString(), JSON.stringify(bot));
+        this.logger.log(`Added Bot ${botId} to room ${roomId} at seat ${targetSeat}`);
+
+        return bot;
+    }
+
+    /**
+     * Try to start game
+     */
+    async tryStartGame(roomId: string): Promise<boolean> {
+        const client = this.getRedisClient();
+        const seatsKey = this.getSeatsKey(roomId);
+        const meta = await this.getRoomMeta(roomId);
+        const config = meta?.config ? JSON.parse(meta.config) : { maxPlayers: 4 };
+        const requiredPlayers = config.maxPlayers || 4;
+
+        // 1. Get current players
+        const seatsMap = await client.hgetall(seatsKey);
+        const players: RoomPlayer[] = Object.values(seatsMap).map(s => JSON.parse(s));
+
+        // Condition: Must have 'requiredPlayers' count and ALL must be ready
+        if (players.length < requiredPlayers) return false;
+
+        const allReady = players.every(p => p.ready);
+        if (!allReady) return false;
+
+        // Start Game
+        const metaKey = this.getMetaKey(roomId);
+        await client.hset(metaKey, 'status', 'playing');
+
+        // Initialize Game Engine
+        const gameContext = this.gameManager.getOrCreateRoom(roomId);
+
+        // Map RoomPlayers to GamePlayers
+        gameContext.roomData.players = players.sort((a, b) => a.seat - b.seat).map(p => ({
+            id: p.userId,
+            name: p.nickname,
+            hand: [],
+            isReady: true,
+            role: undefined,
+            handCount: 0,
+            // @ts-ignore
+            isBot: p.isBot || false,
+            seatIndex: p.seat
+        }));
+
+        // Trigger Init State
+        gameContext.initialize();
+
+        this.logger.log(`Game started in room ${roomId} with ${players.length} Players`);
+
+        return true;
     }
 
     /**
@@ -281,77 +376,6 @@ export class RoomService implements OnModuleInit, OnModuleDestroy {
         }
 
         throw new BadRequestException('Player not in room');
-    }
-
-    /**
-     * Try to start game (With PVE Auto-fill)
-     */
-    async tryStartGame(roomId: string): Promise<boolean> {
-        const client = this.getRedisClient();
-        const seatsKey = this.getSeatsKey(roomId);
-
-        // 1. Get current real players
-        const seatsMap = await client.hgetall(seatsKey);
-        const realPlayers: RoomPlayer[] = Object.values(seatsMap).map(s => JSON.parse(s));
-
-        // Condition: At least 1 real player and ALL real players must be ready
-        if (realPlayers.length === 0) return false;
-        const allRealReady = realPlayers.every(p => p.ready);
-        if (!allRealReady) return false;
-
-        // 2. Auto-fill Bots for empty seats (0-3)
-        const filledSeats: RoomPlayer[] = [];
-
-        for (let i = 0; i < 4; i++) {
-            const seatStr = i.toString();
-            if (seatsMap[seatStr]) {
-                filledSeats.push(JSON.parse(seatsMap[seatStr]));
-            } else {
-                // Create Bot
-                const botId = `bot-${Date.now()}-${i}`;
-                const bot: RoomPlayer = {
-                    userId: botId,
-                    seat: i,
-                    nickname: `Bot ${i}`,
-                    avatar: 'bot_avatar_url', // TODO: Add bot avatar
-                    online: true,
-                    ready: true,
-                    lastActive: Date.now(),
-                    // @ts-ignore
-                    isBot: true
-                };
-                await client.hset(seatsKey, seatStr, JSON.stringify(bot));
-                filledSeats.push(bot);
-                // Note: Ideally we should broadcast 'player_joined' here, but Gateway handles polling/updates usually.
-                this.logger.log(`Auto-filled Seat ${i} with Bot ${botId}`);
-            }
-        }
-
-        // Start Game
-        const metaKey = this.getMetaKey(roomId);
-        await client.hset(metaKey, 'status', 'playing');
-
-        // Initialize Game Engine
-        const gameContext = this.gameManager.getOrCreateRoom(roomId);
-
-        // Map RoomPlayers to GamePlayers
-        gameContext.roomData.players = filledSeats.sort((a, b) => a.seat - b.seat).map(p => ({
-            id: p.userId,
-            name: p.nickname,
-            hand: [],
-            isReady: true,
-            role: undefined,
-            handCount: 0,
-            // @ts-ignore
-            isBot: p.isBot || false,
-            seatIndex: p.seat // Pass seat index to game engine
-        }));
-
-        // Trigger Init State
-        gameContext.initialize();
-
-        this.logger.log(`Game started in room ${roomId} with ${realPlayers.length} Players and ${4 - realPlayers.length} Bots`);
-        return true;
     }
 
     /**
@@ -473,3 +497,4 @@ export class RoomService implements OnModuleInit, OnModuleDestroy {
         this.logger.log(`Room ${roomId} destroyed`);
     }
 }
+

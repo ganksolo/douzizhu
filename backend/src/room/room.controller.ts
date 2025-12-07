@@ -127,4 +127,14 @@ export class RoomController {
         await this.roomService.leaveRoom(roomId, req.user.userId);
         return { success: true, message: 'Left room successfully' };
     }
+
+    @Post(':id/ai')
+    @UseGuards(AuthGuard('jwt'))
+    async addAi(@Param('id') roomId: string) {
+        const bot = await this.roomService.addBotToRoom(roomId);
+        return {
+            success: true,
+            data: bot
+        };
+    }
 }

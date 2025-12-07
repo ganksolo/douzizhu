@@ -9,12 +9,19 @@ export const LobbyPage = () => {
 
     // Store State
     const user = useAuthStore((state) => state.user);
+    const logout = useAuthStore((state) => state.logout);
     const rooms = useLobbyStore((state) => state.rooms);
     const isLoading = useLobbyStore((state) => state.isLoading);
     const error = useLobbyStore((state) => state.error);
     const fetchRooms = useLobbyStore((state) => state.fetchRooms);
     const createRoom = useLobbyStore((state) => state.createRoom);
     const clearError = useLobbyStore((state) => state.clearError);
+
+    const handleLogout = () => {
+        if (window.confirm('Are you sure you want to logout?')) {
+            logout();
+        }
+    };
 
     // Fetch rooms on mount and auto-refresh
     useEffect(() => {
@@ -68,6 +75,12 @@ export const LobbyPage = () => {
             <header className="bg-white border-b border-gray-200">
                 <div className="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
                     <div className="flex items-center gap-3">
+                        <button
+                            onClick={handleLogout}
+                            className="mr-2 px-3 py-1.5 border border-red-200 text-red-500 hover:bg-red-50 rounded-lg text-sm font-medium transition-colors"
+                        >
+                            退出
+                        </button>
                         <span className="text-3xl">🃏</span>
                         <div>
                             <h1 className="text-xl font-bold text-gray-800">斗地主大厅</h1>

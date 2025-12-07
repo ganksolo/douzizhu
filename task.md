@@ -457,3 +457,17 @@
     - [x] Update AuthService: Hashed registration <!-- id: 432 -->
     - [x] Update AuthService: Secure login <!-- id: 433 -->
     - [x] Verify AuthController endpoints <!-- id: 434 -->
+
+- [x] Phase 27: Room Seating & PVE Controls <!-- id: 440 -->
+    - [x] Create PlayerSeat component <!-- id: 441 -->
+    - [x] Update RoomPage with seating logic <!-- id: 442 -->
+    - [x] Implement 'Add AI' button (emit add_bot) <!-- id: 443 -->
+    - [x] Fix 'Unable to Sit' join logic <!-- id: 444 -->
+
+- [x] **Phase 28: Seating Logic & Basic AI (Backend)**
+  - [x] Refine `RoomService` to handle stable seating (0-3) and check fullness ([Fix RoomService Seating](#fix-11))
+  - [x] Implement `leave_room` to clear position + handle owner transfer ([Fix Leave Room](#fix-11))
+  - [x] `POST /rooms/:id/ai` endpoint -> specific service method `addBot` ([Add Bot API](#fix-11))
+  - [x] Generate temp User for bot, auto-flag ready, emit `player_joined`
+  - [x] Game Start Orchestration: `tryStartGame` checks if all ready (including bots) -> deal cards -> `game_start`
+  - [x] Basic Bot Gameplay: Random valid move or pass (Implemented in `BotService` hooked to `GameGateway`)) <!-- id: 455 -->

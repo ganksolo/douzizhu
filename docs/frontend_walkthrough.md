@@ -1496,3 +1496,27 @@ Implement persistent user accounts (Register/Login) alongside the existing Guest
 **Status**: ✅ Phase 25 Complete
 **Date**: 2025-12-06
 **Key Files**: `LoginPage.tsx`, `RegisterPage.tsx`, `api.ts`, `auth.store.ts`
+
+---
+
+## Phase 27: Room Seating & PVE Controls
+
+### 1. Goal
+Fix seating UI issues (Unable to Sit) and implement manual PVE controls (Add AI) for the room host.
+
+### 2. Changes
+-   **Components**:
+    -   `PlayerSeat.tsx`: New reusable component for rendering players, empty seats, and bots.
+-   **Pages**:
+    -   `RoomPage.tsx`: Refactored to use `PlayerSeat`. Added `Add AI` button (PVE only). Added manual `Sit Now` fallback.
+-   **Logic**:
+    -   Implemented `add_bot` event emission.
+    -   Improved `join_room` robustness on mount.
+
+### 3. Verification
+-   **Build**: Passed.
+-   **Visuals**: Confirmed seating layout (Left/Right/Top/Bottom).
+
+**Status**: ✅ Phase 27 Complete
+**Date**: 2025-12-07
+**Key Files**: `RoomPage.tsx`, `PlayerSeat.tsx`

@@ -3,11 +3,14 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { useRoomStore, type RoomPlayer } from '../store/room.store';
 import { SocketService } from '../services/socket';
 import { useAuthStore } from '../store/auth.store';
+import { useToast } from '../components/ui/useToast';
 import { GamePage } from './GamePage';
+import { PlayerSeat } from '../components/game/PlayerSeat';
 
 export const RoomPage = () => {
     const { roomId } = useParams<{ roomId: string }>();
     const navigate = useNavigate();
+    const { toast } = useToast();
 
     // Store State
     const players = useRoomStore((state) => state.players);
@@ -17,11 +20,12 @@ export const RoomPage = () => {
     const updatePlayerReady = useRoomStore((state) => state.updatePlayerReady);
     const addPlayer = useRoomStore((state) => state.addPlayer);
     const removePlayer = useRoomStore((state) => state.removePlayer);
+    const setMySeatId = useRoomStore((state) => state.setMySeatId);
+
+    // Auth State
     const currentUser = useAuthStore((state) => state.user);
 
-
-
-    // Socket Events
+    // Initial Join & Socket Setup
     useEffect(() => {
         if (!roomId || !currentUser) return;
 
@@ -30,6 +34,13 @@ export const RoomPage = () => {
         // Events
         const handlePlayerList = (data: { players: RoomPlayer[], config?: any, roomStatus?: 'waiting' | 'playing' | 'finished' }) => {
             console.log('[Room] Player list update:', data);
+
+            // Find my seat to set perspective
+            const me = data.players.find(p => p.userId === currentUser.userId);
+            if (me && typeof me.seatId === 'number') {
+                setMySeatId(me.seatId);
+            }
+
             setRoomData({
                 roomId,
                 players: data.players,
@@ -41,9 +52,18 @@ export const RoomPage = () => {
         const handlePlayerJoined = (player: RoomPlayer) => {
             console.log('[Room] Player joined:', player);
             addPlayer(player);
+            toast({ message: `${player.username} joined`, type: 'info' });
+
+            if (player.userId === currentUser.userId && typeof player.seatId === 'number') {
+                setMySeatId(player.seatId);
+            }
         };
 
         const handlePlayerLeft = (data: { userId: string }) => {
+            // Find name before removing for toast
+            const p = useRoomStore.getState().players.find(pl => pl.userId === data.userId);
+            if (p) toast({ message: `${p.username} left`, type: 'info' });
+
             console.log('[Room] Player left:', data.userId);
             removePlayer(data.userId);
         };
@@ -55,6 +75,7 @@ export const RoomPage = () => {
 
         const handleGameStart = () => {
             console.log('[Room] Game Started!');
+            toast({ message: 'Game Start!', type: 'success', duration: 2000 });
             // Update store status to trigger re-render
             setRoomData({
                 roomId,
@@ -66,8 +87,10 @@ export const RoomPage = () => {
 
         const handleError = (data: { message: string }) => {
             console.error('[Room] Error:', data.message);
-            alert(`Error: ${data.message}`);
-            navigate('/lobby');
+            toast({ title: 'Error', message: data.message, type: 'error' });
+            if (data.message.includes('not found') || data.message.includes('full')) {
+                navigate('/lobby');
+            }
         };
 
         // Listeners
@@ -78,7 +101,7 @@ export const RoomPage = () => {
         SocketService.on('game_start', handleGameStart);
         SocketService.on('error', handleError);
 
-        // Join Room
+        // Auto Join on Mount
         SocketService.emit('join_room', { roomId });
 
         return () => {
@@ -89,19 +112,35 @@ export const RoomPage = () => {
             SocketService.off('game_start', handleGameStart);
             SocketService.off('error', handleError);
         };
-    }, [roomId, currentUser, setRoomData, addPlayer, removePlayer, updatePlayerReady, navigate]);
+    }, [roomId, currentUser, setRoomData, addPlayer, removePlayer, updatePlayerReady, navigate, setMySeatId, toast]);
 
-    // Handle Ready Toggle
+    // Actions
     const handleToggleReady = () => {
-        SocketService.emit('toggle_ready');
+        SocketService.emit('toggle_ready', { roomId, isReady: !amIReady });
         // Optimistic update
         if (currentUser) {
-            const me = players.find(p => p.userId === currentUser.userId);
-            if (me) {
-                updatePlayerReady(me.userId, !me.isReady);
-            }
+            updatePlayerReady(currentUser.userId, !amIReady);
         }
     };
+
+    const handleSit = () => {
+        // Manual trigger to join if not already (redundant if auto-join works, but good fallback)
+        SocketService.emit('join_room', { roomId });
+    };
+
+    const handleAddBot = () => {
+        // Emit add_bot event (as per requirement, even if BE support is pending)
+        SocketService.emit('add_bot', { roomId });
+        toast({ message: 'Requesting AI player...', type: 'info' });
+    };
+
+    // Derived State
+    const me = players.find(p => p.userId === currentUser?.userId);
+    const amIReady = me?.isReady || false;
+
+    // Strict type check for PVE (Case sensitive based on Swagger/Interface)
+    const isPve = roomConfig?.type === 'PVE';
+    const hasEmptySeats = players.length < 3; // Hardcoded for Dou Dizhu
 
     // If game is playing, render GamePage
     if (roomStatus === 'playing') {
@@ -109,147 +148,100 @@ export const RoomPage = () => {
     }
 
     // --- Spatial Layout Logic ---
-    // Dou Dizhu is 3 players.
-    // Fixed Positions relative to Me (Bottom):
-    // If I sit at S, then (S+1)%3 is Right, (S+2)%3 is Left.
-    // If I'm not seated yet (observer), just show list or default view.
-
-    // --- Spatial Layout Logic ---
     const getPlayerByRelativePos = useRoomStore((state) => state.getPlayerByRelativePos);
 
-    // Helper to render a player seat
-    const renderSeat = (position: 'bottom' | 'right' | 'top' | 'left') => {
-        // Find player at this relative position using the store selector
-        const player = getPlayerByRelativePos(position);
-
-        // Empty seat state
-        if (!player) {
-            return (
-                <div className={`
-                w-32 h-44 border-2 border-dashed border-gray-300 rounded-xl flex items-center justify-center
-                bg-gray-50/50 backdrop-blur-sm
-                ${position === 'bottom' ? 'mb-8' : ''}
-                ${position === 'right' ? 'mr-8' : ''}
-                ${position === 'top' ? 'mt-8' : ''}
-                ${position === 'left' ? 'ml-8' : ''}
-            `}>
-                    <span className="text-gray-400">Waiting...</span>
-                </div>
-            );
-        }
-
-        // Logic for AI Ready State:
-        // Generally backend should send isReady=true for bots.
-        // Frontend Fallback: If isBot and roomConfig is PvE, treat as Ready visually if not explicitly false.
-        const isBotReady = player.isBot && roomConfig?.type === 'PVE';
-        const displayReady = player.isReady || isBotReady;
+    // Render Logic
+    const renderSeatWrapper = (pos: 'bottom' | 'right' | 'top' | 'left') => {
+        const player = getPlayerByRelativePos(pos);
+        // Show "Sit Here" button only for Bottom position if I am not seated yet
+        const showSit = pos === 'bottom' && !me && players.length < 3;
 
         return (
-            <div className={`
-            relative flex flex-col items-center gap-3 transition-all
-            ${position === 'bottom' ? 'mb-8 scale-110' : ''}
-            ${position === 'right' ? 'mr-8' : ''}
-            ${position === 'top' ? 'mt-8' : ''}
-            ${position === 'left' ? 'ml-8' : ''}
-        `}>
-                {/* Ready Status Bubble */}
-                {displayReady && (
-                    <div className="absolute -top-4 right-0 z-10 bg-green-500 text-white p-1 rounded-full shadow-lg border-2 border-white">
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M5 13l4 4L19 7" />
-                        </svg>
-                    </div>
-                )}
-
-                {/* Avatar */}
-                <div className={`
-                w-24 h-24 rounded-full border-4 shadow-xl overflow-hidden bg-white
-                ${displayReady ? 'border-green-500' : 'border-gray-300'}
-                ${player.isBot ? 'ring-4 ring-blue-200' : ''}
-            `}>
-                    {player.isBot ? (
-                        <div className="w-full h-full bg-blue-100 flex items-center justify-center text-4xl">
-                            🤖
-                        </div>
-                    ) : (
-                        <img
-                            src={player.avatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${player.username}`}
-                            alt={player.username}
-                            className="w-full h-full object-cover"
-                        />
-                    )}
-                </div>
-
-                {/* Name & Badge */}
-                <div className="text-center">
-                    <div className="bg-gray-800/80 backdrop-blur text-white px-3 py-1 rounded-full text-sm font-bold shadow-md flex items-center gap-2">
-                        {player.username}
-                        {player.isBot && <span className="text-xs bg-blue-500 px-1 rounded">AI</span>}
-                    </div>
-                </div>
-            </div>
+            <PlayerSeat
+                player={player}
+                position={pos}
+                isCurrentUser={player?.userId === currentUser?.userId}
+                onSit={handleSit}
+                showSitButton={showSit}
+            />
         );
     };
 
     return (
-        <div className="min-h-screen bg-green-800 relative overflow-hidden flex flex-col">
-            {/* Table Surface Texture/Gradient */}
+        <div className="min-h-screen bg-green-800 relative overflow-hidden flex flex-col font-sans select-none">
+            {/* Table Surface Texture */}
             <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_#276749_0%,_#1b4332_100%)]"></div>
 
             {/* Header */}
-            <div className="relative z-10 p-4 flex justify-between text-white/80">
-                <button onClick={() => navigate('/lobby')} className="hover:text-white">← Lobby</button>
-                <div className="font-mono">Room: {roomId} | {roomConfig?.type || 'PVP'}</div>
-                <div>Settings</div>
+            <div className="relative z-10 p-4 flex justify-between items-center text-white/80">
+                <button
+                    onClick={() => navigate('/lobby')}
+                    className="flex items-center gap-2 hover:text-white transition-colors bg-black/20 px-3 py-1 rounded-full backdrop-blur-sm"
+                >
+                    <span>&larr;</span> Lobby
+                </button>
+                <div className="font-mono bg-black/20 px-4 py-1 rounded-full backdrop-blur-sm">
+                    Room: {roomId?.slice(0, 8)} | {roomConfig?.type || 'PVP'}
+                </div>
+                {/* PVE Controls */}
+                {isPve && hasEmptySeats && (
+                    <button
+                        onClick={handleAddBot}
+                        className="bg-blue-600 hover:bg-blue-500 text-white px-4 py-1 rounded-full shadow-lg text-sm font-bold flex items-center gap-2 transition-transform active:scale-95"
+                    >
+                        <span>+</span> Add AI
+                    </button>
+                )}
             </div>
 
             {/* Game Table Area */}
             <div className="flex-1 relative z-10 flex items-center justify-center">
                 {/* Center Table Info */}
-                <div className="absolute text-center opacity-30 pointer-events-none">
+                <div className="absolute text-center opacity-30 pointer-events-none transform -translate-y-8">
                     <div className="text-6xl text-green-900 font-bold mb-2">♠♥♣♦</div>
-                    <div className="text-xl text-green-100 font-serif">Dou Dizhu (4P)</div>
+                    <div className="text-xl text-green-100 font-serif tracking-widest">DOU DIZHU</div>
                 </div>
 
                 {/* Left Player */}
-                <div className="absolute left-0 top-1/2 -translate-y-1/2 pb-20">
-                    {renderSeat('left')}
+                <div className="absolute left-8 top-1/2 -translate-y-1/2 pb-16">
+                    {renderSeatWrapper('left')}
                 </div>
 
                 {/* Top Player (Opposite) */}
-                <div className="absolute top-20 left-1/2 -translate-x-1/2">
-                    {renderSeat('top')}
+                <div className="absolute top-12 left-1/2 -translate-x-1/2">
+                    {renderSeatWrapper('top')}
                 </div>
 
                 {/* Right Player */}
-                <div className="absolute right-0 top-1/2 -translate-y-1/2 pb-20">
-                    {renderSeat('right')}
+                <div className="absolute right-8 top-1/2 -translate-y-1/2 pb-16">
+                    {renderSeatWrapper('right')}
                 </div>
 
                 {/* Bottom Player (Me) */}
-                <div className="absolute bottom-0 left-1/2 -translate-x-1/2">
-                    {renderSeat('bottom')}
+                <div className="absolute bottom-4 left-1/2 -translate-x-1/2">
+                    {renderSeatWrapper('bottom')}
 
-                    {/* Action Bar (Only for me) */}
-                    <div className="absolute -top-20 left-1/2 -translate-x-1/2 w-full flex justify-center gap-4">
-                        {/* Ready Button */}
-                        {!players.find(p => p.userId === currentUser?.userId)?.isReady && (
-                            <button
-                                onClick={handleToggleReady}
-                                className="bg-yellow-500 hover:bg-yellow-400 text-yellow-950 font-bold py-3 px-8 rounded-full shadow-lg border-b-4 border-yellow-700 active:border-b-0 active:translate-y-1 transition-all"
-                            >
-                                READY
-                            </button>
-                        )}
-                        {players.find(p => p.userId === currentUser?.userId)?.isReady && (
-                            <button
-                                onClick={handleToggleReady}
-                                className="bg-gray-500/50 hover:bg-gray-500/70 text-white font-bold py-2 px-6 rounded-full border border-white/20 backdrop-blur-sm transition-all"
-                            >
-                                CANCEL
-                            </button>
-                        )}
-                    </div>
+                    {/* Action Bar (Only for me if seated) */}
+                    {me && (
+                        <div className="absolute -top-24 left-1/2 -translate-x-1/2 w-full flex justify-center gap-4 min-w-[200px]">
+                            {/* Ready Button */}
+                            {!amIReady ? (
+                                <button
+                                    onClick={handleToggleReady}
+                                    className="bg-yellow-500 hover:bg-yellow-400 text-yellow-950 font-bold py-3 px-10 rounded-full shadow-[0_4px_0_rgb(161,98,7)] active:shadow-none active:translate-y-1 transition-all text-xl uppercase tracking-wider"
+                                >
+                                    Ready
+                                </button>
+                            ) : (
+                                <button
+                                    onClick={handleToggleReady}
+                                    className="bg-gray-500/50 hover:bg-gray-500/70 text-white font-bold py-2 px-6 rounded-full border border-white/20 backdrop-blur-sm transition-all"
+                                >
+                                    Cancel Ready
+                                </button>
+                            )}
+                        </div>
+                    )}
                 </div>
             </div>
         </div>
