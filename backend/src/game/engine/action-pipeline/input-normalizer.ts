@@ -40,28 +40,18 @@ export class InputNormalizer {
             if (payload.length > 20) {
                 throw new Error('Payload too large: Max 20 cards allowed');
             }
-            // Validate card strings? Or just pass them through?
-            // The user requirement says: "前端传 cards: ["♠3", "♠3"]，需转换为内部对象 [{suit:0, rank:3}, ...]"
-            // But wait, our system currently uses string[] for UserAction payload in PlayingState.
-            // However, the prompt says "需转换为内部对象".
-            // If I convert them here, I need to make sure the rest of the system (PlayingState) handles Card[] in payload.
-            // Currently PlayingState.handleInput expects string[] in payload and converts them using CardConverter.
-            // If I change it here, I must update PlayingState.
 
-            // Let's look at the prompt again: "例如前端传 cards: ["♠3", "♠3"]，需转换为内部对象 [{suit:0, rank:3}, ...]."
-            // This implies the GameAction.payload should contain Card objects.
-            // But UserAction (legacy) used string[].
-            // GameAction is the new standard.
-
-            // I will convert them to Card objects here.
-            // But I need to be careful about PlayingState.
-            // PlayingState.handleInput takes UserAction.
-            // If I change the pipeline to produce GameAction with Card[], I need to update PlayingState to accept GameAction or mapped UserAction.
-
-            // For now, let's stick to the prompt's requirement of normalization.
-            // I will convert to Card objects.
+            // Conversion: String[] -> Card[]
             try {
-                payload = payload.map((cardStr: string) => CardConverter.toCard(cardStr));
+                payload = payload.map((item: any) => {
+                    if (typeof item === 'string') {
+                        return CardConverter.toCard(item);
+                    } else if (typeof item === 'object' && item.suit !== undefined && item.rank !== undefined) {
+                        return item; // Already an object (trusted internal or meticulous client)
+                    } else {
+                        throw new Error('Invalid card format');
+                    }
+                });
             } catch (e) {
                 throw new Error(`Invalid card format: ${e.message}`);
             }

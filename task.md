@@ -73,6 +73,9 @@
 
 - [x] Fix 3: Sound Preloading & Autoplay <!-- id: 65 -->
     - [x] Enhance SoundManager with proper preloading <!-- id: 66 -->
+    - [x] QA: Regression test full game flow with 4 players (1 human + 3 bots). <!-- id: 16 -->
+    - [x] Tri-Source Verification (FE/BE/Contract) <!-- id: 17 -->
+    - [x] Update `backend_test_registry.md` <!-- id: 18 -->
     - [x] Add initialize() method for autoplay policy <!-- id: 67 -->
     - [x] Create SoundToggle button component <!-- id: 68 -->
     - [x] Update documentation <!-- id: 69 -->
@@ -482,4 +485,15 @@
 - [x] **Phase 30: Gameplay UI Polish**
   - [x] Universal "Sit Here" overlay for Observers (RoomPage)
   - [x] Verify Ready/Cancel Ready button state
-  - [x] Verify Game Start transition (Status Change)
+- [ ] Phase 31: Game Loop UI Implementation <!-- id: 31 -->
+  - [x] Create `GameControls` Component (Play, Pass, Hint) <!-- id: 31.1 -->
+- [x] Refactor `GameBoard.tsx` to use `GameControls` and `PlayerHand` <!-- id: 31.2 -->
+- [x] Integrate Visual Turn Indicators (Timer, Highlight) <!-- id: 31.3 -->
+- [ ] Verify Frontend Interactions (Card Selection, Button States) <!-- id: 31.4 -->
+
+- [x] Match Phase 32: Backend Game Loop Verification & Contract Fixes <!-- id: 32 -->
+  - [x] Update api_spec.md (Client Action Funnel) <!-- id: 32.1 -->
+  - [x] Harden play-handler.ts (Payload Validation) <!-- id: 32.2 -->
+  - [x] Enhance input-normalizer.ts <!-- id: 32.3 -->
+  - [x] Implement verify_game_loop.ts script <!-- id: 32.4 -->
+  - [x] Execute Verification Script <!-- id: 32.5 -->

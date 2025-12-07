@@ -578,30 +578,38 @@ Retrieves full details of a specific match, including replay actions.
 
 ---
 
-### Events (Client → Server)
+### Events (Client -> Server)
 
-#### 1. Join Room
+#### 4. Client Action (Game Loop Funnel)
+**Channel**: `client_action`
+**Description**: Unified event for all in-game actions (Play, Pass, Bid/Call).
+
+**Payload Structure**:
 ```json
 {
-  "type": "join_room",
-  "roomId": "uuid"
-}
-```
-
-#### 2. Leave Room
-```json
-{
-  "type": "leave_room",
-  "roomId": "uuid"
-}
-```
-
-#### 3. Toggle Ready
-```json
-{
-  "type": "toggle_ready",
   "roomId": "uuid",
-  "isReady": true
+  "type": "PLAY | PASS | CALL | ROB",
+  "payload": "any (depends on type)"
+}
+```
+
+**Action: PLAY**
+```json
+{
+  "type": "PLAY",
+  "payload": [
+    { "rank": "3", "suit": "spades" },
+    { "rank": "3", "suit": "hearts" }
+  ]
+}
+```
+*Note: Payload can be array of Card objects OR array of 2-char strings (e.g. ["3s", "3h"]).*
+
+**Action: PASS**
+```json
+{
+  "type": "PASS",
+  "payload": null
 }
 ```
 

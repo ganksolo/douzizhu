@@ -25,7 +25,21 @@ export class PlayActionHandler implements ActionHandler {
             throw new Error(`Not your turn! Current turn: ${context.roomData.currentTurn}`);
         }
 
-        // 2. Validate Move
+        // 2. Verify Ownership (Do I have these cards?)
+        const player = context.roomData.players.find(p => p.id === playerId);
+        if (!player) throw new Error('Player not found');
+
+        const handStrings = [...player.hand]; // Clone hand
+        for (const card of payload) { // payload is Card[]
+            const cardStr = CardConverter.toString(card);
+            const idx = handStrings.indexOf(cardStr);
+            if (idx === -1) {
+                throw new Error(`You do not have card ${cardStr}`);
+            }
+            handStrings.splice(idx, 1); // Remove to prevent double usage of same card
+        }
+
+        // 3. Validate Move (Rules)
         const cards = payload; // Assuming Card[]
 
         const validation = this.rulesService.validateMove(context, playerId, cards);
@@ -33,7 +47,7 @@ export class PlayActionHandler implements ActionHandler {
             throw new Error(validation.message || validation.error || 'Invalid move');
         }
 
-        // 3. Execute Move
+        // 4. Execute Move
         this.logger.log(`Player ${playerId} played ${cards.length} cards.`);
 
         // Update Last Played
@@ -45,7 +59,7 @@ export class PlayActionHandler implements ActionHandler {
         };
 
         // Remove cards from hand
-        const player = context.roomData.players.find(p => p.id === playerId);
+        // Re-fetch player to be safe (though reference should be fine)
         if (player) {
             // Remove by matching rank/suit
             for (const card of cards) {

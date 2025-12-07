@@ -2,25 +2,35 @@ import { useGameStore } from '../../store/game.store';
 import { useRoomStore } from '../../store/room.store';
 import { PlayerAvatar } from './PlayerAvatar';
 import { Card } from './Card';
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
+import { GameControls } from './GameControls';
+import { PlayerHand } from '../PlayerHand';
+import { Clock } from 'lucide-react';
+import type { Card as CardType } from '../../types';
 
 // --- Card Logic Helpers ---
-const getCardData = (value: number) => {
+const getCardData = (value: number): CardType => {
+    // Basic mapping, ID is stringified value
+    const id = value.toString();
+
     // 0-51: Regular cards
     // 52: Black Joker
     // 53: Red Joker
-    if (value === 52) return { suit: 'joker_black', rank: 'Joker', color: 'black' };
-    if (value === 53) return { suit: 'joker_red', rank: 'Joker', color: 'red' };
+    if (value === 52) return { id, value, suit: 'joker', rank: 'black_joker', isSelected: false };
+    if (value === 53) return { id, value, suit: 'joker', rank: 'red_joker', isSelected: false };
 
     const suits = ['diamonds', 'clubs', 'hearts', 'spades'] as const;
-    const ranks = ['3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K', 'A', '2'];
+    const ranks = ['3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K', 'A', '2'] as const;
 
     const suitIndex = Math.floor(value / 13);
     const rankIndex = value % 13;
 
     return {
+        id,
+        value,
         suit: suits[suitIndex],
-        rank: ranks[rankIndex]
+        rank: ranks[rankIndex],
+        isSelected: false
     };
 };
 
@@ -46,13 +56,28 @@ export const GameBoard = () => {
     const topPlayer = getUIPlayer('top');
     const leftPlayer = getUIPlayer('left');
 
-    const toggleCardSelection = (cardValue: number) => {
-        if (selectedCards.includes(cardValue)) {
-            setSelectedCards(selectedCards.filter(c => c !== cardValue));
-        } else {
-            setSelectedCards([...selectedCards, cardValue]);
-        }
+    const handleSelectionChange = (selectedIds: string[]) => {
+        const selectedValues = selectedIds.map(id => parseInt(id, 10));
+        setSelectedCards(selectedValues);
     };
+
+    // Memoize hand cards for PlayerHand component
+    const handCards = useMemo(() => {
+        return myHand.map(val => ({
+            ...getCardData(val),
+            isSelected: selectedCards.includes(val)
+        }));
+    }, [myHand, selectedCards]);
+
+    // Calculate canPass logic
+    // I can pass if I am NOT the leader. 
+    // Leader means lastPlayedCards is null OR lastPlayedCards.playerId is me.
+    // However, `lastPlayedCards` from store has `seatIndex` and `cards`. `playerId` might not be there?
+    // Let's check store definition. Phase 23.5 said `seatIndex` is verified.
+    // If seatIndex === mySeatId, then I am leader.
+    const mySeatId = bottomPlayer?.seatId;
+    const isLeader = lastPlayedCards === null || (mySeatId !== undefined && lastPlayedCards.seatIndex === mySeatId);
+    const canPass = !isLeader;
 
     // --- Table Area Rendering ---
     // If lastPlayedCards exists, determine its relative position to show visually on table
@@ -174,22 +199,14 @@ export const GameBoard = () => {
             {/* BOTTOM Player (Me) */}
             <div className="absolute bottom-6 left-1/2 -translate-x-1/2 w-full flex flex-col items-center gap-4">
 
-                {/* My Hand Cards */}
-                <div className="flex -space-x-12 h-36 items-end hover:items-start transition-all pt-8">
-                    {myHand.map((val, i) => {
-                        const data = getCardData(val);
-                        const isSelected = selectedCards.includes(val);
-                        return (
-                            <div key={i} className="hover:-translate-y-6 transition-transform duration-200 z-10 hover:z-20">
-                                <Card
-                                    suit={data.suit as any}
-                                    rank={data.rank}
-                                    isSelected={isSelected}
-                                    onClick={() => toggleCardSelection(val)}
-                                />
-                            </div>
-                        );
-                    })}
+                {/* My Hand Cards (Using PlayerHand) */}
+                <div className="w-full flex justify-center pb-4">
+                    <PlayerHand
+                        cards={handCards}
+                        isHuman={true}
+                        onSelectionChange={handleSelectionChange}
+                        className="scale-90 origin-bottom"
+                    />
                 </div>
 
                 {/* My Avatar & Controls */}
@@ -203,14 +220,21 @@ export const GameBoard = () => {
                         />
                     )}
 
-                    <div className="flex gap-4">
-                        <button className="bg-blue-600 hover:bg-blue-500 text-white px-6 py-2 rounded-full font-bold shadow-lg disabled:opacity-50 disabled:cursor-not-allowed">
-                            Play
-                        </button>
-                        <button className="bg-orange-600 hover:bg-orange-500 text-white px-6 py-2 rounded-full font-bold shadow-lg disabled:opacity-50 disabled:cursor-not-allowed">
-                            Pass
-                        </button>
-                    </div>
+                    {currentTurn === bottomPlayer?.seatId && (
+                        <div className="absolute left-[34%] -top-8 flex items-center text-xs text-yellow-200 bg-yellow-900/80 px-3 py-1 rounded-full animate-pulse border border-yellow-500/30">
+                            <Clock size={14} className="mr-1.5" />
+                            <span className="font-mono font-bold">30s</span>
+                        </div>
+                    )}
+
+                    <GameControls
+                        isTurn={currentTurn === bottomPlayer?.seatId}
+                        selectedCount={selectedCards.length}
+                        canPass={canPass}
+                        onPlay={() => console.log('Play clicked with', selectedCards)} // Placeholder
+                        onPass={() => console.log('Pass clicked')} // Placeholder
+                        onHint={() => console.log('Hint clicked')} // Placeholder
+                    />
                 </div>
             </div>
 
