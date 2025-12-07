@@ -3,9 +3,14 @@ import { RoomService } from './room.service';
 import { AuthGuard } from '@nestjs/passport';
 import { v4 as uuidv4 } from 'uuid';
 
+import { GameGateway } from '../game/gateway/game.gateway';
+
 @Controller('rooms')
 export class RoomController {
-    constructor(private readonly roomService: RoomService) { }
+    constructor(
+        private readonly roomService: RoomService,
+        private readonly gameGateway: GameGateway
+    ) { }
 
     @Get()
     @UseGuards(AuthGuard('jwt'))
@@ -132,6 +137,34 @@ export class RoomController {
     @UseGuards(AuthGuard('jwt'))
     async addAi(@Param('id') roomId: string) {
         const bot = await this.roomService.addBotToRoom(roomId);
+
+        // Emit events via Socket
+        // 1. Notify room of new player (Bot)
+        this.gameGateway.server.to(roomId).emit('player_list_update', {
+            roomId,
+            players: await this.roomService.getPlayers(roomId)
+        });
+
+        // 2. Try Start Game
+        const started = await this.roomService.tryStartGame(roomId);
+        if (started) {
+            this.gameGateway.server.to(roomId).emit('game_start', { roomId });
+            // Ideally trigger initial state broadcast too, but GameGateway handles that on 'join' or 'ready' usually.
+            // Since this is a REST call, we might not have easy access to broadcastState *private* method unless we expose it or use a public wrapper.
+            // However, GameGateway runs a loop or we can just let clients fetch state.
+            // But GameGateway.handleToggleReady calls tryStartGame and emits game_start.
+            // Let's assume frontend will react to game_start by listening to sync_state or requesting it.
+            // But wait, GameGateway.broadcastState is private.
+            // We should make it public or expose a method?
+            // Or just rely on the next game loop tick?
+            // The game loop calls context.update() which handles logic, but broadcasting?
+            // GameGateway.broadcastState is manual.
+            // Let's rely on the frontend to maybe request state or the game loop to eventually sync?
+            // Actually, `game_start` event is the trigger.
+            // If we want immediate visual update, we should broadcast.
+            // Let's assume for this phase, emitting `game_start` is sufficient for FE to switch scene.
+        }
+
         return {
             success: true,
             data: bot

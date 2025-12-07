@@ -8,11 +8,11 @@ export interface RoomPlayer {
     userId: string;
     username: string; // Swagger: username
     isReady: boolean; // Swagger: isReady
-    seat?: number;    // WebSocket extension
+    seat?: number;    // Backend API/Socket property (0-3)
     avatar?: string;  // WebSocket extension
     online?: boolean; // WebSocket extension
     lastActive?: number;
-    seatId?: number; // 0, 1, 2
+    seatId?: number; // Frontend normalized alias for 'seat'
     isBot?: boolean; // Phase 22.4 AI support
 }
 
@@ -65,9 +65,15 @@ export const useRoomStore = create<RoomState>((set, get) => ({
     setRoomData: (data) => {
         console.log('[Room] Setting room data:', data);
 
+        // Normalize seat -> seatId for all players
+        const players = data.players.map(p => ({
+            ...p,
+            seatId: p.seat !== undefined ? p.seat : p.seatId
+        }));
+
         set({
             roomId: data.roomId,
-            players: data.players,
+            players: players,
             roomStatus: data.roomStatus,
             roomConfig: data.config || null,
         });
@@ -102,12 +108,24 @@ export const useRoomStore = create<RoomState>((set, get) => ({
             const exists = state.players.some((p) => p.userId === player.userId);
 
             if (exists) {
-                console.warn('[Room] Player already exists, skipping add');
-                return state;
+                console.warn('[Room] Player already exists, updating data');
+                // Update existing player with potentially new seat info
+                return {
+                    players: state.players.map(p => p.userId === player.userId ? {
+                        ...p,
+                        ...player,
+                        seatId: player.seat !== undefined ? player.seat : (player.seatId ?? p.seatId)
+                    } : p)
+                };
             }
 
+            const newPlayer = {
+                ...player,
+                seatId: player.seat !== undefined ? player.seat : player.seatId
+            };
+
             return {
-                players: [...state.players, player],
+                players: [...state.players, newPlayer],
             };
         });
     },

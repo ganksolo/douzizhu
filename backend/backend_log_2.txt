@@ -1,0 +1,251 @@
+
+> backend@0.0.1 start
+> nest start
+
+[32m[Nest] 50360  - [39m12/07/2025, 12:19:39 PM [32m    LOG[39m [38;5;3m[NestFactory] [39m[32mStarting Nest application...[39m
+[32m[Nest] 50360  - [39m12/07/2025, 12:19:39 PM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mPassportModule dependencies initialized[39m[38;5;3m +9ms[39m
+[32m[Nest] 50360  - [39m12/07/2025, 12:19:39 PM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mTypeOrmModule dependencies initialized[39m[38;5;3m +0ms[39m
+[32m[Nest] 50360  - [39m12/07/2025, 12:19:39 PM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mConfigHostModule dependencies initialized[39m[38;5;3m +0ms[39m
+[32m[Nest] 50360  - [39m12/07/2025, 12:19:39 PM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mDiscoveryModule dependencies initialized[39m[38;5;3m +0ms[39m
+[32m[Nest] 50360  - [39m12/07/2025, 12:19:39 PM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mConfigModule dependencies initialized[39m[38;5;3m +2ms[39m
+[32m[Nest] 50360  - [39m12/07/2025, 12:19:39 PM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mConfigModule dependencies initialized[39m[38;5;3m +0ms[39m
+[32m[Nest] 50360  - [39m12/07/2025, 12:19:39 PM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mCacheModule dependencies initialized[39m[38;5;3m +0ms[39m
+[32m[Nest] 50360  - [39m12/07/2025, 12:19:39 PM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mScheduleModule dependencies initialized[39m[38;5;3m +0ms[39m
+[32m[Nest] 50360  - [39m12/07/2025, 12:19:39 PM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mJwtModule dependencies initialized[39m[38;5;3m +24ms[39m
+[32m[Nest] 50360  - [39m12/07/2025, 12:19:39 PM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mCacheModule dependencies initialized[39m[38;5;3m +1ms[39m
+[90m[4mquery:[24m[39m [94mSELECT[0m [95mversion[0m[37m([0m[37m)[0m
+[90m[4mquery:[24m[39m [37mSTART[0m [37mTRANSACTION[0m
+[90m[4mquery:[24m[39m [94mSELECT[0m [94mDATABASE[0m[37m([0m[37m)[0m [94mAS[0m [37m`db_name`[0m
+[90m[4mquery:[24m[39m [94mSELECT[0m [37m`TABLE_SCHEMA`[0m[37m,[0m [37m`TABLE_NAME`[0m[37m,[0m [37m`TABLE_COMMENT`[0m [94mFROM[0m [37m`INFORMATION_SCHEMA`[0m[37m.[0m[37m`TABLES`[0m [94mWHERE[0m [37m`TABLE_SCHEMA`[0m [37m=[0m [37m'doudizhu'[0m [94mAND[0m [37m`TABLE_NAME`[0m [37m=[0m [37m'match_record'[0m [94mUNION[0m [94mSELECT[0m [37m`TABLE_SCHEMA`[0m[37m,[0m [37m`TABLE_NAME`[0m[37m,[0m [37m`TABLE_COMMENT`[0m [94mFROM[0m [37m`INFORMATION_SCHEMA`[0m[37m.[0m[37m`TABLES`[0m [94mWHERE[0m [37m`TABLE_SCHEMA`[0m [37m=[0m [37m'doudizhu'[0m [94mAND[0m [37m`TABLE_NAME`[0m [37m=[0m [37m'user'[0m
+[90m[4mquery:[24m[39m 
+                [94mSELECT[0m
+                    [37m*[0m
+                [94mFROM[0m
+                    [37m`INFORMATION_SCHEMA`[0m[37m.[0m[37m`COLUMNS`[0m
+                [94mWHERE[0m
+                    [37m`TABLE_SCHEMA`[0m [37m=[0m [37m'doudizhu'[0m
+                    [94mAND[0m
+                    [37m`TABLE_NAME`[0m [37m=[0m [37m'match_record'[0m
+                 [94mUNION[0m 
+                [94mSELECT[0m
+                    [37m*[0m
+                [94mFROM[0m
+                    [37m`INFORMATION_SCHEMA`[0m[37m.[0m[37m`COLUMNS`[0m
+                [94mWHERE[0m
+                    [37m`TABLE_SCHEMA`[0m [37m=[0m [37m'doudizhu'[0m
+                    [94mAND[0m
+                    [37m`TABLE_NAME`[0m [37m=[0m [37m'user'[0m
+                
+[90m[4mquery:[24m[39m [94mSELECT[0m [37m*[0m [94mFROM[0m [37m([0m
+                [94mSELECT[0m
+                    [37m*[0m
+                [94mFROM[0m [37m`INFORMATION_SCHEMA`[0m[37m.[0m[37m`KEY_COLUMN_USAGE`[0m [37m`kcu`[0m
+                [94mWHERE[0m
+                    [37m`kcu`[0m[37m.[0m[37m`TABLE_SCHEMA`[0m [37m=[0m [37m'doudizhu'[0m
+                    [94mAND[0m
+                    [37m`kcu`[0m[37m.[0m[37m`TABLE_NAME`[0m [37m=[0m [37m'match_record'[0m
+             [94mUNION[0m 
+                [94mSELECT[0m
+                    [37m*[0m
+                [94mFROM[0m [37m`INFORMATION_SCHEMA`[0m[37m.[0m[37m`KEY_COLUMN_USAGE`[0m [37m`kcu`[0m
+                [94mWHERE[0m
+                    [37m`kcu`[0m[37m.[0m[37m`TABLE_SCHEMA`[0m [37m=[0m [37m'doudizhu'[0m
+                    [94mAND[0m
+                    [37m`kcu`[0m[37m.[0m[37m`TABLE_NAME`[0m [37m=[0m [37m'user'[0m
+            [37m)[0m [37m`kcu`[0m [94mWHERE[0m [37m`CONSTRAINT_NAME`[0m [37m=[0m [37m'PRIMARY'[0m
+[90m[4mquery:[24m[39m 
+            [94mSELECT[0m
+                [37m`SCHEMA_NAME`[0m[37m,[0m
+                [37m`DEFAULT_CHARACTER_SET_NAME`[0m [94mas[0m [37m`CHARSET`[0m[37m,[0m
+                [37m`DEFAULT_COLLATION_NAME`[0m [94mAS[0m [37m`COLLATION`[0m
+            [94mFROM[0m [37m`INFORMATION_SCHEMA`[0m[37m.[0m[37m`SCHEMATA`[0m
+            
+[90m[4mquery:[24m[39m 
+            [94mSELECT[0m
+                [37m`s`[0m[37m.[0m[37m*[0m
+            [94mFROM[0m [37m([0m
+                [94mSELECT[0m
+                    [37m*[0m
+                [94mFROM[0m [37m`INFORMATION_SCHEMA`[0m[37m.[0m[37m`STATISTICS`[0m
+                [94mWHERE[0m
+                    [37m`TABLE_SCHEMA`[0m [37m=[0m [37m'doudizhu'[0m
+                    [94mAND[0m
+                    [37m`TABLE_NAME`[0m [37m=[0m [37m'match_record'[0m
+             [94mUNION[0m 
+                [94mSELECT[0m
+                    [37m*[0m
+                [94mFROM[0m [37m`INFORMATION_SCHEMA`[0m[37m.[0m[37m`STATISTICS`[0m
+                [94mWHERE[0m
+                    [37m`TABLE_SCHEMA`[0m [37m=[0m [37m'doudizhu'[0m
+                    [94mAND[0m
+                    [37m`TABLE_NAME`[0m [37m=[0m [37m'user'[0m
+            [37m)[0m [37m`s`[0m
+            [94mLEFT JOIN[0m [37m([0m
+                [94mSELECT[0m
+                    [37m*[0m
+                [94mFROM[0m [37m`INFORMATION_SCHEMA`[0m[37m.[0m[37m`REFERENTIAL_CONSTRAINTS`[0m
+                [94mWHERE[0m
+                    [37m`CONSTRAINT_SCHEMA`[0m [37m=[0m [37m'doudizhu'[0m
+                    [94mAND[0m
+                    [37m`TABLE_NAME`[0m [37m=[0m [37m'match_record'[0m
+             [94mUNION[0m 
+                [94mSELECT[0m
+                    [37m*[0m
+                [94mFROM[0m [37m`INFORMATION_SCHEMA`[0m[37m.[0m[37m`REFERENTIAL_CONSTRAINTS`[0m
+                [94mWHERE[0m
+                    [37m`CONSTRAINT_SCHEMA`[0m [37m=[0m [37m'doudizhu'[0m
+                    [94mAND[0m
+                    [37m`TABLE_NAME`[0m [37m=[0m [37m'user'[0m
+            [37m)[0m [37m`rc`[0m
+                [94mON[0m
+                    [37m`s`[0m[37m.[0m[37m`INDEX_NAME`[0m [37m=[0m [37m`rc`[0m[37m.[0m[37m`CONSTRAINT_NAME`[0m
+                    [94mAND[0m
+                    [37m`s`[0m[37m.[0m[37m`TABLE_SCHEMA`[0m [37m=[0m [37m`rc`[0m[37m.[0m[37m`CONSTRAINT_SCHEMA`[0m
+            [94mWHERE[0m
+                [37m`s`[0m[37m.[0m[37m`INDEX_NAME`[0m [37m!=[0m [37m'PRIMARY'[0m
+                [94mAND[0m
+                [37m`rc`[0m[37m.[0m[37m`CONSTRAINT_NAME`[0m [94mIS NULL[0m
+            
+[90m[4mquery:[24m[39m 
+            [94mSELECT[0m
+                [37m`kcu`[0m[37m.[0m[37m`TABLE_SCHEMA`[0m[37m,[0m
+                [37m`kcu`[0m[37m.[0m[37m`TABLE_NAME`[0m[37m,[0m
+                [37m`kcu`[0m[37m.[0m[37m`CONSTRAINT_NAME`[0m[37m,[0m
+                [37m`kcu`[0m[37m.[0m[37m`COLUMN_NAME`[0m[37m,[0m
+                [37m`kcu`[0m[37m.[0m[37m`REFERENCED_TABLE_SCHEMA`[0m[37m,[0m
+                [37m`kcu`[0m[37m.[0m[37m`REFERENCED_TABLE_NAME`[0m[37m,[0m
+                [37m`kcu`[0m[37m.[0m[37m`REFERENCED_COLUMN_NAME`[0m[37m,[0m
+                [37m`rc`[0m[37m.[0m[37m`DELETE_RULE`[0m [37m`ON_DELETE`[0m[37m,[0m
+                [37m`rc`[0m[37m.[0m[37m`UPDATE_RULE`[0m [37m`ON_UPDATE`[0m
+            [94mFROM[0m [37m([0m
+                [94mSELECT[0m
+                    [37m*[0m
+                [94mFROM[0m [37m`INFORMATION_SCHEMA`[0m[37m.[0m[37m`KEY_COLUMN_USAGE`[0m [37m`kcu`[0m
+                [94mWHERE[0m
+                    [37m`kcu`[0m[37m.[0m[37m`TABLE_SCHEMA`[0m [37m=[0m [37m'doudizhu'[0m
+                    [94mAND[0m
+                    [37m`kcu`[0m[37m.[0m[37m`TABLE_NAME`[0m [37m=[0m [37m'match_record'[0m
+             [94mUNION[0m 
+                [94mSELECT[0m
+                    [37m*[0m
+                [94mFROM[0m [37m`INFORMATION_SCHEMA`[0m[37m.[0m[37m`KEY_COLUMN_USAGE`[0m [37m`kcu`[0m
+                [94mWHERE[0m
+                    [37m`kcu`[0m[37m.[0m[37m`TABLE_SCHEMA`[0m [37m=[0m [37m'doudizhu'[0m
+                    [94mAND[0m
+                    [37m`kcu`[0m[37m.[0m[37m`TABLE_NAME`[0m [37m=[0m [37m'user'[0m
+            [37m)[0m [37m`kcu`[0m
+            [94mINNER JOIN[0m [37m([0m
+                [94mSELECT[0m
+                    [37m*[0m
+                [94mFROM[0m [37m`INFORMATION_SCHEMA`[0m[37m.[0m[37m`REFERENTIAL_CONSTRAINTS`[0m
+                [94mWHERE[0m
+                    [37m`CONSTRAINT_SCHEMA`[0m [37m=[0m [37m'doudizhu'[0m
+                    [94mAND[0m
+                    [37m`TABLE_NAME`[0m [37m=[0m [37m'match_record'[0m
+             [94mUNION[0m 
+                [94mSELECT[0m
+                    [37m*[0m
+                [94mFROM[0m [37m`INFORMATION_SCHEMA`[0m[37m.[0m[37m`REFERENTIAL_CONSTRAINTS`[0m
+                [94mWHERE[0m
+                    [37m`CONSTRAINT_SCHEMA`[0m [37m=[0m [37m'doudizhu'[0m
+                    [94mAND[0m
+                    [37m`TABLE_NAME`[0m [37m=[0m [37m'user'[0m
+            [37m)[0m [37m`rc`[0m
+                [94mON[0m
+                    [37m`rc`[0m[37m.[0m[37m`CONSTRAINT_SCHEMA`[0m [37m=[0m [37m`kcu`[0m[37m.[0m[37m`CONSTRAINT_SCHEMA`[0m
+                    [94mAND[0m
+                    [37m`rc`[0m[37m.[0m[37m`TABLE_NAME`[0m [37m=[0m [37m`kcu`[0m[37m.[0m[37m`TABLE_NAME`[0m
+                    [94mAND[0m
+                    [37m`rc`[0m[37m.[0m[37m`CONSTRAINT_NAME`[0m [37m=[0m [37m`kcu`[0m[37m.[0m[37m`CONSTRAINT_NAME`[0m
+            
+[90m[4mquery:[24m[39m [94mSELECT[0m [37m*[0m [94mFROM[0m [37m`INFORMATION_SCHEMA`[0m[37m.[0m[37m`COLUMNS`[0m [94mWHERE[0m [37m`TABLE_SCHEMA`[0m [37m=[0m [37m'doudizhu'[0m [94mAND[0m [37m`TABLE_NAME`[0m [37m=[0m [37m'typeorm_metadata'[0m
+[90m[4mquery:[24m[39m [94mCOMMIT[0m
+[32m[Nest] 50360  - [39m12/07/2025, 12:19:40 PM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mAppModule dependencies initialized[39m[38;5;3m +80ms[39m
+[32m[Nest] 50360  - [39m12/07/2025, 12:19:40 PM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mTypeOrmCoreModule dependencies initialized[39m[38;5;3m +0ms[39m
+[32m[Nest] 50360  - [39m12/07/2025, 12:19:40 PM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mTypeOrmModule dependencies initialized[39m[38;5;3m +0ms[39m
+[32m[Nest] 50360  - [39m12/07/2025, 12:19:40 PM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mTypeOrmModule dependencies initialized[39m[38;5;3m +0ms[39m
+[32m[Nest] 50360  - [39m12/07/2025, 12:19:40 PM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mMatchModule dependencies initialized[39m[38;5;3m +0ms[39m
+[32m[Nest] 50360  - [39m12/07/2025, 12:19:40 PM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mUserModule dependencies initialized[39m[38;5;3m +1ms[39m
+[32m[Nest] 50360  - [39m12/07/2025, 12:19:40 PM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mGameModule dependencies initialized[39m[38;5;3m +0ms[39m
+[32m[Nest] 50360  - [39m12/07/2025, 12:19:40 PM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mAuthModule dependencies initialized[39m[38;5;3m +0ms[39m
+[32m[Nest] 50360  - [39m12/07/2025, 12:19:40 PM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mRoomModule dependencies initialized[39m[38;5;3m +0ms[39m
+✅ Swagger UI available at: http://localhost:3001/api-docs
+[32m[Nest] 50360  - [39m12/07/2025, 12:19:40 PM [32m    LOG[39m [38;5;3m[GameGateway] [39m[32mGame Loop started[39m
+[32m[Nest] 50360  - [39m12/07/2025, 12:19:40 PM [32m    LOG[39m [38;5;3m[WebSocketsController] [39m[32mGameGateway subscribed to the "join_room" message[39m[38;5;3m +0ms[39m
+[32m[Nest] 50360  - [39m12/07/2025, 12:19:40 PM [32m    LOG[39m [38;5;3m[WebSocketsController] [39m[32mGameGateway subscribed to the "toggle_ready" message[39m[38;5;3m +0ms[39m
+[32m[Nest] 50360  - [39m12/07/2025, 12:19:40 PM [32m    LOG[39m [38;5;3m[WebSocketsController] [39m[32mGameGateway subscribed to the "client_action" message[39m[38;5;3m +0ms[39m
+[32m[Nest] 50360  - [39m12/07/2025, 12:19:40 PM [32m    LOG[39m [38;5;3m[WebSocketsController] [39m[32mRoomGateway subscribed to the "join_room" message[39m[38;5;3m +0ms[39m
+[32m[Nest] 50360  - [39m12/07/2025, 12:19:40 PM [32m    LOG[39m [38;5;3m[WebSocketsController] [39m[32mRoomGateway subscribed to the "leave_room" message[39m[38;5;3m +0ms[39m
+[32m[Nest] 50360  - [39m12/07/2025, 12:19:40 PM [32m    LOG[39m [38;5;3m[WebSocketsController] [39m[32mRoomGateway subscribed to the "kick_player" message[39m[38;5;3m +0ms[39m
+[32m[Nest] 50360  - [39m12/07/2025, 12:19:40 PM [32m    LOG[39m [38;5;3m[WebSocketsController] [39m[32mRoomGateway subscribed to the "toggle_ready" message[39m[38;5;3m +0ms[39m
+[32m[Nest] 50360  - [39m12/07/2025, 12:19:40 PM [32m    LOG[39m [38;5;3m[WebSocketsController] [39m[32mRoomGateway subscribed to the "request_rematch" message[39m[38;5;3m +0ms[39m
+[32m[Nest] 50360  - [39m12/07/2025, 12:19:40 PM [32m    LOG[39m [38;5;3m[RoutesResolver] [39m[32mAppController {/}:[39m[38;5;3m +1ms[39m
+[32m[Nest] 50360  - [39m12/07/2025, 12:19:40 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/, GET} route[39m[38;5;3m +1ms[39m
+[32m[Nest] 50360  - [39m12/07/2025, 12:19:40 PM [32m    LOG[39m [38;5;3m[RoutesResolver] [39m[32mHealthController {/health}:[39m[38;5;3m +0ms[39m
+[32m[Nest] 50360  - [39m12/07/2025, 12:19:40 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/health, GET} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 50360  - [39m12/07/2025, 12:19:40 PM [32m    LOG[39m [38;5;3m[RoutesResolver] [39m[32mAuthController {/auth}:[39m[38;5;3m +0ms[39m
+[32m[Nest] 50360  - [39m12/07/2025, 12:19:40 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/auth/guest-login, POST} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 50360  - [39m12/07/2025, 12:19:40 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/auth/register, POST} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 50360  - [39m12/07/2025, 12:19:40 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/auth/login, POST} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 50360  - [39m12/07/2025, 12:19:40 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/auth/me, GET} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 50360  - [39m12/07/2025, 12:19:40 PM [32m    LOG[39m [38;5;3m[RoutesResolver] [39m[32mUserController {/user}:[39m[38;5;3m +0ms[39m
+[32m[Nest] 50360  - [39m12/07/2025, 12:19:40 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/user/:id/stats, GET} route[39m[38;5;3m +1ms[39m
+[32m[Nest] 50360  - [39m12/07/2025, 12:19:40 PM [32m    LOG[39m [38;5;3m[RoutesResolver] [39m[32mMatchController {/matches}:[39m[38;5;3m +0ms[39m
+[32m[Nest] 50360  - [39m12/07/2025, 12:19:40 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/matches/player/:playerId, GET} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 50360  - [39m12/07/2025, 12:19:40 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/matches/:id, GET} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 50360  - [39m12/07/2025, 12:19:40 PM [32m    LOG[39m [38;5;3m[RoutesResolver] [39m[32mRoomController {/rooms}:[39m[38;5;3m +0ms[39m
+[32m[Nest] 50360  - [39m12/07/2025, 12:19:40 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/rooms, GET} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 50360  - [39m12/07/2025, 12:19:40 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/rooms/:id, GET} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 50360  - [39m12/07/2025, 12:19:40 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/rooms, POST} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 50360  - [39m12/07/2025, 12:19:40 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/rooms/:id/join, POST} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 50360  - [39m12/07/2025, 12:19:40 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/rooms/:id/leave, POST} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 50360  - [39m12/07/2025, 12:19:40 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/rooms/:id/ai, POST} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 50360  - [39m12/07/2025, 12:19:40 PM [32m    LOG[39m [38;5;3m[RoomService] [39m[32mRoomService connected to Redis at localhost:6379[39m
+[32m[Nest] 50360  - [39m12/07/2025, 12:19:40 PM [32m    LOG[39m [38;5;3m[NestApplication] [39m[32mNest application successfully started[39m[38;5;3m +8ms[39m
+[32m[Nest] 50360  - [39m12/07/2025, 12:19:42 PM [32m    LOG[39m [38;5;3m[GameGateway] [39m[32mClient connected: igsgCTa-DHgEjjiSAAAB[39m
+[32m[Nest] 50360  - [39m12/07/2025, 12:19:42 PM [32m    LOG[39m [38;5;3m[GameGateway] [39m[32mClient igsgCTa-DHgEjjiSAAAB authenticated as ganksolo (108)[39m
+[32m[Nest] 50360  - [39m12/07/2025, 12:19:45 PM [32m    LOG[39m [38;5;3m[GameGateway] [39m[32mClient connected: F8bvtAZ-iYdXvdgkAAAD[39m
+[32m[Nest] 50360  - [39m12/07/2025, 12:19:45 PM [32m    LOG[39m [38;5;3m[GameGateway] [39m[32mClient F8bvtAZ-iYdXvdgkAAAD authenticated as ganksolo (108)[39m
+[90m[4mquery:[24m[39m [94mSELECT[0m [37m`User`[0m[37m.[0m[37m`id`[0m [94mAS[0m [37m`User_id`[0m[37m,[0m [37m`User`[0m[37m.[0m[37m`nickname`[0m [94mAS[0m [37m`User_nickname`[0m[37m,[0m [37m`User`[0m[37m.[0m[37m`avatar`[0m [94mAS[0m [37m`User_avatar`[0m[37m,[0m [37m`User`[0m[37m.[0m[37m`email`[0m [94mAS[0m [37m`User_email`[0m[37m,[0m [37m`User`[0m[37m.[0m[37m`auth_type`[0m [94mAS[0m [37m`User_auth_type`[0m[37m,[0m [37m`User`[0m[37m.[0m[37m`last_login`[0m [94mAS[0m [37m`User_last_login`[0m[37m,[0m [37m`User`[0m[37m.[0m[37m`created_at`[0m [94mAS[0m [37m`User_created_at`[0m[37m,[0m [37m`User`[0m[37m.[0m[37m`updated_at`[0m [94mAS[0m [37m`User_updated_at`[0m [94mFROM[0m [37m`user`[0m [37m`User`[0m [94mWHERE[0m [37m([0m[37m([0m[37m`User`[0m[37m.[0m[37m`nickname`[0m [37m=[0m [37m?[0m[37m)[0m[37m)[0m [94mLIMIT[0m [32m1[0m [90m-- PARAMETERS: ["testuser_1765081204514"][0m
+[90m[4mquery:[24m[39m [37mSTART[0m [37mTRANSACTION[0m
+[90m[4mquery:[24m[39m [94mINSERT INTO[0m [37m`user`[0m[37m([0m[37m`id`[0m[37m,[0m [37m`nickname`[0m[37m,[0m [37m`avatar`[0m[37m,[0m [37m`email`[0m[37m,[0m [37m`auth_type`[0m[37m,[0m [37m`password_hash`[0m[37m,[0m [37m`last_login`[0m[37m,[0m [37m`created_at`[0m[37m,[0m [37m`updated_at`[0m[37m)[0m [94mVALUES[0m [37m([0m[94mDEFAULT[0m[37m,[0m [37m?[0m[37m,[0m [37m?[0m[37m,[0m [94mDEFAULT[0m[37m,[0m [37m?[0m[37m,[0m [37m?[0m[37m,[0m [37m?[0m[37m,[0m [94mDEFAULT[0m[37m,[0m [94mDEFAULT[0m[37m)[0m [90m-- PARAMETERS: ["testuser_1765081204514","https://api.dicebear.com/7.x/avataaars/svg?seed=testuser_1765081204514","password","$2b$10$dZN.VhvcXHbIwanVE6o9a.sqgQ5oifgG2Q/qf3jpXlAFjsVAH3LoO","2025-12-07T04:20:04.613Z"][0m
+[90m[4mquery:[24m[39m [94mSELECT[0m [37m`User`[0m[37m.[0m[37m`id`[0m [94mAS[0m [37m`User_id`[0m[37m,[0m [37m`User`[0m[37m.[0m[37m`avatar`[0m [94mAS[0m [37m`User_avatar`[0m[37m,[0m [37m`User`[0m[37m.[0m[37m`auth_type`[0m [94mAS[0m [37m`User_auth_type`[0m[37m,[0m [37m`User`[0m[37m.[0m[37m`last_login`[0m [94mAS[0m [37m`User_last_login`[0m[37m,[0m [37m`User`[0m[37m.[0m[37m`created_at`[0m [94mAS[0m [37m`User_created_at`[0m[37m,[0m [37m`User`[0m[37m.[0m[37m`updated_at`[0m [94mAS[0m [37m`User_updated_at`[0m [94mFROM[0m [37m`user`[0m [37m`User`[0m [94mWHERE[0m [37m`User`[0m[37m.[0m[37m`id`[0m [37m=[0m [37m?[0m [90m-- PARAMETERS: ["113"][0m
+[90m[4mquery:[24m[39m [94mCOMMIT[0m
+[32m[Nest] 50360  - [39m12/07/2025, 12:20:04 PM [32m    LOG[39m [38;5;3m[RoomService] [39m[32mRoom a91975ea-489e-4e6a-b268-985d90ffc19b created by 113[39m
+[32m[Nest] 50360  - [39m12/07/2025, 12:20:04 PM [32m    LOG[39m [38;5;3m[RoomService] [39m[32mPlayer 113 joined room a91975ea-489e-4e6a-b268-985d90ffc19b at seat 0[39m
+[32m[Nest] 50360  - [39m12/07/2025, 12:20:04 PM [32m    LOG[39m [38;5;3m[GameGateway] [39m[32mClient connected: X0w8E-qwTMYLx92mAAAF[39m
+[32m[Nest] 50360  - [39m12/07/2025, 12:20:04 PM [32m    LOG[39m [38;5;3m[GameGateway] [39m[32mClient X0w8E-qwTMYLx92mAAAF authenticated as testuser_1765081204514 (113)[39m
+[32m[Nest] 50360  - [39m12/07/2025, 12:20:04 PM [32m    LOG[39m [38;5;3m[GameGateway] [39m[32mPlayer testuser_1765081204514 (113) joined room a91975ea-489e-4e6a-b268-985d90ffc19b[39m
+[32m[Nest] 50360  - [39m12/07/2025, 12:20:04 PM [32m    LOG[39m [38;5;3m[ReconnectService] [39m[32mPlayer 113 reconnected to room a91975ea-489e-4e6a-b268-985d90ffc19b[39m
+[32m[Nest] 50360  - [39m12/07/2025, 12:20:04 PM [32m    LOG[39m [38;5;3m[GameManagerService] [39m[32mCreating new game context for room a91975ea-489e-4e6a-b268-985d90ffc19b[39m
+[95m[Nest] 50360  - [39m12/07/2025, 12:20:04 PM [95m  DEBUG[39m [38;5;3m[GameGateway] [39m[95mBroadcasting state for room a91975ea-489e-4e6a-b268-985d90ffc19b: currentState=None, players=0[39m
+[32m[Nest] 50360  - [39m12/07/2025, 12:20:04 PM [32m    LOG[39m [38;5;3m[RoomService] [39m[32mAdded Bot bot-1765081204642-1 to room a91975ea-489e-4e6a-b268-985d90ffc19b at seat 1[39m
+[32m[Nest] 50360  - [39m12/07/2025, 12:20:05 PM [32m    LOG[39m [38;5;3m[RoomService] [39m[32mAdded Bot bot-1765081205147-2 to room a91975ea-489e-4e6a-b268-985d90ffc19b at seat 2[39m
+[32m[Nest] 50360  - [39m12/07/2025, 12:20:05 PM [32m    LOG[39m [38;5;3m[RoomService] [39m[32mAdded Bot bot-1765081205652-3 to room a91975ea-489e-4e6a-b268-985d90ffc19b at seat 3[39m
+[32m[Nest] 50360  - [39m12/07/2025, 12:20:05 PM [32m    LOG[39m [38;5;3m[GameContext] [39m[32mState initialized to InitState[39m
+[32m[Nest] 50360  - [39m12/07/2025, 12:20:05 PM [32m    LOG[39m [38;5;3m[InitState] [39m[32mInitializing game data...[39m
+[32m[Nest] 50360  - [39m12/07/2025, 12:20:05 PM [32m    LOG[39m [38;5;3m[InitState] [39m[32mGame initialized.[39m
+[32m[Nest] 50360  - [39m12/07/2025, 12:20:05 PM [32m    LOG[39m [38;5;3m[RoomService] [39m[32mGame started in room a91975ea-489e-4e6a-b268-985d90ffc19b with 4 Players[39m
+[95m[Nest] 50360  - [39m12/07/2025, 12:20:05 PM [95m  DEBUG[39m [38;5;3m[GameGateway] [39m[95mBroadcasting state for room a91975ea-489e-4e6a-b268-985d90ffc19b: currentState=InitState, players=4[39m
+[95m[Nest] 50360  - [39m12/07/2025, 12:20:05 PM [95m  DEBUG[39m [38;5;3m[GameRedisService] [39m[95mSaved snapshot for room a91975ea-489e-4e6a-b268-985d90ffc19b in state InitState[39m
+[32m[Nest] 50360  - [39m12/07/2025, 12:20:05 PM [32m    LOG[39m [38;5;3m[InitState] [39m[32mAuto-transitioning to DealingState...[39m
+[32m[Nest] 50360  - [39m12/07/2025, 12:20:05 PM [32m    LOG[39m [38;5;3m[GameContext] [39m[32mTransitioning from InitState to DealingState[39m
+[32m[Nest] 50360  - [39m12/07/2025, 12:20:05 PM [32m    LOG[39m [38;5;3m[InitState] [39m[32mExiting InitState.[39m
+[32m[Nest] 50360  - [39m12/07/2025, 12:20:05 PM [32m    LOG[39m [38;5;3m[DealingState] [39m[32mEntering DealingState. Shuffling deck...[39m
+[32m[Nest] 50360  - [39m12/07/2025, 12:20:05 PM [32m    LOG[39m [38;5;3m[DealingState] [39m[32mDeck shuffled with 108 cards (Expect 108).[39m
+[32m[Nest] 50360  - [39m12/07/2025, 12:20:05 PM [32m    LOG[39m [38;5;3m[DealingState] [39m[32mReserved 8 bottom cards: ♦3,♠9,♠9,♦4,BlackJoker,♣2,♣Q,♥J[39m
+[32m[Nest] 50360  - [39m12/07/2025, 12:20:05 PM [32m    LOG[39m [38;5;3m[DealingState] [39m[32mDealt 25 cards to Seat 0 (testuser_1765081204514)[39m
+[32m[Nest] 50360  - [39m12/07/2025, 12:20:05 PM [32m    LOG[39m [38;5;3m[DealingState] [39m[32mDealt 25 cards to Seat 1 (Bot 2)[39m
+[32m[Nest] 50360  - [39m12/07/2025, 12:20:05 PM [32m    LOG[39m [38;5;3m[DealingState] [39m[32mDealt 25 cards to Seat 2 (Bot 3)[39m
+[32m[Nest] 50360  - [39m12/07/2025, 12:20:05 PM [32m    LOG[39m [38;5;3m[DealingState] [39m[32mDealt 25 cards to Seat 3 (Bot 4)[39m
+[95m[Nest] 50360  - [39m12/07/2025, 12:20:05 PM [95m  DEBUG[39m [38;5;3m[GameRedisService] [39m[95mSaved snapshot for room a91975ea-489e-4e6a-b268-985d90ffc19b in state DealingState[39m
+[95m[Nest] 50360  - [39m12/07/2025, 12:20:05 PM [95m  DEBUG[39m [38;5;3m[GameGateway] [39m[95mBroadcasting state for room a91975ea-489e-4e6a-b268-985d90ffc19b: currentState=DealingState, players=4[39m
+[32m[Nest] 50360  - [39m12/07/2025, 12:20:05 PM [32m    LOG[39m [38;5;3m[DealingState] [39m[32mDealing complete. Transitioning to PlayingState...[39m
+[32m[Nest] 50360  - [39m12/07/2025, 12:20:05 PM [32m    LOG[39m [38;5;3m[GameContext] [39m[32mTransitioning from DealingState to PlayingState[39m
+[32m[Nest] 50360  - [39m12/07/2025, 12:20:05 PM [32m    LOG[39m [38;5;3m[DealingState] [39m[32mExiting DealingState.[39m
+[32m[Nest] 50360  - [39m12/07/2025, 12:20:05 PM [32m    LOG[39m [38;5;3m[PlayingState] [39m[32mEntering PlayingState. Game Start![39m
+[32m[Nest] 50360  - [39m12/07/2025, 12:20:05 PM [32m    LOG[39m [38;5;3m[PlayingState] [39m[32mCurrent turn: 113[39m
+[95m[Nest] 50360  - [39m12/07/2025, 12:20:05 PM [95m  DEBUG[39m [38;5;3m[GameRedisService] [39m[95mSaved snapshot for room a91975ea-489e-4e6a-b268-985d90ffc19b in state PlayingState[39m
+[95m[Nest] 50360  - [39m12/07/2025, 12:20:05 PM [95m  DEBUG[39m [38;5;3m[GameGateway] [39m[95mBroadcasting state for room a91975ea-489e-4e6a-b268-985d90ffc19b: currentState=PlayingState, players=4[39m
+[32m[Nest] 50360  - [39m12/07/2025, 12:20:06 PM [32m    LOG[39m [38;5;3m[GameGateway] [39m[32mClient disconnected: X0w8E-qwTMYLx92mAAAF (User: 113, Room: a91975ea-489e-4e6a-b268-985d90ffc19b)[39m
+[32m[Nest] 50360  - [39m12/07/2025, 12:20:06 PM [32m    LOG[39m [38;5;3m[ReconnectService] [39m[32mPlayer 113 disconnected from room a91975ea-489e-4e6a-b268-985d90ffc19b[39m

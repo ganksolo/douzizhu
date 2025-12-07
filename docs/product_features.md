@@ -93,3 +93,4 @@
 *   **Phase 21.2 (准备与开局)**: 实现了完整的游戏准备与自动开局流程。引入了 `Ready` 状态机,当房间内满 3 人且全员准备就绪时,系统自动触发游戏引擎初始化 (`GameContext.initialize`) 并广播开局事件。同时实现了 `Rematch` (再来一局) 功能,支持游戏结束后一键重置房间状态,极大提升了连续对局的流畅度。
 *   **Phase 21.3 (网络韧性)**: 建立了生产级的网络稳定性保障机制。实现了智能断线重连 (ReconnectService),玩家网络中断后有 5 分钟的保留窗口,重连时可无缝恢复对局状态。引入了 AFK (挂机) 检测系统,30 秒无操作显示"暂离"警告,90 秒自动踢出以确保游戏流畅。同时实现了房间自动回收机制,全员离线超过 10 分钟的房间会自动清理,释放服务器资源。
 *   **Phase 26 (Auth Logic Upgrade)**: Upgraded authentication security by replacing mock hashing with `bcryptjs`. Implemented secure password storage and validation in `AuthService`, ensuring production-ready user registration and login flows.
+*   **Phase 29 (Gameplay Backend Integration)**: Integrated Socket.IO and Redis layers. Implemented synchronized seating logic, real-time ready state management, and seamless Bot integration where API-driven bot additions triggered real-time socket events and game starts.

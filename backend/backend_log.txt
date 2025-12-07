@@ -1,0 +1,227 @@
+
+> backend@0.0.1 start
+> nest start
+
+[32m[Nest] 48836  - [39m12/07/2025, 12:18:26 PM [32m    LOG[39m [38;5;3m[NestFactory] [39m[32mStarting Nest application...[39m
+[32m[Nest] 48836  - [39m12/07/2025, 12:18:26 PM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mPassportModule dependencies initialized[39m[38;5;3m +12ms[39m
+[32m[Nest] 48836  - [39m12/07/2025, 12:18:26 PM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mTypeOrmModule dependencies initialized[39m[38;5;3m +0ms[39m
+[32m[Nest] 48836  - [39m12/07/2025, 12:18:26 PM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mConfigHostModule dependencies initialized[39m[38;5;3m +1ms[39m
+[32m[Nest] 48836  - [39m12/07/2025, 12:18:26 PM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mDiscoveryModule dependencies initialized[39m[38;5;3m +0ms[39m
+[32m[Nest] 48836  - [39m12/07/2025, 12:18:26 PM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mConfigModule dependencies initialized[39m[38;5;3m +2ms[39m
+[32m[Nest] 48836  - [39m12/07/2025, 12:18:26 PM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mConfigModule dependencies initialized[39m[38;5;3m +0ms[39m
+[32m[Nest] 48836  - [39m12/07/2025, 12:18:26 PM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mCacheModule dependencies initialized[39m[38;5;3m +0ms[39m
+[32m[Nest] 48836  - [39m12/07/2025, 12:18:26 PM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mScheduleModule dependencies initialized[39m[38;5;3m +0ms[39m
+[32m[Nest] 48836  - [39m12/07/2025, 12:18:26 PM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mJwtModule dependencies initialized[39m[38;5;3m +35ms[39m
+[32m[Nest] 48836  - [39m12/07/2025, 12:18:26 PM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mCacheModule dependencies initialized[39m[38;5;3m +0ms[39m
+[90m[4mquery:[24m[39m [94mSELECT[0m [95mversion[0m[37m([0m[37m)[0m
+[90m[4mquery:[24m[39m [37mSTART[0m [37mTRANSACTION[0m
+[90m[4mquery:[24m[39m [94mSELECT[0m [94mDATABASE[0m[37m([0m[37m)[0m [94mAS[0m [37m`db_name`[0m
+[90m[4mquery:[24m[39m [94mSELECT[0m [37m`TABLE_SCHEMA`[0m[37m,[0m [37m`TABLE_NAME`[0m[37m,[0m [37m`TABLE_COMMENT`[0m [94mFROM[0m [37m`INFORMATION_SCHEMA`[0m[37m.[0m[37m`TABLES`[0m [94mWHERE[0m [37m`TABLE_SCHEMA`[0m [37m=[0m [37m'doudizhu'[0m [94mAND[0m [37m`TABLE_NAME`[0m [37m=[0m [37m'match_record'[0m [94mUNION[0m [94mSELECT[0m [37m`TABLE_SCHEMA`[0m[37m,[0m [37m`TABLE_NAME`[0m[37m,[0m [37m`TABLE_COMMENT`[0m [94mFROM[0m [37m`INFORMATION_SCHEMA`[0m[37m.[0m[37m`TABLES`[0m [94mWHERE[0m [37m`TABLE_SCHEMA`[0m [37m=[0m [37m'doudizhu'[0m [94mAND[0m [37m`TABLE_NAME`[0m [37m=[0m [37m'user'[0m
+[90m[4mquery:[24m[39m 
+                [94mSELECT[0m
+                    [37m*[0m
+                [94mFROM[0m
+                    [37m`INFORMATION_SCHEMA`[0m[37m.[0m[37m`COLUMNS`[0m
+                [94mWHERE[0m
+                    [37m`TABLE_SCHEMA`[0m [37m=[0m [37m'doudizhu'[0m
+                    [94mAND[0m
+                    [37m`TABLE_NAME`[0m [37m=[0m [37m'match_record'[0m
+                 [94mUNION[0m 
+                [94mSELECT[0m
+                    [37m*[0m
+                [94mFROM[0m
+                    [37m`INFORMATION_SCHEMA`[0m[37m.[0m[37m`COLUMNS`[0m
+                [94mWHERE[0m
+                    [37m`TABLE_SCHEMA`[0m [37m=[0m [37m'doudizhu'[0m
+                    [94mAND[0m
+                    [37m`TABLE_NAME`[0m [37m=[0m [37m'user'[0m
+                
+[90m[4mquery:[24m[39m [94mSELECT[0m [37m*[0m [94mFROM[0m [37m([0m
+                [94mSELECT[0m
+                    [37m*[0m
+                [94mFROM[0m [37m`INFORMATION_SCHEMA`[0m[37m.[0m[37m`KEY_COLUMN_USAGE`[0m [37m`kcu`[0m
+                [94mWHERE[0m
+                    [37m`kcu`[0m[37m.[0m[37m`TABLE_SCHEMA`[0m [37m=[0m [37m'doudizhu'[0m
+                    [94mAND[0m
+                    [37m`kcu`[0m[37m.[0m[37m`TABLE_NAME`[0m [37m=[0m [37m'match_record'[0m
+             [94mUNION[0m 
+                [94mSELECT[0m
+                    [37m*[0m
+                [94mFROM[0m [37m`INFORMATION_SCHEMA`[0m[37m.[0m[37m`KEY_COLUMN_USAGE`[0m [37m`kcu`[0m
+                [94mWHERE[0m
+                    [37m`kcu`[0m[37m.[0m[37m`TABLE_SCHEMA`[0m [37m=[0m [37m'doudizhu'[0m
+                    [94mAND[0m
+                    [37m`kcu`[0m[37m.[0m[37m`TABLE_NAME`[0m [37m=[0m [37m'user'[0m
+            [37m)[0m [37m`kcu`[0m [94mWHERE[0m [37m`CONSTRAINT_NAME`[0m [37m=[0m [37m'PRIMARY'[0m
+[90m[4mquery:[24m[39m 
+            [94mSELECT[0m
+                [37m`SCHEMA_NAME`[0m[37m,[0m
+                [37m`DEFAULT_CHARACTER_SET_NAME`[0m [94mas[0m [37m`CHARSET`[0m[37m,[0m
+                [37m`DEFAULT_COLLATION_NAME`[0m [94mAS[0m [37m`COLLATION`[0m
+            [94mFROM[0m [37m`INFORMATION_SCHEMA`[0m[37m.[0m[37m`SCHEMATA`[0m
+            
+[90m[4mquery:[24m[39m 
+            [94mSELECT[0m
+                [37m`s`[0m[37m.[0m[37m*[0m
+            [94mFROM[0m [37m([0m
+                [94mSELECT[0m
+                    [37m*[0m
+                [94mFROM[0m [37m`INFORMATION_SCHEMA`[0m[37m.[0m[37m`STATISTICS`[0m
+                [94mWHERE[0m
+                    [37m`TABLE_SCHEMA`[0m [37m=[0m [37m'doudizhu'[0m
+                    [94mAND[0m
+                    [37m`TABLE_NAME`[0m [37m=[0m [37m'match_record'[0m
+             [94mUNION[0m 
+                [94mSELECT[0m
+                    [37m*[0m
+                [94mFROM[0m [37m`INFORMATION_SCHEMA`[0m[37m.[0m[37m`STATISTICS`[0m
+                [94mWHERE[0m
+                    [37m`TABLE_SCHEMA`[0m [37m=[0m [37m'doudizhu'[0m
+                    [94mAND[0m
+                    [37m`TABLE_NAME`[0m [37m=[0m [37m'user'[0m
+            [37m)[0m [37m`s`[0m
+            [94mLEFT JOIN[0m [37m([0m
+                [94mSELECT[0m
+                    [37m*[0m
+                [94mFROM[0m [37m`INFORMATION_SCHEMA`[0m[37m.[0m[37m`REFERENTIAL_CONSTRAINTS`[0m
+                [94mWHERE[0m
+                    [37m`CONSTRAINT_SCHEMA`[0m [37m=[0m [37m'doudizhu'[0m
+                    [94mAND[0m
+                    [37m`TABLE_NAME`[0m [37m=[0m [37m'match_record'[0m
+             [94mUNION[0m 
+                [94mSELECT[0m
+                    [37m*[0m
+                [94mFROM[0m [37m`INFORMATION_SCHEMA`[0m[37m.[0m[37m`REFERENTIAL_CONSTRAINTS`[0m
+                [94mWHERE[0m
+                    [37m`CONSTRAINT_SCHEMA`[0m [37m=[0m [37m'doudizhu'[0m
+                    [94mAND[0m
+                    [37m`TABLE_NAME`[0m [37m=[0m [37m'user'[0m
+            [37m)[0m [37m`rc`[0m
+                [94mON[0m
+                    [37m`s`[0m[37m.[0m[37m`INDEX_NAME`[0m [37m=[0m [37m`rc`[0m[37m.[0m[37m`CONSTRAINT_NAME`[0m
+                    [94mAND[0m
+                    [37m`s`[0m[37m.[0m[37m`TABLE_SCHEMA`[0m [37m=[0m [37m`rc`[0m[37m.[0m[37m`CONSTRAINT_SCHEMA`[0m
+            [94mWHERE[0m
+                [37m`s`[0m[37m.[0m[37m`INDEX_NAME`[0m [37m!=[0m [37m'PRIMARY'[0m
+                [94mAND[0m
+                [37m`rc`[0m[37m.[0m[37m`CONSTRAINT_NAME`[0m [94mIS NULL[0m
+            
+[90m[4mquery:[24m[39m 
+            [94mSELECT[0m
+                [37m`kcu`[0m[37m.[0m[37m`TABLE_SCHEMA`[0m[37m,[0m
+                [37m`kcu`[0m[37m.[0m[37m`TABLE_NAME`[0m[37m,[0m
+                [37m`kcu`[0m[37m.[0m[37m`CONSTRAINT_NAME`[0m[37m,[0m
+                [37m`kcu`[0m[37m.[0m[37m`COLUMN_NAME`[0m[37m,[0m
+                [37m`kcu`[0m[37m.[0m[37m`REFERENCED_TABLE_SCHEMA`[0m[37m,[0m
+                [37m`kcu`[0m[37m.[0m[37m`REFERENCED_TABLE_NAME`[0m[37m,[0m
+                [37m`kcu`[0m[37m.[0m[37m`REFERENCED_COLUMN_NAME`[0m[37m,[0m
+                [37m`rc`[0m[37m.[0m[37m`DELETE_RULE`[0m [37m`ON_DELETE`[0m[37m,[0m
+                [37m`rc`[0m[37m.[0m[37m`UPDATE_RULE`[0m [37m`ON_UPDATE`[0m
+            [94mFROM[0m [37m([0m
+                [94mSELECT[0m
+                    [37m*[0m
+                [94mFROM[0m [37m`INFORMATION_SCHEMA`[0m[37m.[0m[37m`KEY_COLUMN_USAGE`[0m [37m`kcu`[0m
+                [94mWHERE[0m
+                    [37m`kcu`[0m[37m.[0m[37m`TABLE_SCHEMA`[0m [37m=[0m [37m'doudizhu'[0m
+                    [94mAND[0m
+                    [37m`kcu`[0m[37m.[0m[37m`TABLE_NAME`[0m [37m=[0m [37m'match_record'[0m
+             [94mUNION[0m 
+                [94mSELECT[0m
+                    [37m*[0m
+                [94mFROM[0m [37m`INFORMATION_SCHEMA`[0m[37m.[0m[37m`KEY_COLUMN_USAGE`[0m [37m`kcu`[0m
+                [94mWHERE[0m
+                    [37m`kcu`[0m[37m.[0m[37m`TABLE_SCHEMA`[0m [37m=[0m [37m'doudizhu'[0m
+                    [94mAND[0m
+                    [37m`kcu`[0m[37m.[0m[37m`TABLE_NAME`[0m [37m=[0m [37m'user'[0m
+            [37m)[0m [37m`kcu`[0m
+            [94mINNER JOIN[0m [37m([0m
+                [94mSELECT[0m
+                    [37m*[0m
+                [94mFROM[0m [37m`INFORMATION_SCHEMA`[0m[37m.[0m[37m`REFERENTIAL_CONSTRAINTS`[0m
+                [94mWHERE[0m
+                    [37m`CONSTRAINT_SCHEMA`[0m [37m=[0m [37m'doudizhu'[0m
+                    [94mAND[0m
+                    [37m`TABLE_NAME`[0m [37m=[0m [37m'match_record'[0m
+             [94mUNION[0m 
+                [94mSELECT[0m
+                    [37m*[0m
+                [94mFROM[0m [37m`INFORMATION_SCHEMA`[0m[37m.[0m[37m`REFERENTIAL_CONSTRAINTS`[0m
+                [94mWHERE[0m
+                    [37m`CONSTRAINT_SCHEMA`[0m [37m=[0m [37m'doudizhu'[0m
+                    [94mAND[0m
+                    [37m`TABLE_NAME`[0m [37m=[0m [37m'user'[0m
+            [37m)[0m [37m`rc`[0m
+                [94mON[0m
+                    [37m`rc`[0m[37m.[0m[37m`CONSTRAINT_SCHEMA`[0m [37m=[0m [37m`kcu`[0m[37m.[0m[37m`CONSTRAINT_SCHEMA`[0m
+                    [94mAND[0m
+                    [37m`rc`[0m[37m.[0m[37m`TABLE_NAME`[0m [37m=[0m [37m`kcu`[0m[37m.[0m[37m`TABLE_NAME`[0m
+                    [94mAND[0m
+                    [37m`rc`[0m[37m.[0m[37m`CONSTRAINT_NAME`[0m [37m=[0m [37m`kcu`[0m[37m.[0m[37m`CONSTRAINT_NAME`[0m
+            
+[90m[4mquery:[24m[39m [94mSELECT[0m [37m*[0m [94mFROM[0m [37m`INFORMATION_SCHEMA`[0m[37m.[0m[37m`COLUMNS`[0m [94mWHERE[0m [37m`TABLE_SCHEMA`[0m [37m=[0m [37m'doudizhu'[0m [94mAND[0m [37m`TABLE_NAME`[0m [37m=[0m [37m'typeorm_metadata'[0m
+[90m[4mquery:[24m[39m [94mCOMMIT[0m
+[32m[Nest] 48836  - [39m12/07/2025, 12:18:26 PM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mAppModule dependencies initialized[39m[38;5;3m +43ms[39m
+[32m[Nest] 48836  - [39m12/07/2025, 12:18:26 PM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mTypeOrmCoreModule dependencies initialized[39m[38;5;3m +0ms[39m
+[32m[Nest] 48836  - [39m12/07/2025, 12:18:26 PM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mTypeOrmModule dependencies initialized[39m[38;5;3m +0ms[39m
+[32m[Nest] 48836  - [39m12/07/2025, 12:18:26 PM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mTypeOrmModule dependencies initialized[39m[38;5;3m +0ms[39m
+[32m[Nest] 48836  - [39m12/07/2025, 12:18:26 PM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mMatchModule dependencies initialized[39m[38;5;3m +0ms[39m
+[32m[Nest] 48836  - [39m12/07/2025, 12:18:26 PM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mUserModule dependencies initialized[39m[38;5;3m +1ms[39m
+[32m[Nest] 48836  - [39m12/07/2025, 12:18:26 PM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mGameModule dependencies initialized[39m[38;5;3m +0ms[39m
+[32m[Nest] 48836  - [39m12/07/2025, 12:18:26 PM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mAuthModule dependencies initialized[39m[38;5;3m +0ms[39m
+[32m[Nest] 48836  - [39m12/07/2025, 12:18:26 PM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mRoomModule dependencies initialized[39m[38;5;3m +0ms[39m
+✅ Swagger UI available at: http://localhost:3001/api-docs
+[32m[Nest] 48836  - [39m12/07/2025, 12:18:26 PM [32m    LOG[39m [38;5;3m[GameGateway] [39m[32mGame Loop started[39m
+[32m[Nest] 48836  - [39m12/07/2025, 12:18:26 PM [32m    LOG[39m [38;5;3m[WebSocketsController] [39m[32mGameGateway subscribed to the "join_room" message[39m[38;5;3m +0ms[39m
+[32m[Nest] 48836  - [39m12/07/2025, 12:18:26 PM [32m    LOG[39m [38;5;3m[WebSocketsController] [39m[32mGameGateway subscribed to the "toggle_ready" message[39m[38;5;3m +0ms[39m
+[32m[Nest] 48836  - [39m12/07/2025, 12:18:26 PM [32m    LOG[39m [38;5;3m[WebSocketsController] [39m[32mGameGateway subscribed to the "client_action" message[39m[38;5;3m +0ms[39m
+[32m[Nest] 48836  - [39m12/07/2025, 12:18:26 PM [32m    LOG[39m [38;5;3m[WebSocketsController] [39m[32mRoomGateway subscribed to the "join_room" message[39m[38;5;3m +1ms[39m
+[32m[Nest] 48836  - [39m12/07/2025, 12:18:26 PM [32m    LOG[39m [38;5;3m[WebSocketsController] [39m[32mRoomGateway subscribed to the "leave_room" message[39m[38;5;3m +0ms[39m
+[32m[Nest] 48836  - [39m12/07/2025, 12:18:26 PM [32m    LOG[39m [38;5;3m[WebSocketsController] [39m[32mRoomGateway subscribed to the "kick_player" message[39m[38;5;3m +0ms[39m
+[32m[Nest] 48836  - [39m12/07/2025, 12:18:26 PM [32m    LOG[39m [38;5;3m[WebSocketsController] [39m[32mRoomGateway subscribed to the "toggle_ready" message[39m[38;5;3m +0ms[39m
+[32m[Nest] 48836  - [39m12/07/2025, 12:18:26 PM [32m    LOG[39m [38;5;3m[WebSocketsController] [39m[32mRoomGateway subscribed to the "request_rematch" message[39m[38;5;3m +0ms[39m
+[32m[Nest] 48836  - [39m12/07/2025, 12:18:26 PM [32m    LOG[39m [38;5;3m[RoutesResolver] [39m[32mAppController {/}:[39m[38;5;3m +0ms[39m
+[32m[Nest] 48836  - [39m12/07/2025, 12:18:26 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/, GET} route[39m[38;5;3m +1ms[39m
+[32m[Nest] 48836  - [39m12/07/2025, 12:18:26 PM [32m    LOG[39m [38;5;3m[RoutesResolver] [39m[32mHealthController {/health}:[39m[38;5;3m +0ms[39m
+[32m[Nest] 48836  - [39m12/07/2025, 12:18:26 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/health, GET} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 48836  - [39m12/07/2025, 12:18:26 PM [32m    LOG[39m [38;5;3m[RoutesResolver] [39m[32mAuthController {/auth}:[39m[38;5;3m +0ms[39m
+[32m[Nest] 48836  - [39m12/07/2025, 12:18:26 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/auth/guest-login, POST} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 48836  - [39m12/07/2025, 12:18:26 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/auth/register, POST} route[39m[38;5;3m +1ms[39m
+[32m[Nest] 48836  - [39m12/07/2025, 12:18:26 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/auth/login, POST} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 48836  - [39m12/07/2025, 12:18:26 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/auth/me, GET} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 48836  - [39m12/07/2025, 12:18:26 PM [32m    LOG[39m [38;5;3m[RoutesResolver] [39m[32mUserController {/user}:[39m[38;5;3m +0ms[39m
+[32m[Nest] 48836  - [39m12/07/2025, 12:18:26 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/user/:id/stats, GET} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 48836  - [39m12/07/2025, 12:18:26 PM [32m    LOG[39m [38;5;3m[RoutesResolver] [39m[32mMatchController {/matches}:[39m[38;5;3m +0ms[39m
+[32m[Nest] 48836  - [39m12/07/2025, 12:18:26 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/matches/player/:playerId, GET} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 48836  - [39m12/07/2025, 12:18:26 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/matches/:id, GET} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 48836  - [39m12/07/2025, 12:18:26 PM [32m    LOG[39m [38;5;3m[RoutesResolver] [39m[32mRoomController {/rooms}:[39m[38;5;3m +0ms[39m
+[32m[Nest] 48836  - [39m12/07/2025, 12:18:26 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/rooms, GET} route[39m[38;5;3m +1ms[39m
+[32m[Nest] 48836  - [39m12/07/2025, 12:18:26 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/rooms/:id, GET} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 48836  - [39m12/07/2025, 12:18:26 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/rooms, POST} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 48836  - [39m12/07/2025, 12:18:26 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/rooms/:id/join, POST} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 48836  - [39m12/07/2025, 12:18:26 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/rooms/:id/leave, POST} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 48836  - [39m12/07/2025, 12:18:26 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/rooms/:id/ai, POST} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 48836  - [39m12/07/2025, 12:18:26 PM [32m    LOG[39m [38;5;3m[RoomService] [39m[32mRoomService connected to Redis at localhost:6379[39m
+[32m[Nest] 48836  - [39m12/07/2025, 12:18:26 PM [32m    LOG[39m [38;5;3m[NestApplication] [39m[32mNest application successfully started[39m[38;5;3m +7ms[39m
+[31m[Nest] 48836  - [39m12/07/2025, 12:18:26 PM [31m  ERROR[39m [38;5;3m[NestApplication] [39m[31mError: listen EADDRINUSE: address already in use :::3001[39m[38;5;3m +1ms[39m
+node:net:1940
+    const ex = new UVExceptionWithHostPort(err, 'listen', address, port);
+               ^
+
+Error: listen EADDRINUSE: address already in use :::3001
+    at Server.setupListenHandle [as _listen2] (node:net:1940:16)
+    at listenInCluster (node:net:1997:12)
+    at Server.listen (node:net:2102:7)
+    at ExpressAdapter.listen (/Users/jiayulong/Documents/Games/doudizhu/backend/node_modules/@nestjs/platform-express/adapters/express-adapter.js:127:32)
+    at /Users/jiayulong/Documents/Games/doudizhu/backend/node_modules/@nestjs/core/nest-application.js:188:30
+    at new Promise (<anonymous>)
+    at NestApplication.listen (/Users/jiayulong/Documents/Games/doudizhu/backend/node_modules/@nestjs/core/nest-application.js:178:16)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async bootstrap (/Users/jiayulong/Documents/Games/doudizhu/backend/src/main.ts:58:3) {
+  code: 'EADDRINUSE',
+  errno: -48,
+  syscall: 'listen',
+  address: '::',
+  port: 3001
+}
+
+Node.js v22.20.0

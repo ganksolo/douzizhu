@@ -18,6 +18,8 @@ import { AuthService } from '../../auth/auth.service';
 import { ReconnectService } from '../../room/services/reconnect.service';
 import { AFKService } from '../../room/services/afk.service';
 import { BotService } from '../bot.service';
+import { RoomService } from '../../room/room.service';
+import { Inject, forwardRef } from '@nestjs/common';
 
 @WebSocketGateway({
     cors: {
@@ -39,6 +41,7 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect, On
         private reconnectService: ReconnectService,
         private afkService: AFKService,
         private botService: BotService,
+        @Inject(forwardRef(() => RoomService)) private roomService: RoomService,
     ) { }
 
     afterInit() {
@@ -96,7 +99,6 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect, On
     ) {
         try {
             const { roomId } = data;
-            // Use authenticated userId
             const playerId = client.data.userId;
             const username = client.data.username;
 
@@ -106,58 +108,74 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect, On
 
             client.join(roomId);
             client.data.roomId = roomId;
-            // client.data.playerId is already set as userId, but let's keep consistency if needed
             client.data.playerId = playerId;
 
             this.logger.log(`Player ${username} (${playerId}) joined room ${roomId}`);
 
+            // 1. Sync with RoomService (Redis)
+            // Note: We don't have avatar in token yet, defaulting.
+            const players = await this.roomService.joinRoom(roomId, {
+                id: playerId,
+                nickname: username,
+                avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=' + playerId
+            });
+
+            // 2. Broadcast updated list to room
+            this.server.to(roomId).emit('player_list_update', { roomId, players });
+
             // Handle Reconnect Logic
             await this.reconnectService.handleReconnect(roomId, playerId);
 
+            // Initialize Game Context if needed for state syncing
             const gameContext = this.gameManager.getOrCreateRoom(roomId);
-
-            // Setup state change callback first
             if (!gameContext.onStateChange) {
                 gameContext.onStateChange = (rid) => this.broadcastState(rid);
             }
 
-            // Try to restore from Redis first
-            await gameContext.loadSnapshot(roomId);
-
-            // If no state exists (new room or failed restore), initialize
-            if (!gameContext.currentState) {
-                this.logger.debug(`Initializing new game for room ${roomId}`);
-                gameContext.roomData.roomId = roomId;
-                gameContext.initialize();
-                this.logger.debug(`After initialize: currentState = ${gameContext.getCurrentStateName()}`);
-                // Manually trigger state transitions to ensure state is set immediately
-                // InitState.update() will transition to DealingState
-                gameContext.update(0.01);
-                this.logger.debug(`After first update: currentState = ${gameContext.getCurrentStateName()}`);
-                // DealingState.update() will transition to PlayingState  
-                gameContext.update(0.01);
-                this.logger.debug(`After second update: currentState = ${gameContext.getCurrentStateName()}`);
-            } else {
-                this.logger.debug(`Room ${roomId} already initialized, currentState = ${gameContext.getCurrentStateName()}`);
-            }
-
-            // Add player if not exists
-            const existingPlayer = gameContext.roomData.players.find(p => p.id === playerId);
-            if (!existingPlayer) {
-                gameContext.roomData.players.push({
-                    id: playerId,
-                    name: username || `User-${playerId}`,
-                    hand: [],
-                    isReady: true,
-                    seatIndex: -1
-                });
-                await gameContext.saveSnapshot();
-            }
-
-            // Always broadcast latest state when someone joins
+            // Sync GameState
             await this.broadcastState(roomId);
+
+            // Attempt to start if this join completes the table (and autostart is enabled)?
+            // Currently start is triggered by Ready.
         } catch (error) {
             this.logger.error(`Error in join_room: ${error.message}`);
+            client.emit('exception', { status: 'error', message: error.message });
+        }
+    }
+
+    @SubscribeMessage('toggle_ready')
+    async handleToggleReady(
+        @MessageBody() data: { roomId: string, isReady?: boolean },
+        @ConnectedSocket() client: Socket,
+    ) {
+        try {
+            const { roomId } = data;
+            const playerId = client.data.userId;
+            // Toggle logic: if isReady undefined, assumption is toggle? 
+            // RoomService.toggleReady requires boolean. 
+            // Let's assume the client sends the *target* state or we need to fetch current and flip.
+            // Simplified: Client should send target state. Defaults to true if missing? 
+            // Or RoomUI sends current ready state. 
+            // Let's assume true for now if not provided, or implement a fetch-flip.
+            // Better: Client should send `isReady`.
+
+            const targetState = data.isReady !== undefined ? data.isReady : true; // Default to true?
+
+            const players = await this.roomService.toggleReady(roomId, playerId, targetState);
+
+            // Broadcast update
+            this.server.to(roomId).emit('player_list_update', { roomId, players });
+
+            // Try Start Game
+            const started = await this.roomService.tryStartGame(roomId);
+            if (started) {
+                this.server.to(roomId).emit('game_start', { roomId });
+                // Also broadcast initial game state
+                await this.broadcastState(roomId);
+            }
+
+        } catch (error) {
+            this.logger.error(`Error in toggle_ready: ${error.message}`);
             client.emit('exception', { status: 'error', message: error.message });
         }
     }

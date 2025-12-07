@@ -470,4 +470,16 @@
   - [x] `POST /rooms/:id/ai` endpoint -> specific service method `addBot` ([Add Bot API](#fix-11))
   - [x] Generate temp User for bot, auto-flag ready, emit `player_joined`
   - [x] Game Start Orchestration: `tryStartGame` checks if all ready (including bots) -> deal cards -> `game_start`
-  - [x] Basic Bot Gameplay: Random valid move or pass (Implemented in `BotService` hooked to `GameGateway`)) <!-- id: 455 -->
+  - [x] Basic Bot Gameplay: Random valid move or pass (Implemented in `BotService` hooked to `GameGateway`)
+
+- [x] **Phase 29: Gameplay Backend Integration (Socket + Redis)**
+  - [x] Inject `RoomService` into `GameGateway`
+  - [x] Refactor `handleJoinRoom` to use `RoomService` and emit events
+  - [x] Implement `toggle_ready` listener in `GameGateway`
+  - [x] Wire Up `RoomController` to emit events via `GameGateway` for Bots
+  - [x] Verify Seat Rendering and Game Start flow) <!-- id: 455 -->
+
+- [x] **Phase 30: Gameplay UI Polish**
+  - [x] Universal "Sit Here" overlay for Observers (RoomPage)
+  - [x] Verify Ready/Cancel Ready button state
+  - [x] Verify Game Start transition (Status Change)

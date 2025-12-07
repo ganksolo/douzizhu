@@ -2,6 +2,7 @@ import { useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useRoomStore, type RoomPlayer } from '../store/room.store';
 import { SocketService } from '../services/socket';
+import { api } from '../services/api';
 import { useAuthStore } from '../store/auth.store';
 import { useToast } from '../components/ui/useToast';
 import { GamePage } from './GamePage';
@@ -128,11 +129,26 @@ export const RoomPage = () => {
         SocketService.emit('join_room', { roomId });
     };
 
-    const handleAddBot = () => {
-        // Emit add_bot event (as per requirement, even if BE support is pending)
-        SocketService.emit('add_bot', { roomId });
-        toast({ message: 'Requesting AI player...', type: 'info' });
+    const handleAddBot = async () => {
+        if (!roomId) return;
+        try {
+            await api.room.addBot(roomId);
+            toast({ message: 'Requesting AI player...', type: 'info' });
+        } catch (error: any) {
+            toast({ title: 'Failed to add bot', message: error.message || 'Unknown error', type: 'error' });
+        }
     };
+
+    const handleLeave = async () => {
+        if (!roomId) return;
+        try {
+            await api.room.leave(roomId);
+            navigate('/lobby');
+        } catch (error: any) {
+            console.error('Leave failed, forcing nav', error);
+            navigate('/lobby');
+        }
+    }
 
     // Derived State
     const me = players.find(p => p.userId === currentUser?.userId);
@@ -153,8 +169,8 @@ export const RoomPage = () => {
     // Render Logic
     const renderSeatWrapper = (pos: 'bottom' | 'right' | 'top' | 'left') => {
         const player = getPlayerByRelativePos(pos);
-        // Show "Sit Here" button only for Bottom position if I am not seated yet
-        const showSit = pos === 'bottom' && !me && players.length < 3;
+        // Show "Sit Here" button on empty seats if I am not seated yet
+        const showSit = !me && hasEmptySeats;
 
         return (
             <PlayerSeat
@@ -175,10 +191,10 @@ export const RoomPage = () => {
             {/* Header */}
             <div className="relative z-10 p-4 flex justify-between items-center text-white/80">
                 <button
-                    onClick={() => navigate('/lobby')}
-                    className="flex items-center gap-2 hover:text-white transition-colors bg-black/20 px-3 py-1 rounded-full backdrop-blur-sm"
+                    onClick={handleLeave}
+                    className="flex items-center gap-2 hover:text-white transition-colors bg-red-900/20 hover:bg-red-900/40 px-3 py-1 rounded-full backdrop-blur-sm"
                 >
-                    <span>&larr;</span> Lobby
+                    <span>&larr;</span> Leave
                 </button>
                 <div className="font-mono bg-black/20 px-4 py-1 rounded-full backdrop-blur-sm">
                     Room: {roomId?.slice(0, 8)} | {roomConfig?.type || 'PVP'}

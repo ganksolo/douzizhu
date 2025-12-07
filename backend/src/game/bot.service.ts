@@ -1,7 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { GameContext } from '../engine/game-context';
-import { ActionPipelineService } from '../engine/action-pipeline/action-pipeline.service';
-import { UserAction, ActionType } from '../types/game.types';
+import { GameContext } from './engine/game-context';
+import { ActionPipelineService } from './engine/action-pipeline/action-pipeline.service';
+import { UserAction, ActionType } from './types/game.types';
 
 @Injectable()
 export class BotService {
@@ -15,8 +15,8 @@ export class BotService {
      * Check if current turn is a bot and play if needed
      */
     async checkAndPlay(roomId: string, context: GameContext) {
-        const state = context.currentState;
-        if (state?.stateName !== 'playing') return;
+        const stateName = context.getCurrentStateName();
+        if (stateName !== 'PlayingState') return;
 
         // We need to access the state's internal data to know whose turn it is
         // This depends on how PlayingState exposes this info. 
@@ -52,6 +52,7 @@ export class BotService {
             // Attempt PASS
             const passAction: UserAction = {
                 type: ActionType.PASS,
+                playerId,
                 payload: {}
             };
 
@@ -70,7 +71,8 @@ export class BotService {
             if (player && player.hand.length > 0) {
                 const card = player.hand[0];
                 const playAction: UserAction = {
-                    type: ActionType.PLAY_CARD,
+                    type: ActionType.PLAY,
+                    playerId,
                     payload: { cards: [card] }
                 };
                 try {

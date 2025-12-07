@@ -596,8 +596,46 @@ Retrieves full details of a specific match, including replay actions.
 }
 ```
 
-#### 3. Ready/Unready
+#### 3. Toggle Ready
 ```json
+{
+  "type": "toggle_ready",
+  "roomId": "uuid",
+  "isReady": true
+}
+```
+
+---
+
+### Events (Server → Client)
+
+#### 1. Player List Update
+Broadcast when players join, leave, or change status.
+```json
+{
+  "type": "player_list_update",
+  "roomId": "uuid",
+  "players": [
+    {
+      "userId": "uuid",
+      "nickname": "string",
+      "avatar": "url",
+      "seat": 0,
+      "ready": boolean,
+      "online": boolean
+    }
+  ]
+}
+```
+
+#### 2. Game Start
+Broadcast when the game begins.
+```json
+{
+  "type": "game_start",
+  "roomId": "uuid"
+}
+```
 {
   "type": "toggle_ready",
   "roomId": "uuid"

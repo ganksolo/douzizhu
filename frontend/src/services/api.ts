@@ -1,4 +1,5 @@
 import axios, { type AxiosInstance, type InternalAxiosRequestConfig } from 'axios';
+import type { RoomPlayer } from '../store/room.store';
 
 // API Base URL - can be configured via environment variables
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
@@ -194,6 +195,24 @@ export const api = {
                 isPrivate: false,
             };
             const response = await apiClient.post<ApiResponse<Room>>('/rooms', payload);
+            return response.data.data;
+        },
+
+        /**
+         * Add an AI bot to the room
+         * Endpoint: POST /rooms/:roomId/ai
+         */
+        addBot: async (roomId: string): Promise<RoomPlayer> => {
+            const response = await apiClient.post<ApiResponse<RoomPlayer>>(`/rooms/${roomId}/ai`);
+            return response.data.data;
+        },
+
+        /**
+         * Leave current room
+         * Endpoint: POST /rooms/:roomId/leave
+         */
+        leave: async (roomId: string): Promise<{ message: string }> => {
+            const response = await apiClient.post<ApiResponse<{ message: string }>>(`/rooms/${roomId}/leave`);
             return response.data.data;
         },
     },

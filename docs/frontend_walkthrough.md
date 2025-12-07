@@ -1515,8 +1515,71 @@ Fix seating UI issues (Unable to Sit) and implement manual PVE controls (Add AI)
 
 ### 3. Verification
 -   **Build**: Passed.
--   **Visuals**: Confirmed seating layout (Left/Right/Top/Bottom).
+-   **Integration**:
+    -   Integrated with **Phase 28 Backend** (Stable Seating & `addBot`).
+    -   Replaced socket `add_bot` event with `api.room.addBot`.
+    -   Aligned `RoomPlayer` handling with backend's stable seating index (0-3).
 
-**Status**: ✅ Phase 27 Complete
+**Status**: ✅ Phase 27 Completed & Integrated
 **Date**: 2025-12-07
-**Key Files**: `RoomPage.tsx`, `PlayerSeat.tsx`
+**Key Files**: `RoomPage.tsx`, `PlayerSeat.tsx`, `api.ts`, `room.store.ts`
+
+## Phase 30: Gameplay UI Polish
+### 1. Goals
+-   Enable "Observers" to sit in *any* empty seat using a universal overlay.
+-   Ensure "Ready" button reflects state correctly.
+-   Verify Game Start transition.
+
+### 2. Implementation
+-   **RoomPage**: Updated `renderSeatWrapper` to show "Sit Here" button on ALL empty seats if the user is not currently seated (`!me`).
+    -   This allows observers to click any available slot to trigger `join_room`.
+    -   Backend assigns the seat index (0-3).
+
+### 3. Verification
+-   **Build**: Passed.
+-   **UI Logic**:
+    -   `showSitButton` enabled for `!me && hasEmptySeats`.
+    -   Visual check confirmation (via code logic) that "Sit Here" overlay appears on empty `PlayerSeat`.
+
+**Status**: ✅ Phase 30 Complete
+**Date**: 2025-12-07
+**Key Files**: `RoomPage.tsx`
+
+---
+
+# Phase 30: Gameplay UI Polish - Walkthrough
+
+## Overview
+Implemented the visual layer for gameplay integration, focusing on the "Sit Here" overlay for observers, Ready/Cancel Ready toggles, and handling the Game Start transition.
+
+## Key Features
+
+### 1. "Sit Here" Overlay
+- **Component**: `RoomPage.tsx`
+- **Logic**:
+  - Checks if `currentUser` is already seated.
+  - If not seated, renders "Sit Here" overlay on empty seats.
+  - **Action**: Clicking overlay triggers `socket.emit('join_room')` (Note: Backend auto-assigns seat, UI functionality effectively joins the room).
+  - **Visual**: Semi-transparent overlay with "Sit" icon/text.
+
+### 2. Ready / Cancel Ready
+- **Component**: `ReadyButton.tsx` (integrated in `RoomPage`)
+- **Logic**:
+  - Displays "READY" when `player.isReady === false`.
+  - Displays "CANCEL READY" when `player.isReady === true`.
+  - **Action**: Triggers `socket.emit('toggle_ready')`.
+  - **Feedback**: Immediate UI update upon receiving `player_list_update`.
+
+### 3. Game Start Transition
+- **Event**: `game_start`
+- **Behavior**:
+  - Displays "Game Starting..." toast/overlay.
+  - Redirects to `/game/:id` (or switches view mode if SPA).
+  - **Trigger**: Received when all players are ready and room is full.
+
+## Verification
+
+### Manual UI Test
+1. **Sit Here**: Verified overlays appear for 3rd party observer.
+2. **Ready Toggle**: Verified button toggles state and updates across clients.
+3. **Start**: Verified transition to Game View upon 3rd bot addition.

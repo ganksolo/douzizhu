@@ -52,6 +52,6 @@ import { BotService } from './bot.service';
         MatchService,
         BotService,
     ],
-    exports: [GameContext, GameManagerService, RulesService, AIService, BotService],
+    exports: [GameContext, GameManagerService, RulesService, AIService, BotService, GameGateway],
 })
 export class GameModule { }
