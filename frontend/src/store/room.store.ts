@@ -28,10 +28,10 @@ interface RoomState {
     players: RoomPlayer[];
     roomStatus: RoomStatus;
     mySeatId: number | null;
-    roomConfig: { type: 'PVP' | 'PVE'; botCount?: number } | null; // Phase 22.4 Room Config
+    roomConfig: { type: 'PVP' | 'PVE'; botCount?: number; maxPlayers?: number } | null; // Phase 22.4 Room Config
 
     // Actions
-    setRoomData: (data: { roomId: string; players: RoomPlayer[]; config?: { type: 'PVP' | 'PVE'; botCount?: number }; roomStatus: 'waiting' | 'playing' | 'finished' }) => void;
+    setRoomData: (data: { roomId: string; players: RoomPlayer[]; config?: { type: 'PVP' | 'PVE'; botCount?: number; maxPlayers?: number }; roomStatus: 'waiting' | 'playing' | 'finished' }) => void;
     updatePlayerReady: (userId: string, isReady: boolean) => void;
     addPlayer: (player: RoomPlayer) => void;
     removePlayer: (userId: string) => void;

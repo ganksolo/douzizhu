@@ -37,7 +37,7 @@ export class RoomGateway {
 
             const userId = client.handshake.auth?.userId || client.handshake.query?.userId; // Simple mock or real logic
             const nickname = client.handshake.auth?.nickname || `User-${userId}`;
-            const avatar = 'default';
+            const avatar = '';
 
             if (!userId) {
                 client.disconnect();

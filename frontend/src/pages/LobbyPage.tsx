@@ -2,7 +2,7 @@ import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useLobbyStore } from '../store/lobby.store';
 import { useAuthStore } from '../store/auth.store';
-import { SocketService } from '../services/socket';
+
 
 export const LobbyPage = () => {
     const navigate = useNavigate();
@@ -38,8 +38,8 @@ export const LobbyPage = () => {
     const handleJoinRoom = (roomId: string) => {
         console.log('[Lobby] Joining room:', roomId);
 
-        // Emit join_room event via WebSocket
-        SocketService.emit('join_room', { roomId });
+        // Emit join_room event via WebSocket - REMOVED: RoomPage handles this on mount
+        // SocketService.emit('join_room', { roomId });
 
         // Navigate to room page
         navigate(`/room/${roomId}`);

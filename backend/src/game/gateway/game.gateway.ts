@@ -94,11 +94,11 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect, On
 
     @SubscribeMessage('join_room')
     async handleJoinRoom(
-        @MessageBody() data: { roomId: string },
+        @MessageBody() data: { roomId: string; mode?: 'observe' | 'play' },
         @ConnectedSocket() client: Socket,
     ) {
         try {
-            const { roomId } = data;
+            const { roomId, mode = 'play' } = data;
             const playerId = client.data.userId;
             const username = client.data.username;
 
@@ -110,18 +110,33 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect, On
             client.data.roomId = roomId;
             client.data.playerId = playerId;
 
-            this.logger.log(`Player ${username} (${playerId}) joined room ${roomId}`);
+            this.logger.log(`Player ${username} (${playerId}) joined room ${roomId} (mode: ${mode})`);
 
-            // 1. Sync with RoomService (Redis)
-            // Note: We don't have avatar in token yet, defaulting.
-            const players = await this.roomService.joinRoom(roomId, {
-                id: playerId,
-                nickname: username,
-                avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=' + playerId
-            });
+            let players;
+            if (mode === 'observe') {
+                // Observer mode: just get player list, don't sit down
+                players = await this.roomService.getPlayers(roomId);
+            } else {
+                // Play mode: auto-sit (default behavior)
+                players = await this.roomService.joinRoom(roomId, {
+                    id: playerId,
+                    nickname: username,
+                    avatar: ''
+                });
+            }
 
-            // 2. Broadcast updated list to room
-            this.server.to(roomId).emit('player_list_update', { roomId, players });
+            // 2. Broadcast updated list to room with config
+            const meta = await this.roomService.getRoomMeta(roomId);
+            const config = meta?.config ? JSON.parse(meta.config) : {};
+            this.server.to(roomId).emit('player_list_update', { roomId, players, config });
+
+            // Broadcast specific join event only if actually seated
+            if (mode === 'play') {
+                this.server.to(roomId).emit('player_joined', {
+                    userId: playerId,
+                    username: username
+                });
+            }
 
             // Handle Reconnect Logic
             await this.reconnectService.handleReconnect(roomId, playerId);
@@ -139,6 +154,45 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect, On
             // Currently start is triggered by Ready.
         } catch (error) {
             this.logger.error(`Error in join_room: ${error.message}`);
+            client.emit('exception', { status: 'error', message: error.message });
+        }
+    }
+
+    @SubscribeMessage('sit_down')
+    async handleSitDown(
+        @MessageBody() data: { roomId: string; seatIndex: number },
+        @ConnectedSocket() client: Socket,
+    ) {
+        try {
+            const { roomId, seatIndex } = data;
+            const playerId = client.data.userId;
+            const username = client.data.username;
+
+            if (!playerId) {
+                throw new Error('User not authenticated');
+            }
+
+            this.logger.log(`Player ${username} (${playerId}) sitting at seat ${seatIndex} in room ${roomId}`);
+
+            // Sit in specific seat
+            const players = await this.roomService.joinRoom(roomId, {
+                id: playerId,
+                nickname: username,
+                avatar: ''
+            }, seatIndex);
+
+            // Broadcast updates with config
+            const meta = await this.roomService.getRoomMeta(roomId);
+            const config = meta?.config ? JSON.parse(meta.config) : {};
+            this.server.to(roomId).emit('player_list_update', { roomId, players, config });
+            this.server.to(roomId).emit('player_joined', {
+                userId: playerId,
+                username: username,
+                seat: seatIndex
+            });
+
+        } catch (error) {
+            this.logger.error(`Error in sit_down: ${error.message}`);
             client.emit('exception', { status: 'error', message: error.message });
         }
     }
@@ -161,10 +215,25 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect, On
 
             const targetState = data.isReady !== undefined ? data.isReady : true; // Default to true?
 
-            const players = await this.roomService.toggleReady(roomId, playerId, targetState);
+            const result = await this.roomService.toggleReady(roomId, playerId, targetState);
+            const { players, addedBots } = result;
 
-            // Broadcast update
-            this.server.to(roomId).emit('player_list_update', { roomId, players });
+            // Broadcast player list update with config
+            const meta = await this.roomService.getRoomMeta(roomId);
+            const config = meta?.config ? JSON.parse(meta.config) : {};
+            this.server.to(roomId).emit('player_list_update', { roomId, players: result.players, config });
+
+            // Broadcast individual player_joined events for auto-added bots
+            if (addedBots && addedBots.length > 0) {
+                for (const bot of addedBots) {
+                    this.server.to(roomId).emit('player_joined', {
+                        userId: bot.userId,
+                        username: bot.nickname,
+                        isBot: true,
+                        seat: bot.seat
+                    });
+                }
+            }
 
             // Try Start Game
             const started = await this.roomService.tryStartGame(roomId);

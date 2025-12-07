@@ -497,3 +497,21 @@
   - [x] Enhance input-normalizer.ts <!-- id: 32.3 -->
   - [x] Implement verify_game_loop.ts script <!-- id: 32.4 -->
   - [x] Execute Verification Script <!-- id: 32.5 -->
+- [x] Phase 33: PVE UI Debugging & Polish <!-- id: 33 -->
+  - [x] Fix PVE/Empty Seat Check (RoomPage.tsx) <!-- id: 33.1 -->
+  - [x] Debug "Ready" Button (Logging & Logic) <!-- id: 33.2 -->
+  - [x] Verify Auto-Start Render Trigger <!-- id: 33.3 -->
+  - [x] Verify addBot Broadcast (Backend) <!-- id: 33.4 -->
+  - [x] Fix RoomController.addBot Event Emission <!-- id: 33.5 -->
+  - [x] Verify PVE Game Start Flow <!-- id: 33.6 -->
+- [x] Phase 34: Enable 4-Player Support (Frontend) <!-- id: 34 -->
+  - [x] Update RoomPage.tsx Limit Logic <!-- id: 34.1 -->
+  - [x] Verify Layout/Position Logic <!-- id: 34.2 -->
+  - [x] Verify "Add AI" behavior for 4th player <!-- id: 34.3 -->
+- [x] Phase 35: PVE Auto-Fill and Auto-Start <!-- id: 35 -->
+  - [x] Fix PVE Room Type Display (RoomPage.tsx) <!-- id: 35.1 -->
+  - [x] Implement PVE Auto-Fill Logic (room.service.ts) <!-- id: 35.2 -->
+  - [x] Broadcast Bot Join Events (game.gateway.ts) <!-- id: 35.3 -->
+  - [x] Implement Auto-Start Logic (room.service.ts) <!-- id: 35.4 -->
+  - [x] Verify Avatar/Username Consistency <!-- id: 35.5 -->
+  - [x] Browser Testing and Verification <!-- id: 35.6 -->

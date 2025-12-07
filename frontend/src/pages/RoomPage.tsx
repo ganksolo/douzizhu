@@ -38,8 +38,12 @@ export const RoomPage = () => {
 
             // Find my seat to set perspective
             const me = data.players.find(p => p.userId === currentUser.userId);
-            if (me && typeof me.seatId === 'number') {
-                setMySeatId(me.seatId);
+            if (me) {
+                // Support both seat and seatId properties
+                const seatStr = (me as any).seat ?? me.seatId;
+                if (typeof seatStr === 'number') {
+                    setMySeatId(seatStr);
+                }
             }
 
             setRoomData({
@@ -55,8 +59,11 @@ export const RoomPage = () => {
             addPlayer(player);
             toast({ message: `${player.username} joined`, type: 'info' });
 
-            if (player.userId === currentUser.userId && typeof player.seatId === 'number') {
-                setMySeatId(player.seatId);
+            if (player.userId === currentUser.userId) {
+                const seatStr = (player as any).seat ?? player.seatId;
+                if (typeof seatStr === 'number') {
+                    setMySeatId(seatStr);
+                }
             }
         };
 
@@ -102,8 +109,8 @@ export const RoomPage = () => {
         SocketService.on('game_start', handleGameStart);
         SocketService.on('error', handleError);
 
-        // Auto Join on Mount
-        SocketService.emit('join_room', { roomId });
+        // Auto Join on Mount (as observer)
+        SocketService.emit('join_room', { roomId, mode: 'observe' });
 
         return () => {
             SocketService.off('player_list_update', handlePlayerList);
@@ -117,6 +124,12 @@ export const RoomPage = () => {
 
     // Actions
     const handleToggleReady = () => {
+        console.log('[RoomPage] Toggle Ready called');
+        console.log('[RoomPage] Socket connected?', SocketService.getConnectionStatus());
+        console.log('[RoomPage] Current user:', currentUser);
+        console.log('[RoomPage] Me object:', me);
+        console.log('[RoomPage] amIReady:', amIReady);
+        console.log('[RoomPage] Toggling ready. Current:', amIReady, 'User:', currentUser?.userId);
         SocketService.emit('toggle_ready', { roomId, isReady: !amIReady });
         // Optimistic update
         if (currentUser) {
@@ -124,9 +137,9 @@ export const RoomPage = () => {
         }
     };
 
-    const handleSit = () => {
-        // Manual trigger to join if not already (redundant if auto-join works, but good fallback)
-        SocketService.emit('join_room', { roomId });
+    const handleSit = (seatIndex: number) => {
+        console.log('[RoomPage] Sitting at seat:', seatIndex);
+        SocketService.emit('sit_down', { roomId, seatIndex });
     };
 
     const handleAddBot = async () => {
@@ -154,9 +167,10 @@ export const RoomPage = () => {
     const me = players.find(p => p.userId === currentUser?.userId);
     const amIReady = me?.isReady || false;
 
-    // Strict type check for PVE (Case sensitive based on Swagger/Interface)
-    const isPve = roomConfig?.type === 'PVE';
-    const hasEmptySeats = players.length < 3; // Hardcoded for Dou Dizhu
+    // Strict type check for PVE (Case sensitive based on Swagger/Interface) - FIXED: Now case insensitive
+    const isPve = roomConfig?.type?.toUpperCase() === 'PVE';
+    const maxSeats = roomConfig?.maxPlayers || 4;
+    const hasEmptySeats = players.length < maxSeats;
 
     // If game is playing, render GamePage
     if (roomStatus === 'playing') {
@@ -169,15 +183,22 @@ export const RoomPage = () => {
     // Render Logic
     const renderSeatWrapper = (pos: 'bottom' | 'right' | 'top' | 'left') => {
         const player = getPlayerByRelativePos(pos);
-        // Show "Sit Here" button on empty seats if I am not seated yet
-        const showSit = !me && hasEmptySeats;
+        // Calculate absolute seat index for this position
+        const mySeat = useRoomStore.getState().mySeatId ?? 0;
+        let absoluteSeatIndex = mySeat;
+        if (pos === 'right') absoluteSeatIndex = (mySeat + 1) % 4;
+        else if (pos === 'top') absoluteSeatIndex = (mySeat + 2) % 4;
+        else if (pos === 'left') absoluteSeatIndex = (mySeat + 3) % 4;
+
+        // Show "Sit Here" button on empty seats only if I am not seated yet
+        const showSit = !me && !player;
 
         return (
             <PlayerSeat
                 player={player}
                 position={pos}
                 isCurrentUser={player?.userId === currentUser?.userId}
-                onSit={handleSit}
+                onSit={() => handleSit(absoluteSeatIndex)}
                 showSitButton={showSit}
             />
         );

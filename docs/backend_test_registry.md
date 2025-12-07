@@ -1274,3 +1274,49 @@ python3 tests/qa_verification.py
 **Tri-Source Analysis**:
 - **Consistency**: All sources align. UI implements specific "Sit Here" interactions that map correctly to standard Backend Join/Ready flows defined in the Contract.
 - **Note**: "Sit Here" implies specific seat selection in UI, but Backend currently auto-assigns seats. This is an acceptable UI abstraction for now.
+
+### 5.26 Phase 33: PVE UI Support (Tri-Source Verification)
+
+**Scope**: Verify PVE game start flow, bot addition broadcast, and Ready system logic.
+**Type**: Automated E2E Script + Code Audit
+**Files**:
+- `backend/scripts/verify_pve_flow.ts`
+- `docs/phase33_bot_verification.md`
+**Last Executed**: 2025-12-07 13:59
+**Status**: ✅ **PASSED**
+
+| Test Case | Description | Method | Result |
+|-----------|-------------|--------|--------|
+| **PVE-001** | **Bot Broadcast**: `player_joined` emitted when bot sits | E2E Script | ✅ PASS |
+| **PVE-002** | **Ready Logic**: Bot auto-ready, Human toggle `isReady` | E2E Script | ✅ PASS |
+| **PVE-003** | **Start Trigger**: Game starts when Human + Bots are ready | E2E Script | ✅ PASS |
+| **PVE-004** | **Consistency**: Human receives `game_start` with valid roomId | E2E Script | ✅ PASS |
+
+**Test Execution Summary**:
+- **Total Tests**: 4
+- **Pass Rate**: 100%
+- **Notes**:
+    - Confirmed fix for Issue where bots appeared in `player_list_update` but missed `player_joined` toast.
+    - Verified `client_action` funnel is NOT blocked by bot presence.
+
+### 5.27 Phase 34: 4-Player Support (Tri-Source Verification)
+
+**Scope**: Verify 4-player room capacity, layout logic (implied), and full game start with 3 bots.
+**Type**: Automated E2E Script
+**Files**:
+- `backend/scripts/verify_4player_flow.ts`
+**Last Executed**: 2025-12-07 14:14
+**Status**: ✅ **PASSED**
+
+| Test Case | Description | Method | Result |
+|-----------|-------------|--------|--------|
+| **4P-FLOW-001** | **Capacity**: Room accepts 4 players (1 Human + 3 Bots) | E2E Script | ✅ PASS |
+| **4P-FLOW-002** | **Bot Addition**: Sequential add_bot works correctly | E2E Script | ✅ PASS |
+| **4P-FLOW-003** | **Game Start**: 4-Player game starts successfully | E2E Script | ✅ PASS |
+
+**Test Execution Summary**:
+- **Total Tests**: 3
+- **Pass Rate**: 100%
+- **Notes**:
+    - Validated that `maxPlayers: 4` is respected.
+    - Confirmed `client_action` and `sync_state` correctly handle 4 participants.

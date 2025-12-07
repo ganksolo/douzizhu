@@ -79,13 +79,6 @@ export class RoomController {
 
         const createdRoomId = await this.roomService.createRoom(roomId, userId, config);
 
-        // Auto-join the creator to the room
-        await this.roomService.joinRoom(createdRoomId, {
-            id: userId,
-            nickname: req.user.username,
-            avatar: req.user.avatar || 'default_avatar'
-        });
-
         return {
             success: true,
             data: {
@@ -93,7 +86,7 @@ export class RoomController {
                 ...config,
                 hostId: userId,
                 status: 'waiting',
-                currentPlayers: 1
+                currentPlayers: 0  // No players seated yet
             }
         };
     }
@@ -113,7 +106,7 @@ export class RoomController {
         const players = await this.roomService.joinRoom(roomId, {
             id: req.user.userId,
             nickname: req.user.username,
-            avatar: req.user.avatar || 'default_avatar'
+            avatar: req.user.avatar || '' // FIX: Empty string for frontend fallback
         });
 
         return {
@@ -140,9 +133,17 @@ export class RoomController {
 
         // Emit events via Socket
         // 1. Notify room of new player (Bot)
+        // Emit list update (full state)
         this.gameGateway.server.to(roomId).emit('player_list_update', {
             roomId,
             players: await this.roomService.getPlayers(roomId)
+        });
+
+        // Emit specific join event (for notifications)
+        this.gameGateway.server.to(roomId).emit('player_joined', {
+            userId: bot.userId,
+            username: bot.nickname,
+            isBot: true
         });
 
         // 2. Try Start Game
