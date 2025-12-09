@@ -11,6 +11,7 @@ import { MatchModule } from './game/match/match.module';
 import { UserModule } from './user/user.module';
 import { AuthModule } from './auth/auth.module';
 import { RoomModule } from './room/room.module';
+import { LangfuseModule } from './langfuse/langfuse.module';
 
 import { ScheduleModule } from '@nestjs/schedule';
 
@@ -22,6 +23,7 @@ import { ScheduleModule } from '@nestjs/schedule';
     UserModule,
     AuthModule,
     RoomModule,
+    LangfuseModule,
     // Environment configuration
     ConfigModule.forRoot({
       isGlobal: true,

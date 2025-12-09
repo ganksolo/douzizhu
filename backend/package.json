@@ -20,6 +20,9 @@
     "test:e2e": "jest --config ./test/jest-e2e.json"
   },
   "dependencies": {
+    "@langfuse/client": "^4.4.9",
+    "@langfuse/otel": "^4.4.9",
+    "@langfuse/tracing": "^4.4.9",
     "@nestjs/cache-manager": "^3.0.1",
     "@nestjs/common": "^11.0.1",
     "@nestjs/config": "^4.0.2",
@@ -32,6 +35,7 @@
     "@nestjs/swagger": "^11.2.3",
     "@nestjs/typeorm": "^11.0.0",
     "@nestjs/websockets": "^11.1.9",
+    "@opentelemetry/sdk-node": "^0.208.0",
     "@types/bcryptjs": "^2.4.6",
     "bcryptjs": "^3.0.3",
     "cache-manager": "^7.2.5",

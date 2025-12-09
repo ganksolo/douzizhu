@@ -1,3 +1,4 @@
+import "./instrumentation"; // Must be the first import - Langfuse OTEL setup
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { SwaggerModule } from '@nestjs/swagger';

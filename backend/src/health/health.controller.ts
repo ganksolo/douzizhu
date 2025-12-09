@@ -4,6 +4,7 @@ import { InjectConnection } from '@nestjs/typeorm';
 import { Connection } from 'typeorm';
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import type { Cache } from 'cache-manager';
+import { LangfuseService } from '../langfuse/langfuse.service';
 
 @Controller('health')
 export class HealthController {
@@ -11,6 +12,7 @@ export class HealthController {
         @InjectConnection() private connection: Connection,
         @Inject(CACHE_MANAGER) private cacheManager: Cache,
         private configService: ConfigService,
+        private langfuseService: LangfuseService,
     ) { }
 
     @Get()
@@ -83,6 +85,45 @@ export class HealthController {
                 status: 'error',
                 type: 'redis',
                 message: error.message,
+            };
+        }
+    }
+
+    @Get('langfuse')
+    async checkLangfuse() {
+        const baseUrl = this.configService.get('LANGFUSE_BASE_URL');
+        const hasSecretKey = !!this.configService.get('LANGFUSE_SECRET_KEY');
+        const hasPublicKey = !!this.configService.get('LANGFUSE_PUBLIC_KEY');
+
+        if (!hasSecretKey || !hasPublicKey) {
+            return {
+                status: 'not_configured',
+                message: 'Langfuse API keys not found in environment variables',
+                config: { baseUrl, hasSecretKey, hasPublicKey },
+            };
+        }
+
+        try {
+            // 发送测试 trace
+            const result = await this.langfuseService.trace(
+                'health-check-trace',
+                { test: true, timestamp: new Date().toISOString() },
+                async () => {
+                    return { success: true, message: 'Langfuse trace test completed' };
+                }
+            );
+
+            return {
+                status: 'ok',
+                message: 'Langfuse integration working! Check your Langfuse UI for the trace.',
+                config: { baseUrl, hasSecretKey, hasPublicKey },
+                traceResult: result,
+            };
+        } catch (error) {
+            return {
+                status: 'error',
+                message: error.message,
+                config: { baseUrl, hasSecretKey, hasPublicKey },
             };
         }
     }
