@@ -1,87 +1,211 @@
-# Project Constitution — L0 Global Rules (v7)
-Repository: https://github.com/ganksolo/douzizhu.git
-Version: v7 — Merged (Context-Rich & AI-Optimized)
+# PROJECT RULES (L0 CONSTITUTION)
+全项目共享的唯一工程约束源（Single Source of Truth）。  
+所有 Agent（FE / BE / QA）必须严格继承并遵守本文件。
 
-# 1. Core Purpose & Triggers (核心宗旨与触发器)
+---
 
-本文件是全项目最高优先级规则（L0），定义了 **FE/BE/QA Agent** 的协作宪法。
-所有 Agent 必须严格遵守，**未写入本文档的事实视为不存在**。
+# ============================================================================
+# 1. GLOBAL PRINCIPLES —— 全局原则
+# ============================================================================
 
-## 1.1 Action Triggers (全局指令)
-当用户输入以下任意指令时，Agent 必须立即执行完整 **DoD (Definition of Done)** 流程：
-- **"DoD"**
-- **"Sync"**
-- **"完成"** / **"交付"**
+principles:
+  - "规则优先于指令；指令优先于推断；不得自我扩展行为。"
+  - "Agent 只能在白名单范围内执行行为。"
+  - "工程事实必须可验证、可重建、可复现。"
+  - "上下游协作（FE ↔ BE ↔ QA）必须基于一致的契约与文档。"
+  - "所有输出必须结构化、可追踪、可比对。"
 
-# 2. File Autonomy Model (文件自治域模型)
+language:
+  - "所有输出使用简体中文。"
+  - "严禁加入寒暄、教学语气、解释性废话。"
 
-为了防止上下文冲突，项目划分为严格的自治域。Agent 只能修改自己领域内的文件。
+---
 
-| Domain (自治域) | 核心职责 | ✅ Write Access (允许写入/修改) | ❌ Read-Only (严禁修改) |
-| :--- | :--- | :--- | :--- |
-| **FE Domain** | UI, 交互, 状态渲染 | **`src/frontend/**/*`** (代码)<br>`docs/frontend_walkthrough.md`<br>`docs/ws_events.md` | `src/backend/*`<br>`docs/api_spec.md` |
-| **BE Domain** | API, 逻辑, 数据存储 | **`src/backend/**/*`** (代码)<br>`docs/phase{1[5-9],[2-9]*}*.md` (工程事实)<br>`docs/api_spec.md`<br>`docs/openapi.yaml` | `src/frontend/*`<br>`docs/frontend_walkthrough.md`<br>`docs/backend_test_registry.md` |
-| **QA Domain** | 验证, Bug 路由 | **`test/**/*`** (测试代码)<br>`docs/backend_test_registry.md`<br>`task.md` (Issue 管理) | **`src/**/*` (严禁改产品代码)**<br>严禁直接修复 Bug |
-| **Shared Domain**| 协作与规划 | `task.md`<br>`implementation_plan.md`<br>`docs/product_features.md` | `project_rules.md` (宪法) |
+# ============================================================================
+# 2. FILE SYSTEM RULES —— 文件写入白名单 / 黑名单
+# ============================================================================
 
-# 3. Execution SOP (写入前必须执行)
+allowed_writes:
+  FE:
+    - "src/frontend/**"
+    - "docs/frontend_walkthrough.md"
+    - "task.md"
 
-在修改任何 **Shared Domain** 或 **Critical Docs (如 api_spec)** 前，必须执行 SOP：
+  BE:
+    - "src/backend/**"
+    - "docs/phase{number}_*.md"
+    - "docs/api_spec.md（契约）"
+    - "docs/openapi.yaml（契约）"
+    - "task.md"
 
-1.  **Plan**: 列出将要修改的文件路径列表。
-2.  **Reason**: 解释修改原因。
-3.  **Action**: 说明是 Append (追加)、Replace (替换) 还是 Rewrite (重写)。
-4.  **Confirm**: **必须等待用户确认“执行”后**，方可写入。
+  QA:
+    - "bug reports（通过 MCP 创建 GitHub issue）"
+    - "不得写入代码或工程事实文件"
 
-# 4. Bug Routing System (缺陷分类与分发) [来自 V3]
+forbidden_writes:
+  - "不得创建未定义的目录或文件类型"
+  - "不得修改他人领域的工程事实"
+  - "不得写入 .env / 配置密钥类文件"
+  - "不得修改 git 历史、版本标签等"
+  - "不得输出未被允许的 PhaseDoc 或 Walkthrough"
 
-QA Agent 必须将问题归类为以下 4 类，并指派给对应 Agent：
+---
 
-| Bug 类别 | 描述 | 责任方 (Assignee) |
-| :--- | :--- | :--- |
-| **FE_bug** | UI 渲染、交互逻辑、前端状态错误 | **FE Agent** |
-| **BE_bug** | API 逻辑、数据库、Redis、纯后端 Crash | **BE Agent** |
-| **DevOps_bug** | Docker 启动、环境配置、端口冲突 | **DevOps Agent** |
-| **Contract_bug** | **前后端字段/结构/协议不一致** | **BE Agent (主责)** |
+# ============================================================================
+# 3. TASK MANAGEMENT —— 任务管理（唯一待办系统）
+# ============================================================================
 
-# 5. Workflow: Contract_bug Resolution (核心流程)
+task_management:
+  principles:
+    - "task.md 是全项目唯一的 TODO 清单。"
+    - "任何 Feature 执行前必须拆解 TODO，并写入 task.md。"
+    - "所有任务必须标记状态：Pending / In Progress / Completed。"
+    - "Feature 完成后必须更新对应任务状态为 Completed。"
 
-**规则：Contract_bug 必须由 BE 先修，FE 后同步。**
+  fe_requirements:
+    - "FE Feature 必须写入 TODO 至 task.md。"
+    - "必须执行属于当前 Feature 的所有 TODO。"
 
-1.  **QA**: 标记 Issue 为 `Contract_bug` -> Assign to **BE**.
-2.  **BE**:
-    * 修复后端代码 & API。
-    * 更新 `api_spec.md` 和 `docs/phase{number}_{module}.md` 文档。
-    * 标记 Issue: **"Ready for FE Sync"**.
-3.  **FE**:
-    * 根据新 Spec 同步前端数据模型/UI。
-    * 更新 `frontend_walkthrough.md`。
-    * 标记 Issue: **"Ready for QA"**.
-4.  **QA**: 执行回归测试 -> 标记 **Verified/Closed**.
+  be_requirements:
+    - "BE Feature 必须写入 TODO 至 task.md。"
+    - "必须执行属于当前 Feature 的所有 TODO。"
 
-# 6. Definition of Done (DoD)
+  bugfix_requirements:
+    - "修复 bug 时必须更新 task.md 任务条目状态（如存在）。"
 
-任何任务（Feature 或 Bug Fix）交付前，必须检查以下清单。未完成即视为无效交付。
+---
 
-### 6.1 文档更新 (Document Updates)
-- [ ] **Task**: 更新 `task.md` 状态。
-- [ ] **Architecture**: 若架构变动，更新 `implementation_plan.md`。
-- [ ] **Product**: 若功能变动，更新 `docs/product_features.md`。
-- [ ] **BE Facts**: (后端任务) 
-    - 必须更新 `docs/api_spec.md`和`docs/openapi.yaml`
-    - 必须产出 `docs/docs/phase{number}_{module}.md`
-- [ ] **FE Facts**: (前端任务) 必须更新 `docs/frontend_walkthrough.md` 和 `ws_events.md`。
+# ============================================================================
+# 4. CONTRACT SYNC —— 契约一致性（api_spec.md ↔ openapi.yaml）
+# ============================================================================
 
-### 6.2 质量检查 (Quality Check)
-- [ ] **Tests**: QA 已更新 `backend_test_registry.md`。
-- [ ] **Dependency**: 确认没有破坏上游文档依赖。
-- [ ] **Autonomy**: 确认没有越权修改其他 Domain 的文件。
+contract_sync:
+  principles:
+    - "api_spec.md 与 openapi.yaml 必须保持 100% 同步。"
+    - "任一文件更新，另一文件必须同时更新。"
+    - "不一致视为 Contract_bug。"
 
-# 7. Global Constraints (绝对禁令)
+  be_responsibilities:
+    - "Feature 或 Bugfix 如涉及 API 变化 → 必须同时更新两份契约文件。"
+    - "不得只更新其中一个文件。"
 
-1.  **严禁跨域写入**：FE 不得改后端代码，QA 不得改产品代码。
-2.  **严禁幻觉修复**：QA 只能报 Bug，不能直接在测试报告里写“修复代码”。
-3.  **严禁无文档交付**：代码变了，文档没变 = **拒绝接收**。
-4.  **宪法不可变**：严禁 AI 修改 `project_rules.md`。
+  fe_responsibilities:
+    - "FE 不得修改契约，只能消费契约。"
 
-# END
+  qa_responsibilities:
+    - "验证契约文件与实际响应一致；不一致即创建 Contract_bug issue。"
+
+---
+
+# ============================================================================
+# 5. ENGINEERING FACTS —— 工程事实规则
+# ============================================================================
+
+engineering_facts:
+  fe_facts:
+    - "FE 必须在执行 Feature 时更新 docs/frontend_walkthrough.md。"
+    - "Walkthrough 必须描述：UI 行为、状态变化、关键渲染逻辑。"
+
+  be_facts:
+    - "BE 必须为每个 Feature 生成 PhaseDoc：docs/phase{number}_*.md。"
+    - "PhaseDoc 必须包含：数据流、业务逻辑、契约变更、接口行为。"
+
+  invariants:
+    - "工程事实必须只记录本次 Feature 的真实实现情况。"
+    - "不得伪造、不准省略、不准跨领域撰写工程事实。"
+
+---
+
+# ============================================================================
+# 6. DOMAIN BOUNDARIES —— 领域边界（权限隔离）
+# ============================================================================
+
+FE_domain:
+  allowed:
+    - "编写前端代码"
+    - "渲染契约/数据"
+    - "更新 walkthrough 文档"
+    - "维护 task.md 中 FE 条目"
+
+  forbidden:
+    - "修改 BE 代码"
+    - "创建 PhaseDoc"
+    - "修改 API 契约文件"
+    - "自行定义后端行为"
+
+BE_domain:
+  allowed:
+    - "编写后端代码"
+    - "生成 PhaseDoc"
+    - "修改契约文件（需同步两份）"
+    - "维护 task.md 中 BE 条目"
+
+  forbidden:
+    - "修改前端代码"
+    - "修改 frontend_walkthrough.md"
+
+QA_domain:
+  allowed:
+    - "执行测试"
+    - "创建 bug issue"
+  forbidden:
+    - "修复 bug"
+    - "编写工程事实"
+    - "修改任何代码文件"
+
+---
+
+# ============================================================================
+# 7. OUTPUT RULES —— 输出要求
+# ============================================================================
+
+output_rules:
+  - "所有输出必须结构化（YAML / Markdown / Diff）。"
+  - "不得包含寒暄、解释性内容、教学语言。"
+  - "必须使用明确字段名，禁止自由描述。"
+  - "Diff 必须可直接应用于代码。"
+
+---
+
+# ============================================================================
+# 8. SAFETY & CONSISTENCY —— 安全与一致性
+# ============================================================================
+
+safety:
+  - "不得生成虚构 API。"
+  - "不得篡改已有事实。"
+  - "不得扩展需求。"
+  - "不得自动创建新依赖，除非明确要求。"
+
+consistency:
+  - "工程事实必须可验证。"
+  - "契约文件必须同步。"
+  - "task.md 必须反映真实进度。"
+
+---
+
+# ============================================================================
+# 9. SOP —— 标准操作流程（FE / BE / QA 共享）
+# ============================================================================
+
+sop:
+  feature_execution:
+    - "解析需求 → 拆解 TODO → 写入 task.md。"
+    - "执行对应领域代码。"
+    - "产出工程事实（Walkthrough / PhaseDoc）。"
+    - "更新 task.md 状态。"
+
+  contract_update:
+    - "修改 api_spec.md。"
+    - "同步修改 openapi.yaml。"
+    - "记录在 PhaseDoc 中。"
+
+  qa_process:
+    - "依据 Walkthrough + PhaseDoc + 契约执行测试。"
+    - "任何异常 → 创建对应类型的 bug issue。"
+
+---
+
+# ============================================================================
+# END OF PROJECT RULES (L0)
+# ============================================================================
