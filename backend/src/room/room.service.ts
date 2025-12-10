@@ -319,7 +319,7 @@ export class RoomService implements OnModuleInit, OnModuleDestroy {
             isReady: true,
             role: undefined,
             handCount: 0,
-            isBot: p.isBot || false,
+            isRobot: p.isBot || false,
             seatIndex: p.seat
         }));
 

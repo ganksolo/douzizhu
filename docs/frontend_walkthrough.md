@@ -1583,3 +1583,65 @@ Implemented the visual layer for gameplay integration, focusing on the "Sit Here
 1. **Sit Here**: Verified overlays appear for 3rd party observer.
 2. **Ready Toggle**: Verified button toggles state and updates across clients.
 3. **Start**: Verified transition to Game View upon 3rd bot addition.
+
+---
+
+# Fix 12: Issue #21 - handCount Hardcoding
+
+## Overview
+修复 GameBoard 中对手玩家手牌数量 `handCount` 使用硬编码值 `17` 的问题，改为从后端 `sync_state` 返回的 `players` 数据中动态读取。
+
+## Root Cause
+- `GameBoard.tsx` 中三处 `PlayerAvatar` 组件的 `handCount` prop 使用硬编码值 `17`
+- 后端 `StateSerializer` 已正确返回 `handCount`
+- `game.store.ts` 已定义 `GamePlayer.handCount` 接口
+
+## Fix Applied
+
+### File: `frontend/src/components/game/GameBoard.tsx`
+
+**Changes:**
+1. 从 `useGameStore` 获取 `gamePlayers` 状态
+2. 创建 `getPlayerHandCount(seatId)` helper 函数
+3. 将三处硬编码替换为动态值
+
+```diff
++ const gamePlayers = useGameStore((state) => state.players);
+
++ // Helper to get player hand count from game store
++ const getPlayerHandCount = (seatId: number | undefined): number => {
++     if (seatId === undefined) return 0;
++     const gamePlayer = gamePlayers.find(p => p.seatIndex === seatId);
++     return gamePlayer?.handCount ?? 0;
++ };
+
+- handCount={17} // Sync later
++ handCount={getPlayerHandCount(topPlayer.seatId)}
+
+- handCount={17}
++ handCount={getPlayerHandCount(leftPlayer.seatId)}
+
+- handCount={17}
++ handCount={getPlayerHandCount(rightPlayer.seatId)}
+```
+
+## Data Flow
+```
+Backend StateSerializer
+    ↓ (sync_state event)
+game.store.ts (setSyncState)
+    ↓ (players array with handCount)
+GameBoard.tsx (getPlayerHandCount)
+    ↓
+PlayerAvatar (renders count)
+```
+
+## Verification
+- [ ] 进入游戏房间，开始游戏
+- [ ] 观察对手玩家头像下方的手牌数量
+- [ ] 验证：数值随玩家出牌动态减少
+
+**Status**: ✅ Fix Applied
+**Date**: 2025-12-10
+**Key Files**: `GameBoard.tsx`
+

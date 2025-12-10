@@ -62,11 +62,23 @@ export class StateSerializer {
         };
         const phase = phaseMap[currentStateName] || 'UNKNOWN';
 
-        // 5. Add metadata with currentTurn and phase
+        // 5. Convert currentTurn from playerId to seatIndex
+        let currentTurnSeatIndex: number | null = null;
+        if (sanitizedData.currentTurn != null) {
+            // Use String() to handle type mismatch (currentTurn may be number or string)
+            const currentPlayer = sanitizedData.players.find(
+                (p: Player) => String(p.id) === String(sanitizedData.currentTurn)
+            );
+            if (currentPlayer) {
+                currentTurnSeatIndex = currentPlayer.seatIndex;
+            }
+        }
+
+        // 6. Add metadata with currentTurn (as seatIndex) and phase
         return {
             ...sanitizedData,
             currentState: currentStateName,
-            currentTurn: sanitizedData.currentTurn || null,  // Expose currentTurn from roomData
+            currentTurn: currentTurnSeatIndex,  // Now seatIndex (0-3) instead of playerId
             phase: phase,  // Derived phase name
             timestamp: Date.now(),
         };

@@ -552,3 +552,15 @@
   - [x] Fix Card style (remove corner flowers) <!-- id: 41.1 -->
   - [x] Fix Avatar inconsistency (pass avatar prop) <!-- id: 41.2 -->
   - [x] Fix Missing Buttons (reactive mySeatId sync) <!-- id: 41.3 -->
+- [x] Fix 12: Resolve Issue #21 (handCount Hardcoding) <!-- id: 42 -->
+  - [x] Add gamePlayers selector from game.store <!-- id: 42.1 -->
+  - [x] Create getPlayerHandCount helper function <!-- id: 42.2 -->
+  - [x] Replace hardcoded handCount={17} with dynamic values <!-- id: 42.3 -->
+- [x] Fix 13: Resolve Issue #22 (AI Bot 未自动出牌) <!-- id: 43 -->
+  - [x] 根因分析：isBot 与 isRobot 字段名不匹配 <!-- id: 43.1 -->
+  - [x] 修复 RoomService.tryStartGame 字段映射 <!-- id: 43.2 -->
+  - [x] 修复 StateSerializer currentTurn: playerId → seatIndex <!-- id: 43.3 -->
+  - [x] 修复 StateSerializer 类型比较: String() 转换 <!-- id: 43.4 -->
+
+
+

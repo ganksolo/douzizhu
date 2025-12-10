@@ -1320,3 +1320,88 @@ python3 tests/qa_verification.py
 - **Notes**:
     - Validated that `maxPlayers: 4` is respected.
     - Confirmed `client_action` and `sync_state` correctly handle 4 participants.
+
+### 5.28 Phase 35: HandCount Data Source Verification
+
+**Scope**: Verify opponent `handCount` displays backend data, not hardcoded values.
+**Type**: Code Audit + Contract Verification
+**Files**:
+- `frontend/src/components/game/GameBoard.tsx`
+- `frontend/src/store/game.store.ts`
+- `backend/src/game/services/state-serializer.service.ts`
+- `docs/ws_events.md`
+**Last Executed**: 2025-12-10
+**Status**: ✅ **PASSED** (Issue #21 Fixed & Verified)
+
+| Test Case | Description | Method | Result |
+|-----------|-------------|--------|--------|
+| **HAND-001** | **Backend Contract**: `sync_state.players[].handCount` defined | Doc Review | ✅ PASS |
+| **HAND-002** | **Backend Implementation**: `StateSerializer` returns `handCount` | Code Audit | ✅ PASS |
+| **HAND-003** | **Frontend Store**: `GamePlayer.handCount` field defined | Code Audit | ✅ PASS |
+| **HAND-004** | **Frontend Rendering**: `GameBoard` uses store `handCount` | Code Audit | ✅ PASS |
+
+**Fix Details** (Issue #21):
+- **Issue**: [#21](https://github.com/ganksolo/douzizhu/issues/21) - **CLOSED**
+- **Fix Date**: 2025-12-10
+- **Changes**:
+    - Added `gamePlayers` selector from `useGameStore` (Line 47)
+    - Added `getPlayerHandCount(seatId)` helper function (Lines 57-61)
+    - Updated TOP/LEFT/RIGHT `PlayerAvatar` to use dynamic `handCount` (Lines 266, 280, 294)
+
+**Fix Code**:
+```tsx
+// Line 47: Get gamePlayers from store
+const gamePlayers = useGameStore((state) => state.players);
+
+// Lines 57-61: Helper function
+const getPlayerHandCount = (seatId: number | undefined): number => {
+    if (seatId === undefined) return 0;
+    const gamePlayer = gamePlayers.find(p => p.seatIndex === seatId);
+    return gamePlayer?.handCount ?? 0;
+};
+
+// Lines 266, 280, 294: Dynamic values
+handCount={getPlayerHandCount(topPlayer.seatId)}
+handCount={getPlayerHandCount(leftPlayer.seatId)}
+handCount={getPlayerHandCount(rightPlayer.seatId)}
+```
+
+**Test Execution Summary**:
+- **Total Tests**: 4
+- **Pass Rate**: 100% (4/4)
+- **Blockers**: None
+
+### 5.29 Phase 23.5.5: GameBoard UI Regression Test (LastPlayedCards)
+
+**Scope**: Verify GameBoard UI renders correctly and lastPlayedCards displays in correct position.
+**Type**: Browser E2E Test
+**Files**:
+- `frontend/src/components/game/GameBoard.tsx`
+- `frontend/src/store/game.store.ts`
+**Last Executed**: 2025-12-10
+**Status**: 🟡 **PARTIAL** (UI PASS, AI Logic Blocked)
+
+| Test Case | Description | Method | Result |
+|-----------|-------------|--------|--------|
+| **UI-001** | **Guest Login**: Successfully login as guest | Browser | ✅ PASS |
+| **UI-002** | **PVE Room Creation**: Create Solo Practice room | Browser | ✅ PASS |
+| **UI-003** | **Fill AI**: Add 3 AI bots to room | Browser | ✅ PASS |
+| **UI-004** | **Game Start**: Auto-start after Ready | Browser | ✅ PASS |
+| **UI-005** | **GameBoard Render**: Hand cards, avatars, dipai, buttons | Browser | ✅ PASS |
+| **UI-006** | **handCount Display**: Opponent handCount shows 25 | Browser | ✅ PASS |
+| **UI-007** | **lastPlayedCards Display**: Cards appear in correct position | Browser | 🟡 BLOCKED |
+
+**Blocking Issue**:
+- **Issue**: [#22](https://github.com/ganksolo/douzizhu/issues/22)
+- **Type**: BE_Bug
+- **Problem**: AI Bot does not auto-play in PVE game
+- **Impact**: Cannot verify lastPlayedCards UI rendering
+
+**Test Recording**: 
+- `phase_23_5_5_test_1765333790486.webp`
+
+**Test Execution Summary**:
+- **Total Tests**: 7
+- **Pass Rate**: 86% (6/7)
+- **Blockers**: 1 BE Bug (Issue #22 - AI not playing)
+

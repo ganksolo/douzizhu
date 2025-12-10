@@ -44,12 +44,20 @@ export const GameBoard = () => {
     const lastPlayedCards = useGameStore((state) => state.lastPlayedCards);
     const myHand = useGameStore((state) => state.myHand);
     const phase = useGameStore((state) => state.phase);
+    const gamePlayers = useGameStore((state) => state.players);
 
     const [selectedCards, setSelectedCards] = useState<number[]>([]);
 
     // Helper to get UI player
     const getUIPlayer = (position: 'bottom' | 'right' | 'top' | 'left') => {
         return roomPlayers.find(p => p.seatId !== undefined && getRelativeSeat(p.seatId) === position);
+    };
+
+    // Helper to get player hand count from game store
+    const getPlayerHandCount = (seatId: number | undefined): number => {
+        if (seatId === undefined) return 0;
+        const gamePlayer = gamePlayers.find(p => p.seatIndex === seatId);
+        return gamePlayer?.handCount ?? 0;
     };
 
     const bottomPlayer = getUIPlayer('bottom');
@@ -255,7 +263,7 @@ export const GameBoard = () => {
                         username={topPlayer.username}
                         avatar={topPlayer.avatar}
                         position="top"
-                        handCount={17} // Sync later
+                        handCount={getPlayerHandCount(topPlayer.seatId)}
                         isBot={topPlayer.isBot}
                         isTurn={currentTurn === topPlayer.seatId}
                     />
@@ -269,7 +277,7 @@ export const GameBoard = () => {
                         username={leftPlayer.username}
                         avatar={leftPlayer.avatar}
                         position="left"
-                        handCount={17}
+                        handCount={getPlayerHandCount(leftPlayer.seatId)}
                         isBot={leftPlayer.isBot}
                         isTurn={currentTurn === leftPlayer.seatId}
                     />
@@ -283,7 +291,7 @@ export const GameBoard = () => {
                         username={rightPlayer.username}
                         avatar={rightPlayer.avatar}
                         position="right"
-                        handCount={17}
+                        handCount={getPlayerHandCount(rightPlayer.seatId)}
                         isBot={rightPlayer.isBot}
                         isTurn={currentTurn === rightPlayer.seatId}
                     />
