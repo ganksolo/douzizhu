@@ -198,6 +198,70 @@ components:
           type: string
           format: date-time
 
+    # Phase 35: Bidding System Schemas
+    BidEntry:
+      type: object
+      description: A single bid entry in bid history
+      properties:
+        seatIndex:
+          type: integer
+          minimum: 0
+          maximum: 3
+          description: Seat index of the player who made this bid
+        bid:
+          type: integer
+          minimum: 0
+          maximum: 3
+          description: "Bid value: 0 = pass, 1-3 = bid points"
+
+    SyncState:
+      type: object
+      description: Full game state snapshot sent via WebSocket
+      properties:
+        phase:
+          type: string
+          enum: [INIT, DEALING, BIDDING, PLAYING, GAME_END]
+        currentTurn:
+          type: integer
+          nullable: true
+          description: Current player's seat index (0-3) or null
+        players:
+          type: array
+          items:
+            type: object
+        bottomCards:
+          type: array
+          items:
+            type: integer
+        lastPlayedCards:
+          type: object
+          nullable: true
+          properties:
+            seatIndex:
+              type: integer
+            cards:
+              type: array
+              items:
+                type: integer
+        myHand:
+          type: array
+          items:
+            type: integer
+        highestBid:
+          type: integer
+          minimum: 0
+          maximum: 3
+          description: Current highest bid in bidding phase
+        landlordSeatIndex:
+          type: integer
+          nullable: true
+          description: Seat index of landlord (null if not yet decided)
+        bidHistory:
+          type: array
+          items:
+            $ref: '#/components/schemas/BidEntry'
+          description: Array of all bids made this round
+
 paths:
   /auth/register:
     post:

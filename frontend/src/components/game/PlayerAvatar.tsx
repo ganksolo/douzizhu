@@ -7,9 +7,10 @@ interface PlayerAvatarProps {
     handCount?: number;
     position: 'bottom' | 'top' | 'left' | 'right';
     isBot?: boolean;
+    isLandlord?: boolean; // ✅ Issue #25: Add landlord mark
 }
 
-export const PlayerAvatar = ({ username, avatar, isTurn, handCount, position, isBot }: PlayerAvatarProps) => {
+export const PlayerAvatar = ({ username, avatar, isTurn, handCount, position, isBot, isLandlord }: PlayerAvatarProps) => {
     // Use provided avatar or fallback to dicebear generated avatar
     const avatarUrl = avatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${username}`;
 
@@ -44,6 +45,13 @@ export const PlayerAvatar = ({ username, avatar, isTurn, handCount, position, is
                 {isBot && (
                     <span className="absolute -bottom-1 -right-1 bg-blue-600 text-white text-[10px] px-1.5 py-0.5 rounded-full border border-white z-20">
                         AI
+                    </span>
+                )}
+
+                {/* Landlord Crown - Issue #25 */}
+                {isLandlord && (
+                    <span className="absolute -top-2 -right-2 text-2xl z-30 drop-shadow-lg">
+                        👑
                     </span>
                 )}
             </div>

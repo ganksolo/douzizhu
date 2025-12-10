@@ -2,6 +2,7 @@ export enum GameStateEnum {
     INIT = 'INIT',
     SHUFFLING = 'SHUFFLING',
     DEALING = 'DEALING',
+    BIDDING = 'BIDDING',
     PLAYING = 'PLAYING',
     GAME_END = 'GAME_END',
 }
@@ -55,4 +56,11 @@ export interface RoomData {
     isAIThinking?: boolean;
     actionHistory?: GameAction[]; // Track all actions for replay
     startTime?: Date; // Match start time
+
+    // Phase 35: Bidding System
+    bidHistory?: { seatIndex: number; bid: number }[];
+    highestBid?: number;
+    landlordSeatIndex?: number | null;
+    firstBidder?: number; // seatIndex of first bidder
 }
+

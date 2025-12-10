@@ -1645,3 +1645,111 @@ PlayerAvatar (renders count)
 **Date**: 2025-12-10
 **Key Files**: `GameBoard.tsx`
 
+---
+
+# Phase 35.2: 叫分前端对接 (FE)
+
+## Overview
+更新前端以正确消费叫分阶段数据并渲染智能 UI。
+
+## Changes
+
+### Store Layer
+**File**: `frontend/src/store/game.store.ts`
+
+1. 添加 `BidRecord` 接口
+2. 添加状态字段: `highestBid`, `landlordSeatIndex`, `bidHistory`
+3. 更新 `setSyncState` 解析新字段
+4. 更新 `resetGame` 重置新字段
+
+### Component Layer
+**File**: `frontend/src/components/game/GameBoard.tsx`
+
+1. 添加 `highestBid` selector
+2. BIDDING UI 增强:
+   - 显示当前最高叫分提示 (黄色圆角标签)
+   - 禁用 `bid <= highestBid` 的按钮 (灰色样式)
+   - 按钮文案改为中文 ("1 分", "2 分", "3 分", "不叫")
+
+## Data Flow
+```
+Backend sync_state
+    ↓ (highestBid, landlordSeatIndex, bidHistory)
+game.store.ts (setSyncState)
+    ↓
+GameBoard.tsx (按钮禁用逻辑)
+    ↓
+UI 渲染 (灰色禁用 / 黄色可用)
+```
+
+## Verification
+- [ ] BIDDING 阶段正确渲染叫分按钮
+- [ ] 按钮根据当前最高分正确禁用
+- [ ] 叫分成功后 UI 更新
+- [ ] 地主确定后进入 PLAYING 阶段
+
+**Status**: ✅ Complete
+**Date**: 2025-12-10
+**Key Files**: `game.store.ts`, `GameBoard.tsx`
+
+---
+
+# Fix 15: Issue #23 叫分阶段 UI 反馈 (FE)
+
+## Overview
+增强 BIDDING 阶段中央提示，显示当前轮到谁叫分，等待 AI 时显示脉冲动画。
+
+## Changes
+
+**File**: `frontend/src/components/game/GameBoard.tsx`
+
+1. 修改 BIDDING 阶段中央提示区域
+2. 显示"叫分阶段"标题
+3. 根据 `currentTurn` 显示不同提示:
+   - 轮到自己: "轮到你叫分"
+   - 等待 AI: "轮到 [玩家名] 叫分..."（带黄色脉冲圆点）
+
+## UI Effect
+```
+┌─────────────────────────┐
+│    🎯 叫分阶段          │
+│  ● 轮到 Bot-1234 叫分...│
+└─────────────────────────┘
+```
+
+**Status**: ✅ Complete
+**Date**: 2025-12-10
+**Key Files**: `GameBoard.tsx`
+
+---
+
+# Fix 16: Issue #25 地主标记 (FE)
+
+## Overview
+在地主玩家头像上添加 👑 皇冠图标，用于区分谁是地主。
+
+## Changes
+
+**File 1**: `frontend/src/components/game/PlayerAvatar.tsx`
+- 添加 `isLandlord?: boolean` prop
+- 添加皇冠图标渲染 (absolute positioned, top-right, z-30)
+
+**File 2**: `frontend/src/components/game/GameBoard.tsx`
+- 添加 `landlordSeatIndex` selector from game.store
+- 传递 `isLandlord={player.seatId === landlordSeatIndex}` 给所有 4 个 PlayerAvatar
+
+## UI Effect
+```
+┌─────────┐
+│  👑     │  ← 皇冠在头像右上角
+│  [Avatar]  │
+└─────────┘
+```
+
+**Status**: ✅ Complete
+**Date**: 2025-12-10
+**Key Files**: `PlayerAvatar.tsx`, `GameBoard.tsx`
+
+
+
+

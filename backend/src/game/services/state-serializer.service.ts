@@ -75,11 +75,15 @@ export class StateSerializer {
         }
 
         // 6. Add metadata with currentTurn (as seatIndex) and phase
+        // Phase 35: Include bidding-related fields
         return {
             ...sanitizedData,
             currentState: currentStateName,
             currentTurn: currentTurnSeatIndex,  // Now seatIndex (0-3) instead of playerId
             phase: phase,  // Derived phase name
+            highestBid: sanitizedData.highestBid ?? 0,
+            landlordSeatIndex: sanitizedData.landlordSeatIndex ?? null,
+            bidHistory: sanitizedData.bidHistory ?? [],
             timestamp: Date.now(),
         };
     }

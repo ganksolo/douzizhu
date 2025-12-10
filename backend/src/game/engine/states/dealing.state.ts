@@ -1,22 +1,24 @@
 import { Injectable, Inject, forwardRef, Logger } from '@nestjs/common';
 import { BaseState } from '../base-state';
 import { GameContext } from '../game-context';
-import { PlayingState } from './playing.state';
+import { BiddingState } from './bidding.state';
 import { UserAction } from '../../types/game.types';
 
 @Injectable()
 export class DealingState extends BaseState {
     private logger = new Logger(DealingState.name);
+    private dealingComplete = false; // Issue #24 Fix: Prevent repeated transitions
 
     constructor(
-        @Inject(forwardRef(() => PlayingState))
-        private playingState: PlayingState,
+        @Inject(forwardRef(() => BiddingState))
+        private biddingState: BiddingState,
     ) {
         super();
     }
 
     enter(context: GameContext): void {
         this.logger.log('Entering DealingState. Shuffling deck...');
+        this.dealingComplete = false; // Reset flag on enter
         context.roomData.startTime = new Date();
         this.shuffleDeck(context);
     }
@@ -26,9 +28,15 @@ export class DealingState extends BaseState {
     }
 
     update(context: GameContext, deltaTime: number): void {
-        // Simulate dealing animation time, then transition
-        this.logger.log('Dealing complete. Transitioning to PlayingState...');
-        context.transitionTo(this.playingState);
+        // Issue #24 Fix: Prevent repeated transitions from game loop
+        if (this.dealingComplete) {
+            return;
+        }
+        this.dealingComplete = true;
+        
+        // Phase 35: Transition to BiddingState instead of PlayingState
+        this.logger.log('Dealing complete. Transitioning to BiddingState...');
+        context.transitionTo(this.biddingState);
     }
 
     exit(context: GameContext): void {

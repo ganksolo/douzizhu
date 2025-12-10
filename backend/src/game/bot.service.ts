@@ -2,6 +2,7 @@ import { Injectable, Logger } from '@nestjs/common';
 import { GameContext } from './engine/game-context';
 import { ActionPipelineService } from './engine/action-pipeline/action-pipeline.service';
 import { UserAction, ActionType } from './types/game.types';
+import { BidEvaluator } from './engine/ai/bid-evaluator';
 
 @Injectable()
 export class BotService {
@@ -9,44 +10,85 @@ export class BotService {
 
     constructor(
         private actionPipeline: ActionPipelineService,
+        private bidEvaluator: BidEvaluator,
     ) { }
 
     /**
-     * Check if current turn is a bot and play if needed
+     * Check if current turn is a bot and handle accordingly (bid or play)
      */
-    async checkAndPlay(roomId: string, context: GameContext) {
+    async checkAndPlay(roomId: string, context: GameContext, broadcastCallback?: () => Promise<void>) {
         const stateName = context.getCurrentStateName();
-        if (stateName !== 'PlayingState') return;
 
-        // We need to access the state's internal data to know whose turn it is
-        // This depends on how PlayingState exposes this info. 
-        // Assuming context.roomData has some indicator or state has currentTurn
-
-        // Note: In Phase 16/17 implementation, PlayingState likely manages turn index.
-        // We might need to cast state or access context.roomData.
-
-        // Let's assume we can determine it from context
-        // For now, let's look at how PlayingState is implemented or just return if we can't tell.
-        // But for the 'Basic Bot Gameplay' task, we need to try.
-
-        // If we can't easily access state internals here without coupling, 
-        // we'll rely on the GameGateway to verify if the 'current player' is a bot.
+        if (stateName === 'BiddingState') {
+            await this.checkAndBid(roomId, context, broadcastCallback);
+        } else if (stateName === 'PlayingState') {
+            // PlayingState AI is handled by AIService via game loop
+            // This is kept for compatibility
+        }
     }
 
+    /**
+     * Phase 35: Check if current turn is a bot and bid if needed
+     */
+    async checkAndBid(roomId: string, context: GameContext, broadcastCallback?: () => Promise<void>) {
+        const currentPlayerId = context.roomData.currentTurn;
+        if (!currentPlayerId) return;
+
+        const currentPlayer = context.roomData.players.find(p => p.id === currentPlayerId);
+        if (!currentPlayer || !currentPlayer.isRobot) return;
+
+        // Prevent double thinking
+        if (context.roomData.isAIThinking) return;
+        context.roomData.isAIThinking = true;
+
+        this.logger.log(`Bot ${currentPlayer.name} (Seat ${currentPlayer.seatIndex}) is thinking about bid...`);
+
+        // Issue #24 Fix: Increase delay to 2-3 seconds to give frontend time to render BIDDING UI
+        await new Promise(resolve => setTimeout(resolve, 2000 + Math.random() * 1000));
+
+        try {
+            // Evaluate hand and get suggested bid
+            const highestBid = context.roomData.highestBid || 0;
+            const suggestedBid = this.bidEvaluator.evaluate(currentPlayer.hand, highestBid);
+
+            this.logger.log(`Bot ${currentPlayer.name} decides to bid: ${suggestedBid}`);
+
+            // Execute bid action
+            const bidAction: UserAction = {
+                type: ActionType.BID,
+                playerId: currentPlayerId,
+                payload: { bid: suggestedBid }
+            };
+
+            await this.actionPipeline.execute(context, bidAction, currentPlayerId, broadcastCallback);
+            this.logger.log(`Bot ${currentPlayer.name} bid ${suggestedBid} successfully`);
+
+        } catch (e) {
+            this.logger.error(`Bot ${currentPlayer.name} failed to bid: ${e.message}`);
+            // Fallback: pass (bid 0)
+            try {
+                const passAction: UserAction = {
+                    type: ActionType.BID,
+                    playerId: currentPlayerId,
+                    payload: { bid: 0 }
+                };
+                await this.actionPipeline.execute(context, passAction, currentPlayerId, broadcastCallback);
+            } catch (fallbackError) {
+                this.logger.error(`Bot fallback bid also failed: ${fallbackError.message}`);
+            }
+        } finally {
+            context.roomData.isAIThinking = false;
+        }
+    }
+
+    /**
+     * Execute bot move during PlayingState
+     */
     async executeBotMove(roomId: string, context: GameContext, playerId: string) {
         this.logger.log(`Bot ${playerId} is thinking... in room ${roomId}`);
 
         // Simulate delay
         await new Promise(resolve => setTimeout(resolve, 1500));
-
-        // Simple Strategy: Pass if possible, else play smallest card? 
-        // For "Basic Gameplay (Random/Pass)", we'll just try to PASS first.
-        // If PASS is not allowed (e.g. new round), play valid lowest hand.
-
-        // Since we don't have a full rule engine valid move generator exposed yet,
-        // we will make a safe assumption:
-        // 1. Try to PASS.
-        // 2. If rejected (start of round), play a single card.
 
         try {
             // Attempt PASS
@@ -59,11 +101,6 @@ export class BotService {
             await this.actionPipeline.execute(context, passAction, playerId, async () => { });
             this.logger.log(`Bot ${playerId} PASSED`);
         } catch (e) {
-            // If PASS failed (likely leading the round), play a card
-            // We need to find valid cards. 
-            // Phase 28 just asks for "Random valid move or Pass".
-
-            // Allow fail for now or implement "Play Smallest Single"
             this.logger.warn(`Bot ${playerId} failed to PASS: ${e.message}. Trying to play single.`);
 
             // Try playing first card in hand
@@ -85,3 +122,4 @@ export class BotService {
         }
     }
 }
+

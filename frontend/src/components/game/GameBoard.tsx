@@ -38,6 +38,7 @@ const getCardData = (value: number): CardType => {
 export const GameBoard = () => {
     // Stores
     const roomPlayers = useRoomStore((state) => state.players);
+    const roomId = useRoomStore((state) => state.roomId);
     const getRelativeSeat = useGameStore((state) => state.getRelativeSeat);
     const currentTurn = useGameStore((state) => state.currentTurn);
     const bottomCards = useGameStore((state) => state.bottomCards);
@@ -45,6 +46,8 @@ export const GameBoard = () => {
     const myHand = useGameStore((state) => state.myHand);
     const phase = useGameStore((state) => state.phase);
     const gamePlayers = useGameStore((state) => state.players);
+    const highestBid = useGameStore((state) => state.highestBid);
+    const landlordSeatIndex = useGameStore((state) => state.landlordSeatIndex);
 
     const [selectedCards, setSelectedCards] = useState<number[]>([]);
 
@@ -98,6 +101,7 @@ export const GameBoard = () => {
         console.log('[GameBoard] Playing cards:', selectedCards);
         SocketService.emit('client_action', {
             type: 'PLAY',
+            roomId: roomId,
             payload: { cards: selectedCards }
         });
         setSelectedCards([]); // Clear selection after play
@@ -106,7 +110,8 @@ export const GameBoard = () => {
     const handlePass = () => {
         console.log('[GameBoard] Passing turn');
         SocketService.emit('client_action', {
-            type: 'PASS'
+            type: 'PASS',
+            roomId: roomId
         });
     };
 
@@ -116,9 +121,10 @@ export const GameBoard = () => {
     };
 
     const handleBid = (bidAmount: number) => {
-        console.log('[GameBoard] Bidding:', bidAmount);
+        console.log('[GameBoard] Bidding:', bidAmount, 'roomId:', roomId);
         SocketService.emit('client_action', {
             type: 'BID',
+            roomId: roomId,
             payload: { bid: bidAmount }
         });
     };
@@ -185,9 +191,25 @@ export const GameBoard = () => {
                     <motion.div
                         initial={{ opacity: 0, y: 10 }}
                         animate={{ opacity: 1, y: 0 }}
-                        className="text-white text-lg font-bold bg-black/60 px-6 py-2 rounded-full backdrop-blur-sm"
+                        className="text-white text-lg font-bold bg-black/60 px-6 py-3 rounded-full backdrop-blur-sm flex flex-col items-center gap-2"
                     >
-                        🎯 Bidding Phase
+                        <div className="flex items-center gap-2">
+                            🎯 叫分阶段
+                        </div>
+                        {currentTurn !== null && (
+                            <div className="text-sm font-normal text-yellow-300">
+                                {currentTurn === bottomPlayer?.seatId ? (
+                                    '轮到你叫分'
+                                ) : (
+                                    <span className="flex items-center gap-2">
+                                        <span className="inline-block w-2 h-2 bg-yellow-400 rounded-full animate-pulse"></span>
+                                        轮到 {
+                                            roomPlayers.find(p => p.seatId === currentTurn)?.username || `座位 ${currentTurn}`
+                                        } 叫分...
+                                    </span>
+                                )}
+                            </div>
+                        )}
                     </motion.div>
                 )}
             </div>
@@ -266,6 +288,7 @@ export const GameBoard = () => {
                         handCount={getPlayerHandCount(topPlayer.seatId)}
                         isBot={topPlayer.isBot}
                         isTurn={currentTurn === topPlayer.seatId}
+                        isLandlord={topPlayer.seatId === landlordSeatIndex}
                     />
                 )}
             </div>
@@ -280,6 +303,7 @@ export const GameBoard = () => {
                         handCount={getPlayerHandCount(leftPlayer.seatId)}
                         isBot={leftPlayer.isBot}
                         isTurn={currentTurn === leftPlayer.seatId}
+                        isLandlord={leftPlayer.seatId === landlordSeatIndex}
                     />
                 )}
             </div>
@@ -294,6 +318,7 @@ export const GameBoard = () => {
                         handCount={getPlayerHandCount(rightPlayer.seatId)}
                         isBot={rightPlayer.isBot}
                         isTurn={currentTurn === rightPlayer.seatId}
+                        isLandlord={rightPlayer.seatId === landlordSeatIndex}
                     />
                 )}
             </div>
@@ -320,6 +345,7 @@ export const GameBoard = () => {
                             position="bottom"
                             isBot={bottomPlayer.isBot}
                             isTurn={currentTurn === bottomPlayer.seatId}
+                            isLandlord={bottomPlayer.seatId === landlordSeatIndex}
                         />
                     )}
 
@@ -343,27 +369,42 @@ export const GameBoard = () => {
                                     initial={{ opacity: 0, y: 20 }}
                                     animate={{ opacity: 1, y: 0 }}
                                     exit={{ opacity: 0, y: -20 }}
-                                    className="flex gap-3"
+                                    className="flex flex-col items-center gap-3"
                                 >
-                                    {[1, 2, 3].map(bid => (
+                                    {/* Current Highest Bid Indicator */}
+                                    {highestBid > 0 && (
+                                        <div className="text-yellow-300 text-sm font-semibold bg-black/40 px-4 py-1 rounded-full">
+                                            当前最高: {highestBid} 分
+                                        </div>
+                                    )}
+                                    <div className="flex gap-3">
+                                        {[1, 2, 3].map(bid => {
+                                            const isDisabled = bid <= highestBid;
+                                            return (
+                                                <motion.button
+                                                    key={bid}
+                                                    onClick={() => !isDisabled && handleBid(bid)}
+                                                    whileHover={!isDisabled ? { scale: 1.05, y: -2 } : {}}
+                                                    whileTap={!isDisabled ? { scale: 0.95 } : {}}
+                                                    disabled={isDisabled}
+                                                    className={`px-8 py-3 rounded-xl font-bold shadow-xl transition-all border-2 ${isDisabled
+                                                        ? 'bg-gray-500/50 text-gray-400 border-gray-500/30 cursor-not-allowed'
+                                                        : 'text-white bg-gradient-to-br from-yellow-500 to-amber-600 hover:from-yellow-400 hover:to-amber-500 border-yellow-300/50 cursor-pointer'
+                                                        }`}
+                                                >
+                                                    {bid} 分
+                                                </motion.button>
+                                            );
+                                        })}
                                         <motion.button
-                                            key={bid}
-                                            onClick={() => handleBid(bid)}
+                                            onClick={() => handleBid(0)}
                                             whileHover={{ scale: 1.05, y: -2 }}
                                             whileTap={{ scale: 0.95 }}
-                                            className="px-8 py-3 rounded-xl text-white font-bold shadow-xl transition-all bg-gradient-to-br from-yellow-500 to-amber-600 hover:from-yellow-400 hover:to-amber-500 border-2 border-yellow-300/50"
+                                            className="px-8 py-3 rounded-xl text-white font-bold shadow-xl transition-all bg-gradient-to-br from-gray-600 to-gray-700 hover:from-gray-500 hover:to-gray-600 border-2 border-gray-400/50"
                                         >
-                                            {bid} Point{bid > 1 ? 's' : ''}
+                                            不叫
                                         </motion.button>
-                                    ))}
-                                    <motion.button
-                                        onClick={() => handleBid(0)}
-                                        whileHover={{ scale: 1.05, y: -2 }}
-                                        whileTap={{ scale: 0.95 }}
-                                        className="px-8 py-3 rounded-xl text-white font-bold shadow-xl transition-all bg-gradient-to-br from-gray-600 to-gray-700 hover:from-gray-500 hover:to-gray-600 border-2 border-gray-400/50"
-                                    >
-                                        Pass
-                                    </motion.button>
+                                    </div>
                                 </motion.div>
                             </AnimatePresence>
                         )}

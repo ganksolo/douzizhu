@@ -307,8 +307,11 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect, On
             socket.emit('sync_state', sanitizedState);
         }
 
-        // Check if it's a bot's turn
+        // Check if it's a bot's turn (Phase 35: includes BiddingState)
         // We do this after broadcast so clients see the state update first
-        await this.botService.checkAndPlay(roomId, gameContext);
+        // Pass broadcast callback to allow AI to trigger re-broadcast after action
+        await this.botService.checkAndPlay(roomId, gameContext, async () => {
+            await this.broadcastState(roomId);
+        });
     }
 }

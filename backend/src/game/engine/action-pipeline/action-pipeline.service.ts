@@ -7,15 +7,17 @@ import { GameContext } from '../game-context';
 import { GameRedisService } from '../../services/game-redis.service';
 import { PlayActionHandler } from '../action-handlers/play-handler';
 import { PassActionHandler } from '../action-handlers/pass-handler';
+import { BidActionHandler } from '../action-handlers/bid-handler';
 
 /**
  * Phase 18.3: Complete Action Pipeline with Redis Integration
+ * Phase 35: Added BID action routing
  * 
  * Pipeline Flow:
  * 1. Input Normalization (Sanitization)
  * 2. Acquire Redis Lock (Prevent concurrent modifications)
  * 3. Load Current State from Redis
- * 4. Execute Handler (PLAY/PASS)
+ * 4. Execute Handler (PLAY/PASS/BID)
  * 5. Atomic Write to Redis
  * 6. Release Lock
  * 7. Broadcast Event (via callback)
@@ -37,6 +39,7 @@ export class ActionPipelineService {
         private gameRedisService: GameRedisService,
         private playHandler: PlayActionHandler,
         private passHandler: PassActionHandler,
+        private bidHandler: BidActionHandler,
         @Inject(CACHE_MANAGER) private cacheManager: Cache,
     ) { }
 
@@ -128,6 +131,9 @@ export class ActionPipelineService {
                 break;
             case 'PASS':
                 this.passHandler.handle(context, action);
+                break;
+            case 'BID':
+                this.bidHandler.handle(context, action);
                 break;
             default:
                 throw new Error(`Unknown action type: ${action.type}`);

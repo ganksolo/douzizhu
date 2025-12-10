@@ -614,13 +614,13 @@ Retrieves full details of a specific match, including replay actions.
 
 #### 4. Client Action (Game Loop Funnel)
 **Channel**: `client_action`
-**Description**: Unified event for all in-game actions (Play, Pass, Bid/Call).
+**Description**: Unified event for all in-game actions (Play, Pass, Bid).
 
 **Payload Structure**:
 ```json
 {
   "roomId": "uuid",
-  "type": "PLAY | PASS | CALL | ROB",
+  "type": "PLAY | PASS | BID",
   "payload": "any (depends on type)"
 }
 ```
@@ -644,6 +644,15 @@ Retrieves full details of a specific match, including replay actions.
   "payload": null
 }
 ```
+
+**Action: BID** (Phase 35)
+```json
+{
+  "type": "BID",
+  "payload": { "bid": 3 }
+}
+```
+*Note: bid is a number 0-3. 0 = 不叫, 1-3 = 叫分值. bid must be > highestBid (unless bid = 0).*
 
 ---
 
@@ -751,15 +760,27 @@ Broadcast when the game begins.
 ```json
 {
   "type": "sync_state",
-  "phase": "PLAYING",
+  "phase": "PLAYING | BIDDING | DEALING | INIT | GAME_END",
   "players": [...],
   "currentTurn": 2,
   "bottomCards": [1, 2, 3],
   "lastPlayedCards": { "seatIndex": 1, "cards": [...] },
-  "myHand": [1, 2, 3, 4, 5]
+  "myHand": [1, 2, 3, 4, 5],
+  "highestBid": 2,
+  "landlordSeatIndex": 0,
+  "bidHistory": [
+    { "seatIndex": 0, "bid": 1 },
+    { "seatIndex": 1, "bid": 2 }
+  ]
 }
 ```
 **Description**: Full state snapshot sent on every change. Frontend uses this to hydrate `GameStore`. `myHand` contains the sorted card values for the current user.
+
+**Phase 35 Fields** (Bidding):
+- `highestBid`: Current highest bid (0-3)
+- `landlordSeatIndex`: Seat index of landlord (null if not yet decided)
+- `bidHistory`: Array of all bids made this round
+
 
 #### 1. Room Updated (Player List)
 ```json

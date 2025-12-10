@@ -18,6 +18,11 @@ export interface LastPlayedState {
     cards: number[]; // Change to Card object type later if needed
 }
 
+export interface BidRecord {
+    seatIndex: number;
+    bid: number;
+}
+
 export interface GameState {
     // Core Data
     phase: GamePhase;
@@ -27,6 +32,11 @@ export interface GameState {
     bottomCards: number[];
     lastPlayedCards: LastPlayedState | null;
     myHand: number[]; // Local player's hand cards (sorted)
+
+    // Bidding Data
+    highestBid: number;
+    landlordSeatIndex: number | null;
+    bidHistory: BidRecord[];
 
     // Actions
     setSyncState: (data: any) => void;
@@ -46,6 +56,9 @@ export const useGameStore = create<GameState>((set, get) => ({
     bottomCards: [],
     lastPlayedCards: null,
     myHand: [],
+    highestBid: 0,
+    landlordSeatIndex: null,
+    bidHistory: [],
 
 
 
@@ -56,7 +69,9 @@ export const useGameStore = create<GameState>((set, get) => ({
         // Assuming backend sends: { phase, players, currentTurn, bottomCards, lastPlayedCards, ... }
 
         // Parse cards from strings to numbers
-        const myHand = data.myHand ? parseCardList(data.myHand).sort((a, b) => b - a) : [];
+        // Fix Issue #26: 从 players 数组中提取自己的手牌 (只有自己能看到自己的 hand)
+        const myPlayerData = data.players?.find((p: any) => p.hand && p.hand.length > 0);
+        const myHand = myPlayerData?.hand ? parseCardList(myPlayerData.hand).sort((a, b) => b - a) : [];
         const bottomCards = data.bottomCards ? parseCardList(data.bottomCards) : [];
 
         let lastPlayedCards = null;
@@ -74,6 +89,9 @@ export const useGameStore = create<GameState>((set, get) => ({
             bottomCards,
             lastPlayedCards,
             myHand,
+            highestBid: data.highestBid ?? 0,
+            landlordSeatIndex: data.landlordSeatIndex ?? null,
+            bidHistory: data.bidHistory ?? [],
         });
     },
 
@@ -89,6 +107,9 @@ export const useGameStore = create<GameState>((set, get) => ({
             bottomCards: [],
             lastPlayedCards: null,
             myHand: [],
+            highestBid: 0,
+            landlordSeatIndex: null,
+            bidHistory: [],
             // mySeatId typically persists if in the same room, but can clear if leaving
         });
     },

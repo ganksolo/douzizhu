@@ -561,6 +561,28 @@
   - [x] 修复 RoomService.tryStartGame 字段映射 <!-- id: 43.2 -->
   - [x] 修复 StateSerializer currentTurn: playerId → seatIndex <!-- id: 43.3 -->
   - [x] 修复 StateSerializer 类型比较: String() 转换 <!-- id: 43.4 -->
-
-
-
+- [x] Phase 35: 叫分系统后端实现 <!-- id: 35 -->
+  - [x] Phase 35.1: 类型定义 (BIDDING enum, bidHistory, highestBid, landlordSeatIndex) <!-- id: 35.1 -->
+  - [x] Phase 35.2: BiddingState 状态机 (enter/handleInput/exit) <!-- id: 35.2 -->
+  - [x] Phase 35.3: BidActionHandler (验证+路由) <!-- id: 35.3 -->
+  - [x] Phase 35.4: AI 叫分决策 (BidEvaluator + BotService.checkAndBid) <!-- id: 35.4 -->
+  - [x] Phase 35.5: StateSerializer 序列化叫分字段 <!-- id: 35.5 -->
+  - [x] Phase 35.6: DealingState → BiddingState 转换 <!-- id: 35.6 -->
+  - [x] Phase 35.7: GameModule 注册 <!-- id: 35.7 -->
+  - [x] Phase 35.8: 编译验证通过 <!-- id: 35.8 -->
+- [x] Phase 35.2: 叫分前端对接 (FE) <!-- id: 35.2.fe -->
+  - [x] game.store.ts 添加 highestBid/landlordSeatIndex/bidHistory <!-- id: 35.2.1 -->
+  - [x] GameBoard.tsx BIDDING UI 增强 (禁用低分按钮、显示最高分) <!-- id: 35.2.2 -->
+- [x] Fix 14: Issue #23 叫分阶段 UI 不显示 (BE) <!-- id: 44 -->
+  - [x] 首叫优先人类玩家 (bidding.state.ts) <!-- id: 44.1 -->
+- [x] Fix 15: Issue #24 BIDDING 阶段被跳过 (BE) <!-- id: 45 -->
+  - [x] 防止 DealingState 重复转换 (dealing.state.ts) <!-- id: 45.1 -->
+  - [x] 增加 AI 叫分延迟到 2-3 秒 (bot.service.ts) <!-- id: 45.2 -->
+- [x] Fix 15: Issue #23 叫分阶段 UI 反馈 (FE) <!-- id: 45 -->
+  - [x] 增强 BIDDING 提示显示当前轮到谁叫分 <!-- id: 45.1 -->
+  - [x] 等待 AI 叫分时显示脉冲动画 <!-- id: 45.2 -->
+- [x] Fix 16: Issue #25 地主标记 (FE) <!-- id: 46 -->
+  - [x] PlayerAvatar.tsx 添加 isLandlord prop <!-- id: 46.1 -->
+  - [x] GameBoard.tsx 传递 isLandlord 给所有 PlayerAvatar <!-- id: 46.2 -->
+- [x] Fix 17: Issue #26 手牌不显示 (FE) <!-- id: 47 -->
+  - [x] game.store.ts 修复 myHand 提取逻辑 <!-- id: 47.1 -->
