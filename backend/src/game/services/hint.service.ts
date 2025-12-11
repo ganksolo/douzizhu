@@ -50,7 +50,13 @@ export class HintService {
         // 获取上一手牌
         let lastMove: AnalysisResult | null = null;
         if (context.roomData.lastPlayedCards && context.roomData.lastPlayedCards.cards.length > 0) {
-            const lastCards = context.roomData.lastPlayedCards.cards.map(c => this.parseCard(c));
+            // Issue #33 Fix: cards 可能是 Card 对象或字符串，需要兼容处理
+            const lastCards = context.roomData.lastPlayedCards.cards.map((c: any) => {
+                if (typeof c === 'object' && c.rank !== undefined) {
+                    return c; // 已经是 Card 对象
+                }
+                return this.parseCard(c); // 字符串转 Card 对象
+            });
             lastMove = this.rulesService.analyze(lastCards);
         }
 

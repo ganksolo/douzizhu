@@ -30,11 +30,34 @@ export class StateSerializer {
             }
         });
 
-        // 2. Inject seatIndex into lastPlayedCards
+        // 2. Inject seatIndex into lastPlayedCards and ensure cards are strings
         if (sanitizedData.lastPlayedCards) {
             const lpPlayer = sanitizedData.players.find((p: Player) => p.id === sanitizedData.lastPlayedCards.playerId);
             if (lpPlayer) {
                 sanitizedData.lastPlayedCards.seatIndex = lpPlayer.seatIndex;
+            }
+
+            // Issue #33 Fix: cards 可能是 Card 对象数组，需要转回字符串
+            // FE parseCardList 期望字符串格式如 "♦3", "♠A", "BlackJoker"
+            if (sanitizedData.lastPlayedCards.cards && sanitizedData.lastPlayedCards.cards.length > 0) {
+                const originalCards = sanitizedData.lastPlayedCards.cards;
+                sanitizedData.lastPlayedCards.cards = sanitizedData.lastPlayedCards.cards.map((card: any) => {
+                    if (typeof card === 'string') {
+                        return card; // 已经是字符串
+                    }
+                    // Card 对象: { rank, suit, value }
+                    // 转换为字符串格式: "♦3", "♠A", "BlackJoker", "RedJoker"
+                    if (card.rank === 16) return 'BlackJoker'; // SMALL_JOKER
+                    if (card.rank === 17) return 'RedJoker';   // BIG_JOKER
+
+                    const suitSymbol = card.suit || '♠';
+                    const rankStr = this.rankToString(card.rank);
+                    return `${suitSymbol}${rankStr}`;
+                });
+                console.log('[StateSerializer] lastPlayedCards converted:',
+                    'original:', JSON.stringify(originalCards[0]),
+                    'converted:', sanitizedData.lastPlayedCards.cards,
+                    'seatIndex:', sanitizedData.lastPlayedCards.seatIndex);
             }
         }
 
@@ -99,5 +122,17 @@ export class StateSerializer {
             multiplier: sanitizedData.multiplier ?? 1,
             timestamp: Date.now(),
         };
+    }
+
+    /**
+     * Issue #33: Convert CardRank enum to string representation
+     */
+    private rankToString(rank: number): string {
+        const rankMap: Record<number, string> = {
+            3: '3', 4: '4', 5: '5', 6: '6', 7: '7', 8: '8', 9: '9', 10: '10',
+            11: 'J', 12: 'Q', 13: 'K', 14: 'A', 15: '2',
+            16: 'BlackJoker', 17: 'RedJoker'
+        };
+        return rankMap[rank] || String(rank);
     }
 }

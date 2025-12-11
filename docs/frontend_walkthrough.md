@@ -1810,3 +1810,17 @@ backgroundSize: 10px 10px;
 **Status**: ✅ Complete
 **Date**: 2025-12-11
 **Key Files**: `Card.tsx`
+
+### Layout Correction (User Feedback)
+**File**: `GameBoard.tsx`
+
+根据用户反馈恢复了绿色背景，并重构了底部玩家布局以符合 Design 1：
+- **Background**: 恢复 `bg-green-900` + `radial-gradient` 经典绿色牌桌。
+- **Bottom Layout**:
+    - **Avatar**: 移动至左下角 (`bottom-4 left-8`).
+    - **Hand Cards**: 底部居中 (`bottom-0 left-1/2 -translate-x-1/2`)。
+    - **Buttons**: 位于手牌正上方。
+    - **Chat**: 移动至右下角 (`bottom-4 right-8`).
+- **Cleanup**: 移除了手牌区的白色背景槽和左右装饰条。
+
+**Verification**: `npm run build` ✅ Success.

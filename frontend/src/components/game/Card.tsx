@@ -53,7 +53,7 @@ export const Card = (props: CardProps) => {
         }
     };
 
-    // Card back with dot pattern texture
+    // Card back with diamond pattern texture (设计稿红色菱形风格)
     if (hidden) {
         return (
             <div
@@ -61,20 +61,37 @@ export const Card = (props: CardProps) => {
                 style={{
                     width: `${45 * scale}px`,
                     height: `${68 * scale}px`,
-                    borderRadius: `${6 * scale}px`,
-                    border: `${2 * scale}px solid #1e3a5f`,
-                    background: '#1e3a8a',
+                    borderRadius: `${4 * scale}px`,
+                    border: `${1.5 * scale}px solid #d4a574`,
+                    background: 'linear-gradient(135deg, #8b1a1a 0%, #5c1010 100%)',
+                    boxShadow: `0 ${2 * scale}px ${4 * scale}px rgba(0,0,0,0.3)`,
                 }}
             >
-                {/* Dot pattern overlay */}
+                {/* Diamond pattern overlay */}
                 <div
                     className="absolute inset-0"
                     style={{
-                        backgroundImage: `radial-gradient(circle, #3b82f6 ${1.5 * scale}px, transparent ${1.5 * scale}px)`,
-                        backgroundSize: `${10 * scale}px ${10 * scale}px`,
-                        backgroundPosition: `${3 * scale}px ${3 * scale}px`,
+                        backgroundImage: `
+                            linear-gradient(45deg, transparent 40%, rgba(212, 165, 116, 0.15) 50%, transparent 60%),
+                            linear-gradient(-45deg, transparent 40%, rgba(212, 165, 116, 0.15) 50%, transparent 60%)
+                        `,
+                        backgroundSize: `${8 * scale}px ${8 * scale}px`,
                     }}
                 />
+                {/* Center diamond decoration */}
+                <div
+                    className="absolute inset-0 flex items-center justify-center"
+                >
+                    <div
+                        style={{
+                            width: `${16 * scale}px`,
+                            height: `${16 * scale}px`,
+                            transform: 'rotate(45deg)',
+                            border: `${1 * scale}px solid rgba(212, 165, 116, 0.5)`,
+                            background: 'rgba(212, 165, 116, 0.1)',
+                        }}
+                    />
+                </div>
             </div>
         );
     }

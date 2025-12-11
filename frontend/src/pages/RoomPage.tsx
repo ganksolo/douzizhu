@@ -203,9 +203,25 @@ export const RoomPage = () => {
     };
 
     return (
-        <div className="min-h-screen bg-green-800 relative overflow-hidden flex flex-col font-sans select-none">
-            {/* Table Surface Texture */}
-            <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_#276749_0%,_#1b4332_100%)]"></div>
+        <div className="min-h-screen bg-[#0d2116] relative overflow-hidden flex flex-col font-sans select-none">
+            {/* --- Background --- */}
+            {/* Table Cloth Texture (Green dots) */}
+            <div className="absolute inset-0" style={{
+                backgroundImage: 'radial-gradient(rgb(26, 77, 51) 1px, transparent 1px)',
+                backgroundSize: '4px 4px',
+                backgroundColor: '#0d2116'
+            }}></div>
+
+            {/* Lighting/Vignette Overlay */}
+            <div className="absolute inset-0" style={{
+                backgroundImage: 'radial-gradient(circle at 50% 40%, rgba(255, 255, 255, 0.08) 0%, rgba(0, 0, 0, 0.6) 80%)'
+            }}></div>
+
+            {/* Center Pattern (Circle + Diamond) */}
+            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[60vh] h-[60vh] opacity-20 pointer-events-none">
+                <div className="absolute inset-0 rounded-full border-[10px] border-[#8dafa0]"></div>
+                <div className="absolute inset-[14.6%] border-2 border-[#8dafa0] transform rotate-45"></div>
+            </div>
 
             {/* Header */}
             <div className="relative z-10 p-4 flex justify-between items-center text-white/80">
@@ -231,11 +247,8 @@ export const RoomPage = () => {
 
             {/* Game Table Area */}
             <div className="flex-1 relative z-10 flex items-center justify-center">
-                {/* Center Table Info */}
-                <div className="absolute text-center opacity-30 pointer-events-none transform -translate-y-8">
-                    <div className="text-6xl text-green-900 font-bold mb-2">♠♥♣♦</div>
-                    <div className="text-xl text-green-100 font-serif tracking-widest">DOU DIZHU</div>
-                </div>
+                {/* Center Table Info (Hidden/Replaced by Pattern) */}
+
 
                 {/* Left Player */}
                 <div className="absolute left-8 top-1/2 -translate-y-1/2 pb-16">

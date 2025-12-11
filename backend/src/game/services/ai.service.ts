@@ -26,7 +26,7 @@ export class AIService {
 
         this.logger.log(`AI ${playerId} is thinking... (Delay: ${delay}ms)`);
 
-        setTimeout(() => {
+        setTimeout(async () => {
             // Check if context is still valid and it's still this player's turn
             if (context.roomData.currentTurn !== playerId) {
                 this.logger.warn(`AI ${playerId} finished thinking but it's no longer their turn.`);
@@ -41,12 +41,14 @@ export class AIService {
                 // Fallback: Pass
                 context.handleInput({ playerId, type: ActionType.PASS });
             } finally {
-                // Reset thinking flag is handled in PlayingState.advanceTurn, 
-                // but if we error out or something weird happens, we might need to ensure it's reset?
-                // Actually PlayingState sets isAIThinking = true. 
-                // If we call handleInput -> advanceTurn -> isAIThinking = false.
-                // If we don't call handleInput (e.g. error), we might get stuck.
-                // So fallback PASS is important.
+                // Issue #33 Fix: AI 执行完后必须广播状态，否则 FE 不知道 AI 已行动
+                if (context.onStateChange && context.roomData.roomId) {
+                    try {
+                        await context.onStateChange(context.roomData.roomId);
+                    } catch (e) {
+                        this.logger.error(`Failed to broadcast state after AI action: ${e.message}`);
+                    }
+                }
             }
         }, delay);
     }

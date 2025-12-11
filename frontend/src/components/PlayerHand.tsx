@@ -158,7 +158,7 @@ export function PlayerHand({ cards, isHuman = false, onCardClick, onSelectionCha
             onMouseMove={handleMouseMove}
             onMouseUp={handleMouseUp}
         >
-            <div className="flex -space-x-12 pointer-events-none"> {/* Disable pointer events on wrapper to let container handle clicks? No, we need clicks on cards. */}
+            <div className="flex -space-x-8 pointer-events-none"> {/* Adjusted overlap: Card width 56px, -32px overlap = 24px visible strip */}
                 {/* Actually, if we want drag select, we should probably let events bubble up. */}
                 {cards.map((card, index) => (
                     <div
