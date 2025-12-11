@@ -8,6 +8,7 @@ import { PlayingState } from './engine/states/playing.state';
 import { GameRedisService } from './services/game-redis.service';
 import { GameGateway } from './gateway/game.gateway';
 import { StateSerializer } from './services/state-serializer.service';
+import { HintService } from './services/hint.service';
 import { GameManagerService } from './services/game-manager.service';
 import { RulesService } from './services/rules.service';
 import { MoveValidator } from './rules/move-validator';
@@ -39,6 +40,7 @@ import { BotService } from './bot.service';
         GameManagerService,
         GameGateway,
         StateSerializer,
+        HintService,
         RulesService,
         MoveValidator,
         AIService,

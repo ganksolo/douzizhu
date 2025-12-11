@@ -82,6 +82,9 @@ export const useGameStore = create<GameState>((set, get) => ({
             };
         }
 
+        // Fix Issue #28: 自动从 myPlayerData 推断 mySeatId
+        const inferredSeatId = myPlayerData?.seatIndex ?? get().mySeatId;
+
         set({
             phase: data.phase || 'INIT',
             players: data.players || [],
@@ -92,6 +95,8 @@ export const useGameStore = create<GameState>((set, get) => ({
             highestBid: data.highestBid ?? 0,
             landlordSeatIndex: data.landlordSeatIndex ?? null,
             bidHistory: data.bidHistory ?? [],
+            // Fix Issue #28: 自动同步 mySeatId
+            ...(inferredSeatId !== null && inferredSeatId !== undefined ? { mySeatId: inferredSeatId } : {}),
         });
     },
 

@@ -1750,6 +1750,63 @@ UI 渲染 (灰色禁用 / 黄色可用)
 **Date**: 2025-12-10
 **Key Files**: `PlayerAvatar.tsx`, `GameBoard.tsx`
 
+---
 
+# Phase 42: Card UI 优化（底牌视觉增强）
 
+## Overview
+优化 GameBoard 中 8 张底牌的视觉效果，包含卡牌背面纹理和正面布局调整。
 
+## Changes
+
+**File**: `frontend/src/components/game/Card.tsx`
+
+### 1. 卡牌背面纹理优化 (hidden=true)
+
+**Before**:
+- 纯蓝色背景 (`bg-blue-800`)
+- 简单边框
+
+**After**:
+- 蓝色底色 (`#3B82F6`)
+- CSS 径向渐变点阵纹理 (`radial-gradient`)
+- 浅蓝色圆点 (`#60A5FA`)
+- 深蓝色边框 (`#1E40AF`)
+
+```css
+background: #3B82F6;
+border: 2px solid #1E40AF;
+backgroundImage: radial-gradient(circle, #60A5FA 1.5px, transparent 1.5px);
+backgroundSize: 10px 10px;
+```
+
+### 2. 卡牌正面布局调整 (hidden=false)
+
+**Before**:
+```
+┌─────────┐
+│   Rank  │ ← 数字在顶部中央
+│  Suit   │ ← 花色在中间
+└─────────┘
+```
+
+**After**:
+```
+┌─────────┐
+│ R       │ ← 左上角数字
+│    ♠    │ ← 中间花色图案
+│       R │ ← 右下角数字 (rotated 180°)
+└─────────┘
+```
+
+## Visual Effect
+
+| Element | Before | After |
+|---------|--------|-------|
+| 背面纹理 | 纯蓝色边框 | 蓝色点阵网格 |
+| 正面数字 | 顶部居中 | 左上 + 右下角 |
+| Joker显示 | "Joker" 文字 | 🃏 emoji + R/B 标识 |
+
+**Status**: ✅ Complete
+**Date**: 2025-12-11
+**Key Files**: `Card.tsx`

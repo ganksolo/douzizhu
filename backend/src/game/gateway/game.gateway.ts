@@ -12,6 +12,7 @@ import { Server, Socket } from 'socket.io';
 import { Logger } from '@nestjs/common';
 import { GameManagerService } from '../services/game-manager.service';
 import { StateSerializer } from '../services/state-serializer.service';
+import { HintService } from '../services/hint.service';
 import { ActionPipelineService } from '../engine/action-pipeline/action-pipeline.service';
 import { UserAction } from '../types/game.types';
 import { AuthService } from '../../auth/auth.service';
@@ -36,6 +37,7 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect, On
     constructor(
         private gameManager: GameManagerService,
         private stateSerializer: StateSerializer,
+        private hintService: HintService,
         private actionPipeline: ActionPipelineService,
         private authService: AuthService,
         private reconnectService: ReconnectService,
@@ -284,6 +286,30 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect, On
                 message: error.message || 'Failed to process action',
                 action: action.type
             });
+        }
+    }
+
+    /**
+     * Issue #32: Handle hint request from player
+     */
+    @SubscribeMessage('request_hint')
+    async handleRequestHint(
+        @MessageBody() data: { roomId: string },
+        @ConnectedSocket() client: Socket,
+    ) {
+        try {
+            const { roomId } = data;
+            const playerId = client.data.userId;
+
+            this.logger.log(`Hint requested by ${playerId} in room ${roomId}`);
+
+            const gameContext = this.gameManager.getOrCreateRoom(roomId);
+            const result = this.hintService.getHint(gameContext, playerId);
+
+            client.emit('hint_result', { cards: result.suggestedCards });
+        } catch (error) {
+            this.logger.error(`Error in request_hint: ${error.message}`);
+            client.emit('hint_result', { cards: [], error: error.message });
         }
     }
 

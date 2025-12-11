@@ -2,12 +2,13 @@ import { useGameStore } from '../../store/game.store';
 import { useRoomStore } from '../../store/room.store';
 import { PlayerAvatar } from './PlayerAvatar';
 import { Card } from './Card';
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useCallback, useEffect } from 'react';
 import { PlayerHand } from '../PlayerHand';
 import { Clock } from 'lucide-react';
 import type { Card as CardType } from '../../types';
 import { motion, AnimatePresence } from 'framer-motion';
 import { SocketService } from '../../services/socket';
+import { useTurnTimer } from '../../hooks/useTurnTimer';
 
 // --- Card Logic Helpers ---
 const getCardData = (value: number): CardType => {
@@ -17,8 +18,8 @@ const getCardData = (value: number): CardType => {
     // 0-51: Regular cards
     // 52: Black Joker
     // 53: Red Joker
-    if (value === 52) return { id, value, suit: 'joker', rank: 'black_joker', isSelected: false };
-    if (value === 53) return { id, value, suit: 'joker', rank: 'red_joker', isSelected: false };
+    if (value === 52) return { id, value, suit: 'joker_black' as any, rank: 'JOKER' as any, isSelected: false };
+    if (value === 53) return { id, value, suit: 'joker_red' as any, rank: 'JOKER' as any, isSelected: false };
 
     const suits = ['diamonds', 'clubs', 'hearts', 'spades'] as const;
     const ranks = ['3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K', 'A', '2'] as const;
@@ -33,6 +34,33 @@ const getCardData = (value: number): CardType => {
         rank: ranks[rankIndex],
         isSelected: false
     };
+};
+
+// Issue #32: 解析后端卡牌字符串 (e.g., "3S", "AH", "2D", "BJ", "RJ") 为数值
+const parseCardString = (cardStr: string): number => {
+    // Special cases: Jokers
+    if (cardStr === 'BJ' || cardStr === 'JOKER_BLACK') return 52;
+    if (cardStr === 'RJ' || cardStr === 'JOKER_RED') return 53;
+
+    // Format: "{rank}{suit}" e.g., "3S", "10H", "AD"
+    const suits: Record<string, number> = { 'D': 0, 'C': 1, 'H': 2, 'S': 3 };
+    const ranks: Record<string, number> = {
+        '3': 0, '4': 1, '5': 2, '6': 3, '7': 4, '8': 5, '9': 6,
+        '10': 7, 'J': 8, 'Q': 9, 'K': 10, 'A': 11, '2': 12
+    };
+
+    const suitChar = cardStr.slice(-1).toUpperCase();
+    const rankStr = cardStr.slice(0, -1).toUpperCase();
+
+    const suitIndex = suits[suitChar];
+    const rankIndex = ranks[rankStr];
+
+    if (suitIndex === undefined || rankIndex === undefined) {
+        console.warn('[parseCardString] Invalid card string:', cardStr);
+        return -1;
+    }
+
+    return suitIndex * 13 + rankIndex;
 };
 
 export const GameBoard = () => {
@@ -73,6 +101,16 @@ export const GameBoard = () => {
         setSelectedCards(selectedValues);
     };
 
+    // Issue #31: 单击卡牌切换选中状态
+    const handleCardClick = useCallback((card: CardType) => {
+        const cardValue = parseInt(card.id, 10);
+        setSelectedCards(prev =>
+            prev.includes(cardValue)
+                ? prev.filter(c => c !== cardValue) // 取消选中
+                : [...prev, cardValue]               // 添加选中
+        );
+    }, []);
+
     // Memoize hand cards for PlayerHand component
     const handCards = useMemo(() => {
         return myHand.map(val => ({
@@ -90,6 +128,28 @@ export const GameBoard = () => {
     const mySeatId = bottomPlayer?.seatId;
     const isLeader = lastPlayedCards === null || (mySeatId !== undefined && lastPlayedCards.seatIndex === mySeatId);
     const canPass = !isLeader;
+
+    // Issue #27: 判断是否轮到自己
+    const isMyTurn = currentTurn === bottomPlayer?.seatId;
+
+    // Issue #27: 超时自动执行默认动作
+    const handleTimeout = useCallback(() => {
+        console.log('[GameBoard] Turn timeout!');
+        if (phase === 'BIDDING') {
+            handleBid(0); // 自动不叫
+        } else if (phase === 'PLAYING') {
+            if (canPass) {
+                handlePass(); // 自动不出
+            }
+            // 如果是 leader 不能 pass，超时暂不处理（可扩展为自动出最小牌）
+        }
+    }, [phase, canPass]);
+
+    // Issue #27: 使用倒计时 Hook
+    const { remainingTime } = useTurnTimer(isMyTurn, currentTurn, {
+        onTimeout: handleTimeout,
+        turnDuration: 30,
+    });
 
     // --- Table Area Rendering ---
     // If lastPlayedCards exists, determine its relative position to show visually on table
@@ -116,8 +176,9 @@ export const GameBoard = () => {
     };
 
     const handleHint = () => {
-        console.log('[GameBoard] Requesting hint');
-        // TODO: Implement hint logic with getHint utility
+        console.log('[GameBoard] Requesting hint, roomId:', roomId);
+        // Issue #32: 发送 request_hint 事件到后端
+        SocketService.emit('request_hint', { roomId });
     };
 
     const handleBid = (bidAmount: number) => {
@@ -128,6 +189,30 @@ export const GameBoard = () => {
             payload: { bid: bidAmount }
         });
     };
+
+    // Issue #32: 监听 hint_result 事件
+    useEffect(() => {
+        const handleHintResult = (data: { cards: string[] }) => {
+            console.log('[GameBoard] Hint received:', data.cards);
+            if (data.cards && data.cards.length > 0) {
+                // 解析卡牌字符串为数值并自动选中
+                const cardValues = data.cards.map((cardStr: string) => {
+                    // Backend returns card strings like "3S", "AH", "2D", "BJ", "RJ"
+                    return parseCardString(cardStr);
+                }).filter((v: number) => v >= 0);
+                setSelectedCards(cardValues);
+            } else {
+                // 提示用户应该 PASS
+                console.log('[GameBoard] Hint suggests PASS');
+                // 可以添加 toast 提示
+            }
+        };
+
+        SocketService.on('hint_result', handleHintResult);
+        return () => {
+            SocketService.off('hint_result', handleHintResult);
+        };
+    }, []);
 
     // Helper to render played cards
     const renderPlayedCards = (cards: number[]) => (
@@ -153,12 +238,17 @@ export const GameBoard = () => {
 
             {/* --- Central Area (Dipai & Bidding) --- */}
             <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 flex flex-col items-center gap-6 z-20">
-                {/* Dipai (Bottom Cards) - Centered */}
+                {/* Dipai (Bottom Cards) - Centered with Flat UI Style */}
                 <motion.div
                     initial={{ scale: 0.8, opacity: 0 }}
                     animate={{ scale: 1, opacity: 1 }}
                     transition={{ duration: 0.5, type: 'spring' }}
-                    className="flex gap-2 p-4 bg-black/50 backdrop-blur-md rounded-2xl border border-yellow-400/30 shadow-2xl"
+                    className="flex gap-1 px-3 py-2 rounded-xl"
+                    style={{
+                        background: '#1a3c34',
+                        border: '2px solid #2d5a4e',
+                        boxShadow: 'inset 0 1px 2px rgba(0,0,0,0.2), 0 2px 4px rgba(0,0,0,0.15)',
+                    }}
                 >
                     {bottomCards.length > 0 ? (
                         bottomCards.map((val, i) => {
@@ -173,7 +263,7 @@ export const GameBoard = () => {
                                     <Card
                                         suit={data.suit as any}
                                         rank={phase === 'BIDDING' || phase === 'DEALING' ? '' : data.rank}
-                                        scale={0.7}
+                                        scale={0.85}
                                         hidden={phase === 'BIDDING' || phase === 'DEALING'}
                                     />
                                 </motion.div>
@@ -181,7 +271,7 @@ export const GameBoard = () => {
                         })
                     ) : (
                         Array(8).fill(0).map((_, i) => (
-                            <Card key={i} suit="spades" rank="" scale={0.7} hidden />
+                            <Card key={i} suit="spades" rank="" scale={0.85} hidden />
                         ))
                     )}
                 </motion.div>
@@ -331,6 +421,7 @@ export const GameBoard = () => {
                     <PlayerHand
                         cards={handCards}
                         isHuman={true}
+                        onCardClick={handleCardClick}
                         onSelectionChange={handleSelectionChange}
                         className="scale-90 origin-bottom"
                     />
@@ -353,10 +444,13 @@ export const GameBoard = () => {
                         <motion.div
                             initial={{ opacity: 0, y: -10 }}
                             animate={{ opacity: 1, y: 0 }}
-                            className="absolute left-[34%] -top-10 flex items-center text-xs text-yellow-200 bg-yellow-900/80 px-3 py-1 rounded-full animate-pulse border border-yellow-500/30"
+                            className={`absolute left-[34%] -top-10 flex items-center text-xs px-3 py-1 rounded-full border ${remainingTime <= 10
+                                ? 'text-red-200 bg-red-900/80 border-red-500/30 animate-pulse'
+                                : 'text-yellow-200 bg-yellow-900/80 border-yellow-500/30'
+                                }`}
                         >
                             <Clock size={14} className="mr-1.5" />
-                            <span className="font-mono font-bold">30s</span>
+                            <span className="font-mono font-bold">{remainingTime}s</span>
                         </motion.div>
                     )}
 
@@ -400,7 +494,7 @@ export const GameBoard = () => {
                                             onClick={() => handleBid(0)}
                                             whileHover={{ scale: 1.05, y: -2 }}
                                             whileTap={{ scale: 0.95 }}
-                                            className="px-8 py-3 rounded-xl text-white font-bold shadow-xl transition-all bg-gradient-to-br from-gray-600 to-gray-700 hover:from-gray-500 hover:to-gray-600 border-2 border-gray-400/50"
+                                            className="px-4 py-1.5 rounded-lg text-white text-sm font-bold shadow-md transition-all bg-gradient-to-br from-gray-600 to-gray-700 hover:from-gray-500 hover:to-gray-600 border border-gray-400/50"
                                         >
                                             不叫
                                         </motion.button>
@@ -416,43 +510,43 @@ export const GameBoard = () => {
                                     initial={{ opacity: 0, y: 20 }}
                                     animate={{ opacity: 1, y: 0 }}
                                     exit={{ opacity: 0, y: -20 }}
-                                    className="flex gap-3"
+                                    className="flex gap-2"
                                 >
                                     <motion.button
                                         onClick={handlePlay}
                                         disabled={currentTurn !== bottomPlayer?.seatId || selectedCards.length === 0}
                                         whileHover={currentTurn === bottomPlayer?.seatId && selectedCards.length > 0 ? { scale: 1.05, y: -2 } : {}}
                                         whileTap={currentTurn === bottomPlayer?.seatId && selectedCards.length > 0 ? { scale: 0.95 } : {}}
-                                        className={`px-8 py-3 rounded-xl text-white font-bold shadow-xl transition-all border-2 ${currentTurn === bottomPlayer?.seatId && selectedCards.length > 0
+                                        className={`px-4 py-1.5 rounded-lg text-white text-sm font-bold shadow-md transition-all border ${currentTurn === bottomPlayer?.seatId && selectedCards.length > 0
                                             ? 'bg-gradient-to-br from-blue-500 to-blue-600 hover:from-blue-400 hover:to-blue-500 border-blue-300/50 cursor-pointer'
                                             : 'bg-gray-500/50 border-gray-400/30 cursor-not-allowed opacity-50'
                                             }`}
                                     >
-                                        🃏 Play ({selectedCards.length})
+                                        出牌 ({selectedCards.length})
                                     </motion.button>
                                     <motion.button
                                         onClick={handleHint}
                                         disabled={currentTurn !== bottomPlayer?.seatId}
                                         whileHover={currentTurn === bottomPlayer?.seatId ? { scale: 1.05, y: -2 } : {}}
                                         whileTap={currentTurn === bottomPlayer?.seatId ? { scale: 0.95 } : {}}
-                                        className={`px-8 py-3 rounded-xl text-white font-bold shadow-xl transition-all border-2 ${currentTurn === bottomPlayer?.seatId
+                                        className={`px-4 py-1.5 rounded-lg text-white text-sm font-bold shadow-md transition-all border ${currentTurn === bottomPlayer?.seatId
                                             ? 'bg-gradient-to-br from-green-500 to-green-600 hover:from-green-400 hover:to-green-500 border-green-300/50 cursor-pointer'
                                             : 'bg-gray-500/50 border-gray-400/30 cursor-not-allowed opacity-50'
                                             }`}
                                     >
-                                        💡 Hint
+                                        提示
                                     </motion.button>
                                     <motion.button
                                         onClick={handlePass}
                                         disabled={currentTurn !== bottomPlayer?.seatId || !canPass}
                                         whileHover={currentTurn === bottomPlayer?.seatId && canPass ? { scale: 1.05, y: -2 } : {}}
                                         whileTap={currentTurn === bottomPlayer?.seatId && canPass ? { scale: 0.95 } : {}}
-                                        className={`px-8 py-3 rounded-xl text-white font-bold shadow-xl transition-all border-2 ${currentTurn === bottomPlayer?.seatId && canPass
+                                        className={`px-4 py-1.5 rounded-lg text-white text-sm font-bold shadow-md transition-all border ${currentTurn === bottomPlayer?.seatId && canPass
                                             ? 'bg-gradient-to-br from-gray-600 to-gray-700 hover:from-gray-500 hover:to-gray-600 border-gray-400/50 cursor-pointer'
                                             : 'bg-gray-500/50 border-gray-400/30 cursor-not-allowed opacity-50'
                                             }`}
                                     >
-                                        ⏭️ Pass
+                                        不出
                                     </motion.button>
                                 </motion.div>
                             </AnimatePresence>

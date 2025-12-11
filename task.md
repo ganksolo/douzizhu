@@ -586,3 +586,23 @@
   - [x] GameBoard.tsx 传递 isLandlord 给所有 PlayerAvatar <!-- id: 46.2 -->
 - [x] Fix 17: Issue #26 手牌不显示 (FE) <!-- id: 47 -->
   - [x] game.store.ts 修复 myHand 提取逻辑 <!-- id: 47.1 -->
+- [x] Phase 42: Card UI 优化（底牌视觉增强） <!-- id: 42 -->
+  - [x] 修改 Card.tsx 卡牌背面纹理（蓝色点阵） <!-- id: 42.1 -->
+  - [x] 修改 Card.tsx 卡牌正面布局（数字左上/右下，花色居中） <!-- id: 42.2 -->
+  - [x] 更新 frontend_walkthrough.md <!-- id: 42.3 -->
+  - [x] 手动验证 <!-- id: 42.4 -->
+- [x] Fix 18: Issue #27 倒计时未实现 (FE) <!-- id: 48 -->
+  - [x] 创建 useTurnTimer Hook <!-- id: 48.1 -->
+  - [x] GameBoard 集成倒计时 (动态秒数、超时变红) <!-- id: 48.2 -->
+  - [x] 超时自动执行默认动作 (bid(0) 或 pass) <!-- id: 48.3 -->
+- [x] Fix 19: Issue #28 mySeatId 同步问题 (FE) <!-- id: 49 -->
+  - [x] game.store.ts setSyncState 自动推断 mySeatId <!-- id: 49.1 -->
+- [x] Fix 20: Issue #31 手牌单击选择无效 (FE) <!-- id: 50 -->
+  - [x] 添加 handleCardClick 切换选中状态 <!-- id: 50.1 -->
+  - [x] 传递 onCardClick prop 给 PlayerHand <!-- id: 50.2 -->
+- [x] Feature: Issue #32 Hint 提示功能 <!-- id: 32 -->
+  - [x] BE: 创建 HintService (hint.service.ts) <!-- id: 32.1 -->
+  - [x] BE: GameGateway 添加 request_hint 事件处理 <!-- id: 32.2 -->
+  - [x] BE: GameModule 注册 HintService <!-- id: 32.3 -->
+  - [x] FE: handleHint 发送 request_hint <!-- id: 32.4 -->
+  - [x] FE: 监听 hint_result 自动选中推荐牌 <!-- id: 32.5 -->
