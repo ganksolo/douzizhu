@@ -120,8 +120,9 @@ export const Card = (props: CardProps) => {
             onClick={handleClick}
             className={`
                 bg-white border border-gray-300 rounded-lg shadow-xl 
-                relative cursor-pointer transition-transform duration-200 select-none
-                ${isSelected ? '-translate-y-4' : ''}
+                relative cursor-pointer transition-all duration-200 select-none
+                ${isSelected ? '-translate-y-4' : 'hover:-translate-y-2'} 
+                hover:brightness-105 hover:shadow-2xl
             `}
             style={{ width: `${56 * scale}px`, height: `${80 * scale}px` }}
         >

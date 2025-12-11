@@ -203,13 +203,13 @@ export const RoomPage = () => {
     };
 
     return (
-        <div className="min-h-screen bg-[#0d2116] relative overflow-hidden flex flex-col font-sans select-none">
+        <div className="min-h-screen bg-[rgb(50,85,66)] relative overflow-hidden flex flex-col font-sans select-none">
             {/* --- Background --- */}
             {/* Table Cloth Texture (Green dots) */}
             <div className="absolute inset-0" style={{
                 backgroundImage: 'radial-gradient(rgb(26, 77, 51) 1px, transparent 1px)',
                 backgroundSize: '4px 4px',
-                backgroundColor: '#0d2116'
+                backgroundColor: 'rgb(50, 85, 66)'
             }}></div>
 
             {/* Lighting/Vignette Overlay */}

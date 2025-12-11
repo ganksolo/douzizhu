@@ -163,10 +163,10 @@ export const GameBoard = () => {
 
     // Phase Handlers
     const handleBid = (points: number) => {
-        SocketService.emit('game_action', {
+        SocketService.emit('client_action', {
             type: 'BID',
             roomId,
-            payload: { points }
+            payload: { bid: points }
         });
     };
 
@@ -176,10 +176,10 @@ export const GameBoard = () => {
         // Convert to backend format cards
         const cardsStr = selectedCards.map(v => valueToCardString(v));
 
-        SocketService.emit('game_action', {
+        SocketService.emit('client_action', {
             type: 'PLAY',
             roomId,
-            payload: { cards: cardsStr }
+            payload: cardsStr
         });
 
         // Optimistically clear selection
@@ -187,7 +187,7 @@ export const GameBoard = () => {
     };
 
     const handlePass = () => {
-        SocketService.emit('game_action', {
+        SocketService.emit('client_action', {
             type: 'PASS',
             roomId,
             payload: {}
@@ -252,8 +252,8 @@ export const GameBoard = () => {
         };
     }, []);
 
-    // Issue #31: Timer styling
-    const { remainingTime } = useTurnTimer(currentTurn === mySeatId, currentTurn);
+    // Issue #31: Timer styling - Fix 15s bug by explicit duration
+    const { remainingTime } = useTurnTimer(currentTurn === mySeatId, currentTurn, { turnDuration: 30 });
 
     // Watch for Game End
     // No specific effect needed if we just render modal based on store state
@@ -280,13 +280,13 @@ export const GameBoard = () => {
     );
 
     return (
-        <div className="w-full h-screen bg-[#0d2116] relative overflow-hidden flex flex-col items-center justify-center select-none font-sans">
+        <div className="w-full h-screen bg-[rgb(50,85,66)] relative overflow-hidden flex flex-col items-center justify-center select-none font-sans">
             {/* --- Background --- */}
             {/* Table Cloth Texture (Green dots) */}
             <div className="absolute inset-0" style={{
                 backgroundImage: 'radial-gradient(rgb(26, 77, 51) 1px, transparent 1px)',
                 backgroundSize: '4px 4px',
-                backgroundColor: '#0d2116' // Keeping a dark green base
+                backgroundColor: 'rgb(50, 85, 66)' // Updated base color
             }}></div>
 
             {/* Lighting/Vignette Overlay */}
@@ -317,8 +317,8 @@ export const GameBoard = () => {
                 )}
             </AnimatePresence>
 
-            {/* --- 右上角工具栏 --- */}
-            <div className="absolute top-4 right-4 flex items-center gap-2 z-50">
+            {/* --- 左上角工具栏 (Debug/Settings) --- */}
+            <div className="absolute top-4 left-4 flex items-center gap-2 z-50">
                 {/* Icons... (Keep existing logic, just ensure colors contrast well) */}
                 <button
                     className="w-10 h-10 rounded-full flex items-center justify-center transition-all hover:opacity-80 bg-[#1f2937]/80 text-[#d4af37] border border-[#d4af37]/30"
@@ -350,19 +350,22 @@ export const GameBoard = () => {
             {/* Issue: 8 cards should be in horizontal vertical center */}
             <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 flex flex-col items-center gap-6 z-20">
                 {/* Dipai (Bottom Cards) - 扇形排列 */}
+                {/* Dipai (Bottom Cards) - 扇形排列 */}
                 <motion.div
                     initial={{ scale: 0.8, opacity: 0 }}
                     animate={{ scale: 1, opacity: 1 }}
                     transition={{ duration: 0.5, type: 'spring' }}
-                    className="relative h-24 flex items-center justify-center"
+                    className="relative h-32 w-[500px] flex items-center justify-center pointer-events-none"
                 >
                     {bottomCards.length > 0 ? (
                         bottomCards.map((val, i) => {
                             const data = getCardData(val);
                             const totalCards = bottomCards.length;
                             const centerIndex = (totalCards - 1) / 2;
-                            const rotation = (i - centerIndex) * 6; // Reduced rotation
-                            const translateY = Math.abs(i - centerIndex) * 2;
+                            // Use pixel-based spacing (30px) instead of percentage to guarantee spread
+                            const xOffset = (i - centerIndex) * 30;
+                            const rotation = (i - centerIndex) * 4; // Gentle fanning
+                            const translateY = Math.abs(i - centerIndex) * 2; // Slight arch
 
                             return (
                                 <motion.div
@@ -374,11 +377,10 @@ export const GameBoard = () => {
                                         rotate: rotation
                                     }}
                                     transition={{ delay: i * 0.05, type: 'spring', stiffness: 200 }}
-                                    className="absolute"
+                                    className="absolute origin-bottom"
                                     style={{
-                                        left: `${50 + (i - centerIndex) * 25}%`,
-                                        transform: `translateX(-50%) rotate(${rotation}deg)`,
-                                        transformOrigin: 'bottom center',
+                                        left: `calc(50% + ${xOffset}px)`,
+                                        transform: `translateX(-50%)`, // We handle rotation in animate, but this keeps center alignment
                                         zIndex: i,
                                     }}
                                 >
@@ -394,16 +396,18 @@ export const GameBoard = () => {
                     ) : (
                         Array(8).fill(0).map((_, i) => {
                             const centerIndex = 3.5;
-                            const rotation = (i - centerIndex) * 6;
+                            const xOffset = (i - centerIndex) * 30;
+                            const rotation = (i - centerIndex) * 4;
+                            const translateY = Math.abs(i - centerIndex) * 2;
 
                             return (
                                 <div
                                     key={i}
-                                    className="absolute"
+                                    className="absolute origin-bottom"
                                     style={{
-                                        left: `${50 + (i - centerIndex) * 25}%`,
+                                        left: `calc(50% + ${xOffset}px)`,
                                         transform: `translateX(-50%) rotate(${rotation}deg)`,
-                                        transformOrigin: 'bottom center',
+                                        top: `${translateY}px`,
                                         zIndex: i,
                                     }}
                                 >
@@ -414,11 +418,11 @@ export const GameBoard = () => {
                     )}
                 </motion.div>
 
-                {/* Bidding Prompt */}
+                {/* Bidding Prompt - Moved up 40px (mb-10 or -translate-y) */}
                 {phase === 'BIDDING' && (
                     <motion.div
                         initial={{ opacity: 0, y: 10 }}
-                        animate={{ opacity: 1, y: 0 }}
+                        animate={{ opacity: 1, y: -40 }}
                         className="text-white text-lg font-bold bg-black/40 px-6 py-2 rounded-full backdrop-blur-sm flex flex-col items-center gap-1 border border-white/10"
                     >
                         <div className="flex items-center gap-2 text-[#ffd700]">
@@ -580,8 +584,8 @@ export const GameBoard = () => {
                 {/* 2. Hand Cards & Controls (Centered) */}
                 <div className="absolute left-1/2 -translate-x-1/2 bottom-0 flex flex-col items-center mb-4 w-full max-w-[900px] pointer-events-none">
 
-                    {/* Game Control Buttons (Above Hand) */}
-                    <div className="mb-6 flex gap-6 pointer-events-auto items-center min-h-[60px]">
+                    {/* Game Control Buttons (Above Hand) - Fix Z-Index issue */}
+                    <div className="mb-6 flex gap-6 pointer-events-auto items-center min-h-[60px] relative z-50">
                         {/* BIDDING Phase Buttons */}
                         {phase === 'BIDDING' && currentTurn === bottomPlayer?.seatId && (
                             <AnimatePresence>
