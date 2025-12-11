@@ -76,6 +76,16 @@ export class StateSerializer {
 
         // 6. Add metadata with currentTurn (as seatIndex) and phase
         // Phase 35: Include bidding-related fields
+        // Issue #34: Include game end fields as gameEnd object
+
+        // Issue #34 Fix: Construct gameEnd object to match FE expectations
+        const gameEnd = sanitizedData.winnerId ? {
+            winnerId: sanitizedData.winnerId,
+            winnerSeatIndex: sanitizedData.winnerSeatIndex ?? null,
+            isLandlordWin: sanitizedData.isLandlordWin ?? false,
+            multiplier: sanitizedData.multiplier ?? 1,
+        } : null;
+
         return {
             ...sanitizedData,
             currentState: currentStateName,
@@ -84,6 +94,9 @@ export class StateSerializer {
             highestBid: sanitizedData.highestBid ?? 0,
             landlordSeatIndex: sanitizedData.landlordSeatIndex ?? null,
             bidHistory: sanitizedData.bidHistory ?? [],
+            // Issue #34: Game end data as object (FE expects data.gameEnd)
+            gameEnd: gameEnd,
+            multiplier: sanitizedData.multiplier ?? 1,
             timestamp: Date.now(),
         };
     }

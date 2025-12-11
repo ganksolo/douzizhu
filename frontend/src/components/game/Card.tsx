@@ -1,15 +1,59 @@
+import type { Card as CardType } from '../../types';
+
+// Issue #36: 统一的 Card 组件，支持两种使用方式
+// 方式 1: 使用 CardType 对象 (card prop) - PlayerHand.tsx 使用
+// 方式 2: 使用独立 props (suit, rank) - GameBoard 出牌区使用
 
 interface CardProps {
-    suit: 'spades' | 'hearts' | 'clubs' | 'diamonds' | 'joker_black' | 'joker_red';
-    rank: string;
+    // 方式 1: 传入 card 对象 (兼容 PlayerHand.tsx)
+    card?: CardType;
+    // 方式 2: 分散 props (GameBoard 出牌区使用)
+    suit?: 'spades' | 'hearts' | 'clubs' | 'diamonds' | 'joker_black' | 'joker_red' | 'joker';
+    rank?: string;
     isSelected?: boolean;
-    onClick?: () => void;
+    onClick?: ((card: CardType) => void) | (() => void);
     scale?: number;
-    hidden?: boolean; // Card back
+    hidden?: boolean;
+    // 兼容 PlayerHand.tsx 的 props
+    isBack?: boolean;
+    small?: boolean;
 }
 
-export const Card = ({ suit, rank, isSelected, onClick, scale = 1, hidden = false }: CardProps) => {
-    // Card back with dot pattern texture (matching PlayerAvatar hand count style)
+export const Card = (props: CardProps) => {
+    // 从 card 对象或分散 props 获取值
+    const card = props.card;
+
+    // 优先使用 card 对象中的值
+    let suit: string = props.suit || (card?.suit as string) || 'spades';
+    const rank: string = props.rank || card?.rank || '';
+    const isSelected: boolean = props.isSelected ?? card?.isSelected ?? false;
+
+    // 兼容 isBack/hidden 和 small/scale
+    const hidden: boolean = props.hidden || props.isBack || false;
+    const scale: number = props.scale ?? (props.small ? 0.6 : 1);
+
+    // 处理 Joker suit 映射
+    if (card?.rank === 'black_joker' || suit === 'joker') {
+        suit = 'joker_black';
+    }
+    if (card?.rank === 'red_joker') {
+        suit = 'joker_red';
+    }
+
+    // 处理 onClick
+    const handleClick = () => {
+        if (props.onClick) {
+            if (card) {
+                // 如果有 card 对象，传递完整对象
+                (props.onClick as (card: CardType) => void)(card);
+            } else {
+                // 否则直接调用
+                (props.onClick as () => void)();
+            }
+        }
+    };
+
+    // Card back with dot pattern texture
     if (hidden) {
         return (
             <div
@@ -19,7 +63,7 @@ export const Card = ({ suit, rank, isSelected, onClick, scale = 1, hidden = fals
                     height: `${68 * scale}px`,
                     borderRadius: `${6 * scale}px`,
                     border: `${2 * scale}px solid #1e3a5f`,
-                    background: '#1e3a8a', // Dark blue (blue-900)
+                    background: '#1e3a8a',
                 }}
             >
                 {/* Dot pattern overlay */}
@@ -36,21 +80,27 @@ export const Card = ({ suit, rank, isSelected, onClick, scale = 1, hidden = fals
     }
 
     const isRed = suit === 'hearts' || suit === 'diamonds' || suit === 'joker_red';
-    const isJoker = suit === 'joker_black' || suit === 'joker_red';
-    const suitSymbol = {
+    const isJoker = suit === 'joker_black' || suit === 'joker_red' || rank === 'black_joker' || rank === 'red_joker';
+
+    const suitSymbolMap: Record<string, string> = {
         'spades': '♠',
         'hearts': '♥',
         'clubs': '♣',
         'diamonds': '♦',
+        'joker': '🤡',
         'joker_black': '🤡',
         'joker_red': '🤡'
-    }[suit];
+    };
+    const suitSymbol = suitSymbolMap[suit] || '♠';
 
     const textColor = isRed ? 'text-red-500' : (suit === 'joker_black' ? 'text-gray-500' : 'text-black');
 
+    // 显示 rank: Joker 显示 J，其他显示 rank
+    const displayRank = isJoker ? 'J' : (rank === '10' ? '10' : (rank || '')[0]?.toUpperCase() || '');
+
     return (
         <div
-            onClick={onClick}
+            onClick={handleClick}
             className={`
                 bg-white border border-gray-300 rounded-lg shadow-xl 
                 relative cursor-pointer transition-transform duration-200 select-none
@@ -68,7 +118,7 @@ export const Card = ({ suit, rank, isSelected, onClick, scale = 1, hidden = fals
                     lineHeight: 1,
                 }}
             >
-                {isJoker ? 'J' : rank}
+                {displayRank}
             </div>
 
             {/* Center: Suit Symbol */}
@@ -96,8 +146,10 @@ export const Card = ({ suit, rank, isSelected, onClick, scale = 1, hidden = fals
                     transform: 'rotate(180deg)',
                 }}
             >
-                {isJoker ? 'J' : rank}
+                {displayRank}
             </div>
         </div>
     );
 };
+
+export default Card;

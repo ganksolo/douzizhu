@@ -62,5 +62,9 @@ export interface RoomData {
     highestBid?: number;
     landlordSeatIndex?: number | null;
     firstBidder?: number; // seatIndex of first bidder
-}
 
+    // Issue #34: Game End
+    winnerId?: string;
+    winnerSeatIndex?: number | null;
+    isLandlordWin?: boolean;
+}

@@ -2,6 +2,7 @@ import { useGameStore } from '../../store/game.store';
 import { useRoomStore } from '../../store/room.store';
 import { PlayerAvatar } from './PlayerAvatar';
 import { Card } from './Card';
+import { GameEndModal } from './GameEndModal';
 import { useState, useMemo, useCallback, useEffect } from 'react';
 import { PlayerHand } from '../PlayerHand';
 import { Clock } from 'lucide-react';
@@ -9,6 +10,7 @@ import type { Card as CardType } from '../../types';
 import { motion, AnimatePresence } from 'framer-motion';
 import { SocketService } from '../../services/socket';
 import { useTurnTimer } from '../../hooks/useTurnTimer';
+import { useNavigate } from 'react-router-dom';
 
 // --- Card Logic Helpers ---
 const getCardData = (value: number): CardType => {
@@ -36,21 +38,23 @@ const getCardData = (value: number): CardType => {
     };
 };
 
-// Issue #32: 解析后端卡牌字符串 (e.g., "3S", "AH", "2D", "BJ", "RJ") 为数值
+// Issue #32: 解析后端卡牌字符串 (e.g., "♦3", "♥A", "BlackJoker") 为数值
 const parseCardString = (cardStr: string): number => {
     // Special cases: Jokers
-    if (cardStr === 'BJ' || cardStr === 'JOKER_BLACK') return 52;
-    if (cardStr === 'RJ' || cardStr === 'JOKER_RED') return 53;
+    if (cardStr === 'BlackJoker' || cardStr === 'BJ' || cardStr === 'JOKER_BLACK') return 52;
+    if (cardStr === 'RedJoker' || cardStr === 'RJ' || cardStr === 'JOKER_RED') return 53;
 
-    // Format: "{rank}{suit}" e.g., "3S", "10H", "AD"
-    const suits: Record<string, number> = { 'D': 0, 'C': 1, 'H': 2, 'S': 3 };
+    // Format: "{suit}{rank}" e.g., "♦3", "♥10", "♠A"
+    // 花色符号在第一位
+    const suits: Record<string, number> = { '♦': 0, '♣': 1, '♥': 2, '♠': 3, 'D': 0, 'C': 1, 'H': 2, 'S': 3 };
     const ranks: Record<string, number> = {
         '3': 0, '4': 1, '5': 2, '6': 3, '7': 4, '8': 5, '9': 6,
         '10': 7, 'J': 8, 'Q': 9, 'K': 10, 'A': 11, '2': 12
     };
 
-    const suitChar = cardStr.slice(-1).toUpperCase();
-    const rankStr = cardStr.slice(0, -1).toUpperCase();
+    // 花色在第一位
+    const suitChar = cardStr.charAt(0);
+    const rankStr = cardStr.slice(1).toUpperCase();
 
     const suitIndex = suits[suitChar];
     const rankIndex = ranks[rankStr];
@@ -61,6 +65,28 @@ const parseCardString = (cardStr: string): number => {
     }
 
     return suitIndex * 13 + rankIndex;
+};
+
+// Issue #33: 将数值转换为后端期望的卡牌字符串格式 (e.g., "♦3", "♥A", "BlackJoker")
+const valueToCardString = (value: number): string => {
+    // Special cases: Jokers
+    if (value === 52) return 'BlackJoker';
+    if (value === 53) return 'RedJoker';
+
+    // Suit mapping: 使用符号，后端期望格式
+    const suits = ['♦', '♣', '♥', '♠'];  // Diamonds, Clubs, Hearts, Spades
+    const ranks = ['3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K', 'A', '2'];
+
+    const suitIndex = Math.floor(value / 13);
+    const rankIndex = value % 13;
+
+    if (suitIndex < 0 || suitIndex > 3 || rankIndex < 0 || rankIndex > 12) {
+        console.warn('[valueToCardString] Invalid card value:', value);
+        return '';
+    }
+
+    // BE 期望格式: 花色符号在前，rank 在后
+    return `${suits[suitIndex]}${ranks[rankIndex]}`;
 };
 
 export const GameBoard = () => {
@@ -76,6 +102,11 @@ export const GameBoard = () => {
     const gamePlayers = useGameStore((state) => state.players);
     const highestBid = useGameStore((state) => state.highestBid);
     const landlordSeatIndex = useGameStore((state) => state.landlordSeatIndex);
+    const gameEnd = useGameStore((state) => state.gameEnd);
+    const mySeatId = useGameStore((state) => state.mySeatId);
+    const resetGame = useGameStore((state) => state.resetGame);
+    const resetRoom = useRoomStore((state) => state.resetRoom);
+    const navigate = useNavigate();
 
     const [selectedCards, setSelectedCards] = useState<number[]>([]);
 
@@ -125,8 +156,8 @@ export const GameBoard = () => {
     // However, `lastPlayedCards` from store has `seatIndex` and `cards`. `playerId` might not be there?
     // Let's check store definition. Phase 23.5 said `seatIndex` is verified.
     // If seatIndex === mySeatId, then I am leader.
-    const mySeatId = bottomPlayer?.seatId;
-    const isLeader = lastPlayedCards === null || (mySeatId !== undefined && lastPlayedCards.seatIndex === mySeatId);
+    const bottomSeatId = bottomPlayer?.seatId;
+    const isLeader = lastPlayedCards === null || (bottomSeatId !== undefined && lastPlayedCards.seatIndex === bottomSeatId);
     const canPass = !isLeader;
 
     // Issue #27: 判断是否轮到自己
@@ -158,11 +189,13 @@ export const GameBoard = () => {
     // --- Game Control Handlers ---
     const handlePlay = () => {
         if (selectedCards.length === 0) return;
-        console.log('[GameBoard] Playing cards:', selectedCards);
+        // Issue #33: 转换为后端期望的卡牌字符串格式
+        const cardStrings = selectedCards.map(val => valueToCardString(val)).filter(s => s !== '');
+        console.log('[GameBoard] Playing cards:', selectedCards, '->', cardStrings);
         SocketService.emit('client_action', {
             type: 'PLAY',
             roomId: roomId,
-            payload: { cards: selectedCards }
+            payload: { cards: cardStrings }
         });
         setSelectedCards([]); // Clear selection after play
     };
@@ -224,8 +257,39 @@ export const GameBoard = () => {
         </div>
     );
 
+    // Issue #34: 再来一局处理
+    const handlePlayAgain = useCallback(() => {
+        console.log('[GameBoard] Play again requested');
+        resetGame();
+        // 发送重新开始请求到后端
+        SocketService.emit('restart_game', { roomId });
+    }, [resetGame, roomId]);
+
+    // Issue #34: 退出房间处理
+    const handleExit = useCallback(() => {
+        console.log('[GameBoard] Exit room requested');
+        resetGame();
+        resetRoom();
+        navigate('/');
+    }, [resetGame, resetRoom, navigate]);
+
     return (
         <div className="w-full h-screen bg-green-900 relative overflow-hidden flex flex-col items-center justify-center select-none">
+            {/* Issue #34: Game End Modal */}
+            <AnimatePresence>
+                {phase === 'GAME_END' && gameEnd && (
+                    <GameEndModal
+                        winnerId={gameEnd.winnerId}
+                        isLandlordWin={gameEnd.isLandlordWin}
+                        multiplier={gameEnd.multiplier}
+                        mySeatId={mySeatId}
+                        landlordSeatIndex={landlordSeatIndex}
+                        onPlayAgain={handlePlayAgain}
+                        onExit={handleExit}
+                    />
+                )}
+            </AnimatePresence>
+
             {/* Table Texture */}
             <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_#2f855a_0%,_#14532d_100%)] opacity-80 pointer-events-none"></div>
 

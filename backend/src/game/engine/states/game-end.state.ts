@@ -5,9 +5,9 @@ import { MatchService } from '../../services/match.service';
 import { UserAction } from '../../types/game.types';
 
 /**
- * Phase 19.2: Game End State
+ * Phase 19.2 + Issue #34: Game End State
  * 
- * Handles match settlement, persistence, and transition back to lobby/init.
+ * Handles match settlement, persistence, and game_end event broadcast.
  */
 @Injectable()
 export class GameEndState extends BaseState {
@@ -28,23 +28,27 @@ export class GameEndState extends BaseState {
             return;
         }
 
-        this.logger.log(`Game Over! Winner: ${winnerId}`);
+        const winner = context.roomData.players.find(p => p.id === winnerId);
+        const isLandlordWin = winner?.role === 'landlord';
+
+        // Issue #34: Set game end data in roomData for StateSerializer
+        context.roomData.winnerId = winnerId;
+        context.roomData.winnerSeatIndex = winner?.seatIndex ?? null;
+        context.roomData.isLandlordWin = isLandlordWin;
+
+        this.logger.log(`Game Over! Winner: ${winnerId}, isLandlordWin: ${isLandlordWin}, multiplier: ${context.roomData.multiplier}`);
 
         // Persist match result (Fire and forget / Async)
-        // We don't await this to avoid blocking the game loop or broadcast
         this.matchService.saveMatchResult(
             context.roomData,
             winnerId,
-            context.roomData.startTime || new Date() // Fallback if startTime missing
+            context.roomData.startTime || new Date()
         ).catch(err => {
             this.logger.error(`Failed to save match result in background: ${err.message}`);
         });
 
-        // TODO: Transition back to InitState or wait for players to get ready again
-        // For now, we can reset the game after a delay
-        // setTimeout(() => {
-        //     this.resetGame(context);
-        // }, 10000);
+        // Note: game_end event is broadcast via onStateChange callback in GameContext.transitionTo()
+        // StateSerializer will include winnerId, isLandlordWin, multiplier in sync_state
     }
 
     handleInput(context: GameContext, action: UserAction): void {
@@ -64,6 +68,9 @@ export class GameEndState extends BaseState {
         context.roomData.actionHistory = [];
         context.roomData.lastPlayedCards = undefined;
         context.roomData.startTime = undefined;
+        context.roomData.winnerId = undefined;
+        context.roomData.winnerSeatIndex = undefined;
+        context.roomData.isLandlordWin = undefined;
     }
 
     private determineWinner(context: GameContext): string | null {

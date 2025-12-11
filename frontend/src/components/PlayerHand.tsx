@@ -1,6 +1,6 @@
 import { useRef, useState, useEffect } from 'react';
 import type { Card as CardType } from '../types';
-import { Card } from './Card';
+import { Card } from './game/Card';  // Issue #36: 使用统一的 Card 组件
 
 interface PlayerHandProps {
     cards: CardType[];

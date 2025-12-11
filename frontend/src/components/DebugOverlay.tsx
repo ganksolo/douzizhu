@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Eye } from 'lucide-react';
 import type { Player } from '../types';
-import { Card } from './Card';
+import { Card } from './game/Card';  // Issue #36: 使用统一的 Card 组件
 import { evaluateHand, type AIReason } from '../utils/ai';
 
 interface DebugOverlayProps {

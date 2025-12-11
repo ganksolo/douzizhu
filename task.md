@@ -606,3 +606,21 @@
   - [x] BE: GameModule 注册 HintService <!-- id: 32.3 -->
   - [x] FE: handleHint 发送 request_hint <!-- id: 32.4 -->
   - [x] FE: 监听 hint_result 自动选中推荐牌 <!-- id: 32.5 -->
+- [x] Fix 21: Issue #33 卡牌格式转换 (FE) <!-- id: 51 -->
+  - [x] 添加 valueToCardString 函数 <!-- id: 51.1 -->
+  - [x] 修改 handlePlay 发送正确格式 <!-- id: 51.2 -->
+- [x] Feature: Issue #34 游戏结束 UI <!-- id: 34 -->
+  - [x] BE: GameEndState 设置 winnerId/isLandlordWin <!-- id: 34.1 -->
+  - [x] BE: RoomData 添加 game end 字段 <!-- id: 34.2 -->
+  - [x] BE: StateSerializer 序列化 game end 字段 <!-- id: 34.3 -->
+  - [x] BE: GameGateway 添加 request_rematch 事件 <!-- id: 34.7 -->
+  - [x] FE: 在 game.store 添加 gameEnd 状态 <!-- id: 34.4 -->
+  - [x] FE: 实现 GameEndModal 组件 <!-- id: 34.5 -->
+  - [x] FE: 在 GameBoard 集成 GameEndModal <!-- id: 34.6 -->
+- [x] Refactor: Issue #36 合并 Card 组件 <!-- id: 36 -->
+  - [x] 分析两个 Card.tsx 差异 <!-- id: 36.1 -->
+  - [x] 增强 game/Card.tsx 支持两种 API <!-- id: 36.2 -->
+  - [x] 更新 PlayerHand 使用 game/Card <!-- id: 36.3 -->
+  - [x] 更新 DebugOverlay 使用 game/Card <!-- id: 36.4 -->
+  - [x] 更新 GameTable 使用 game/Card <!-- id: 36.5 -->
+  - [x] 删除旧 components/Card.tsx <!-- id: 36.6 -->

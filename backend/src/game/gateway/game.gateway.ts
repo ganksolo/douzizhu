@@ -313,6 +313,35 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect, On
         }
     }
 
+    /**
+     * Issue #34: Handle rematch request (Play Again)
+     */
+    @SubscribeMessage('request_rematch')
+    async handleRematch(
+        @MessageBody() data: { roomId: string },
+        @ConnectedSocket() client: Socket,
+    ) {
+        try {
+            const { roomId } = data;
+            this.logger.log(`Rematch requested for room ${roomId}`);
+
+            // Reset game state via RoomService
+            await this.roomService.requestRematch(roomId);
+
+            // Broadcast room reset to all players
+            this.server.to(roomId).emit('room_reset', { roomId });
+
+            // Get updated player list and broadcast
+            const players = await this.roomService.getPlayers(roomId);
+            this.server.to(roomId).emit('player_list_update', { roomId, players });
+
+            client.emit('rematch_success', { roomId });
+        } catch (error) {
+            this.logger.error(`Error in request_rematch: ${error.message}`);
+            client.emit('rematch_error', { error: error.message });
+        }
+    }
+
     private async broadcastState(roomId: string) {
         const gameContext = this.gameManager.getOrCreateRoom(roomId);
         const sockets = await this.server.in(roomId).fetchSockets();

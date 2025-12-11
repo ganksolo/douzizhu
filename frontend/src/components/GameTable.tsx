@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { User, Crown, Settings } from 'lucide-react';
 import type { Card as CardType } from '../types';
 import { useGameLoop } from '../hooks/useGameLoop';
-import { Card } from './Card';
+import { Card } from './game/Card';  // Issue #36: 使用统一的 Card 组件
 import { PlayerHand } from './PlayerHand';
 import { GameOverModal } from './GameOverModal';
 import { getHint } from '../utils/ai';

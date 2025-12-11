@@ -2,7 +2,7 @@ import { create } from 'zustand';
 import { parseCardList } from '../utils/cardUtils';
 
 // --- Types ---
-export type GamePhase = 'INIT' | 'DEALING' | 'BIDDING' | 'PLAYING' | 'GAME_OVER';
+export type GamePhase = 'INIT' | 'DEALING' | 'BIDDING' | 'PLAYING' | 'GAME_END';
 
 export interface GamePlayer {
     userId: string;
@@ -23,6 +23,13 @@ export interface BidRecord {
     bid: number;
 }
 
+// Issue #34: 游戏结束数据
+export interface GameEndData {
+    winnerId: string;
+    isLandlordWin: boolean;
+    multiplier: number;
+}
+
 export interface GameState {
     // Core Data
     phase: GamePhase;
@@ -37,6 +44,9 @@ export interface GameState {
     highestBid: number;
     landlordSeatIndex: number | null;
     bidHistory: BidRecord[];
+
+    // Issue #34: Game End Data
+    gameEnd: GameEndData | null;
 
     // Actions
     setSyncState: (data: any) => void;
@@ -59,6 +69,7 @@ export const useGameStore = create<GameState>((set, get) => ({
     highestBid: 0,
     landlordSeatIndex: null,
     bidHistory: [],
+    gameEnd: null,
 
 
 
@@ -85,6 +96,15 @@ export const useGameStore = create<GameState>((set, get) => ({
         // Fix Issue #28: 自动从 myPlayerData 推断 mySeatId
         const inferredSeatId = myPlayerData?.seatIndex ?? get().mySeatId;
 
+        // Issue #34: 从 BE 独立字段构造 gameEnd 对象
+        // BE StateSerializer 发送 winnerId, winnerSeatIndex, isLandlordWin, multiplier 作为独立字段
+        const gameEnd = data.winnerId ? {
+            winnerId: data.winnerId,
+            winnerSeatIndex: data.winnerSeatIndex,
+            isLandlordWin: data.isLandlordWin,
+            multiplier: data.multiplier ?? 1,
+        } : null;
+
         set({
             phase: data.phase || 'INIT',
             players: data.players || [],
@@ -95,6 +115,8 @@ export const useGameStore = create<GameState>((set, get) => ({
             highestBid: data.highestBid ?? 0,
             landlordSeatIndex: data.landlordSeatIndex ?? null,
             bidHistory: data.bidHistory ?? [],
+            // Issue #34: 游戏结束数据
+            gameEnd: gameEnd,
             // Fix Issue #28: 自动同步 mySeatId
             ...(inferredSeatId !== null && inferredSeatId !== undefined ? { mySeatId: inferredSeatId } : {}),
         });
@@ -115,6 +137,7 @@ export const useGameStore = create<GameState>((set, get) => ({
             highestBid: 0,
             landlordSeatIndex: null,
             bidHistory: [],
+            gameEnd: null,
             // mySeatId typically persists if in the same room, but can clear if leaving
         });
     },
