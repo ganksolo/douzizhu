@@ -1824,3 +1824,242 @@ backgroundSize: 10px 10px;
 - **Cleanup**: 移除了手牌区的白色背景槽和左右装饰条。
 
 **Verification**: `npm run build` ✅ Success.
+
+---
+
+## Fix: Card Selection and AI Display Issues
+
+### Date: 2025-12-12
+
+### Issue 1: 手牌点击选择困难
+
+**Root Cause**:
+- Card 尺寸过小 (56x80 px)
+- PlayerHand 卡牌重叠过多 (-32px, 只有 24px 可点击宽度)
+
+**Fix**:
+1. `Card.tsx`: 增大卡牌尺寸 56x80 → 70x100 px
+2. `Card.tsx`: 增大字体尺寸 (14px → 16px, 32px → 38px)
+3. `PlayerHand.tsx`: 减少卡牌重叠 -space-x-8 → -space-x-6 (46px 可点击宽度)
+
+### Issue 2: AI 出牌后看不到牌
+
+**Diagnosis**:
+- 添加调试日志到 `game.store.ts` 和 `GameBoard.tsx`
+- 优化 renderPlayedCards: 减少重叠 (-space-x-8 → -space-x-4), 增大缩放 (0.75 → 0.90)
+
+**Files Modified**:
+- `frontend/src/components/game/Card.tsx`
+- `frontend/src/components/PlayerHand.tsx`
+- `frontend/src/components/game/GameBoard.tsx`
+- `frontend/src/store/game.store.ts`
+
+**Status**: ✅ FE fixes applied, pending browser verification.
+
+---
+
+## Fix: Hand Cards Layout Overflow
+
+### Date: 2025-12-12
+
+### Problem
+拿到底牌后手牌超出屏幕，遮挡左边用户头像和右边 Chat 按钮。
+
+### Root Cause
+- 卡牌尺寸增大后 (70x100px)，25+ 张牌总宽度超过屏幕
+- 手牌区域宽度未限制
+
+### Fix
+1. `GameBoard.tsx`: 限制手牌区域宽度 `maxWidth: calc(100% - 280px)`，为两侧 UI 留出空间
+2. `GameBoard.tsx`: 缩小 PlayerHand 整体比例 `scale-[0.85]`
+3. `PlayerHand.tsx`: 增加卡牌重叠 `-space-x-6` → `-space-x-10` (适应 25+ 张牌)
+
+### Visual Result
+| 区域 | 修改 |
+|------|------|
+| 手牌区域 | 限制在屏幕中央，两侧留出 140px 空间 |
+| 卡牌缩放 | 整体缩小 15% |
+| 卡牌重叠 | 增加重叠量，每张露出约 30px |
+
+**Status**: ✅ Build Success
+
+---
+
+## Fix: Issue #38 Hand Sorting Logic
+
+### Date: 2025-12-12
+
+### Problem
+手牌使用简单数值排序 (`b - a`)，未按斗地主牌面大小排序。
+
+### Solution
+实现 `ddzCardValue` 函数：
+
+```typescript
+const ddzCardValue = (v: number): number => {
+    if (v === 53) return 17; // 大王
+    if (v === 52) return 16; // 小王
+    const rank = v % 13;
+    if (rank === 12) return 15; // 2
+    if (rank === 11) return 14; // A
+    return rank + 3; // 3~K
+};
+```
+
+### Sorting Order
+大王 > 小王 > 2 > A > K > Q > J > 10 > 9 > 8 > 7 > 6 > 5 > 4 > 3
+
+同牌面按花色排序：♠ > ♥ > ♣ > ♦
+
+**File**: `frontend/src/store/game.store.ts`
+**Status**: ✅ Fixed & Build Success
+
+---
+
+## Fix: Issue #39 Card Overlap Too Dense
+
+### Date: 2025-12-12
+
+### Problem
+卡牌重叠过密 (-space-x-10 = 40px)，可见宽度仅 20px，导致点击不准确。
+
+### Fix
+| 组件 | 修改前 | 修改后 |
+|------|--------|--------|
+| PlayerHand.tsx | -space-x-10 | -space-x-6 |
+| GameBoard.tsx | scale-[0.85] | scale-[0.95] |
+
+### Result
+- 可见宽度从 20px 增加到 ~46px
+- 手牌整体放大 10%
+- 点击更准确
+
+**Status**: ✅ Fixed & Build Success
+
+---
+
+## Fix: Issue #40 Pass Button Disabled
+
+### Date: 2025-12-12
+
+### Problem
+Pass 按钮在应该可用时被禁用。
+
+### Root Cause
+`lastPlayedCards.seatIndex` 和 `mySeatId` 可能存在类型不一致（number vs string）。
+
+### Fix
+```typescript
+// 使用 Number() 确保类型一致比较
+if (Number(lastPlayedCards.seatIndex) === Number(mySeatId)) return false;
+```
+
+添加调试日志方便后续排查。
+
+**File**: `frontend/src/components/game/GameBoard.tsx`
+**Status**: ✅ Fixed & Build Success
+
+---
+
+## Fix: Issue #41 Timeout Auto-Action (FE)
+
+### Date: 2025-12-12
+
+### Problem
+玩家 30 秒内不操作，倒计时归零后无任何自动动作，游戏卡住。
+
+### FE Fix
+实现 `handleTimeout` 回调：
+```typescript
+const handleTimeout = useCallback(() => {
+    if (phase === 'BIDDING') {
+        handleBid(0); // 自动不叫
+    } else if (phase === 'PLAYING') {
+        canPass ? handlePass() : handleHint(); // 自动 Pass 或请求提示
+    }
+}, [phase, canPass]);
+```
+
+配置 `useTurnTimer` 使用 `onTimeout` 回调。
+
+> [!NOTE]
+> BE 部分（回合超时处理机制）需由 BE Agent 实现。
+
+**File**: `frontend/src/components/game/GameBoard.tsx`
+**Status**: ✅ FE Fixed & Build Success
+
+---
+
+## Fix: Issue #42 AI Cards Not Displayed (FE Diagnosis)
+
+### Date: 2025-12-12
+
+### Problem
+AI 出牌后，牌桌上不显示 AI 打出的牌。
+
+### FE Diagnosis
+增强了 `game.store.ts` 中的调试日志：
+- 记录原始 `lastPlayedCards` 数据
+- 识别空数组、undefined、解析失败等各种情况
+- 在控制台输出详细的解析过程
+
+### Debug Output
+在浏览器控制台查找以下日志：
+- `[GameStore] lastPlayedCards raw:` - 原始数据
+- `[GameStore] Parsed cards:` - 解析后的数据
+- `[GameStore] No lastPlayedCards in sync_state` - 后端未发送数据
+- `[GameBoard] lastPlayedCards updated:` - 渲染状态
+
+> [!NOTE]
+> 如果日志显示 `No lastPlayedCards in sync_state`，问题在后端 `StateSerializer`。
+
+**File**: `frontend/src/store/game.store.ts`
+**Status**: ✅ FE Diagnosis Added
+
+---
+
+## Fix: Issue #44 Card Click Area Offset
+
+### Date: 2025-12-12
+
+### Problem
+卡牌点击区域与视觉位置偏移，点击右侧区域却选中左侧的牌。
+
+### Root Cause
+`scale-[0.95]` CSS transform 不改变元素实际 hitbox，只改变视觉位置。
+
+### Fix
+```diff
+- className="origin-bottom scale-[0.95]"
++ className="" // 移除 scale 变换
+```
+
+**File**: `frontend/src/components/game/GameBoard.tsx`
+**Status**: ✅ Fixed & Build Success
+
+---
+
+## Fix: Issue #45 Timer 30s → 15s (FE)
+
+### Date: 2025-12-12
+
+| 文件 | 修改 |
+|------|------|
+| useTurnTimer.ts | DEFAULT_TURN_TIME = 15 |
+| GameBoard.tsx | turnDuration: 15 |
+
+**Status**: ✅ FE Fixed
+
+---
+
+## Fix: Issue #46 AI Cards Debug (FE)
+
+### Date: 2025-12-12
+
+新增 `getRelativeSeat` 调试日志。
+
+**Status**: ✅ FE Diagnosis Added
+
+
+
+

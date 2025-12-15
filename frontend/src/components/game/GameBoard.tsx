@@ -1,8 +1,10 @@
 import { useGameStore } from '../../store/game.store';
 import { useRoomStore } from '../../store/room.store';
+import { useToastStore } from '../../store/toast.store';
 import { PlayerAvatar } from './PlayerAvatar';
 import { Card } from './Card';
 import { GameEndModal } from './GameEndModal';
+import { DebugStatePanel } from '../DebugStatePanel';
 import { useState, useMemo, useCallback, useEffect } from 'react';
 import { PlayerHand } from '../PlayerHand';
 import type { Card as CardType } from '../../types';
@@ -93,6 +95,7 @@ export const GameBoard = () => {
     // Stores
     const roomPlayers = useRoomStore((state) => state.players);
     const roomId = useRoomStore((state) => state.roomId);
+    const addToast = useToastStore((state) => state.addToast);
     const getRelativeSeat = useGameStore((state) => state.getRelativeSeat);
     const currentTurn = useGameStore((state) => state.currentTurn);
     const bottomCards = useGameStore((state) => state.bottomCards);
@@ -153,12 +156,19 @@ export const GameBoard = () => {
     }, []);
 
     // Memoize hand cards for PlayerHand component
+    // Fix: Use index to generate unique id for 2-deck games (same card values exist)
     const handCards = useMemo(() => {
-        return myHand.map(val => ({
+        return myHand.map((val, index) => ({
             ...getCardData(val),
+            id: `${val}-${index}`, // Unique id: value + index
             isSelected: selectedCards.includes(val)
         }));
     }, [myHand, selectedCards]);
+
+    // Issue #47 Problem 2: 过滤不存在于手牌中的选中牌
+    useEffect(() => {
+        setSelectedCards(prev => prev.filter(v => myHand.includes(v)));
+    }, [myHand]);
 
 
     // Phase Handlers
@@ -195,6 +205,7 @@ export const GameBoard = () => {
     };
 
     const handleHint = () => {
+        console.log('[GameBoard] Requesting hint for room:', roomId);
         SocketService.emit('request_hint', { roomId });
     };
 
@@ -225,35 +236,76 @@ export const GameBoard = () => {
     // 1. 如果 LastPlayedCards 是空的 (New Round), 或者是 我自己的 (Round Loop), 我不能 Pass, must play.
     // 2. 否则 (Last played is opponent), can Pass.
     const canPass = useMemo(() => {
+        // Issue #40: Debug logging
+        console.log('[canPass] Check:', {
+            lastPlayedCards,
+            mySeatId,
+            lpSeatIndex: lastPlayedCards?.seatIndex,
+            lpSeatIndexType: typeof lastPlayedCards?.seatIndex,
+            mySeatIdType: typeof mySeatId
+        });
+
         if (!lastPlayedCards) return false; // No previous cards, must play (Start of game or new round)
-        if (lastPlayedCards.seatIndex === mySeatId) return false; // I played last biggest, everyone passed, my turn again.
+        // Issue #40: Use Number() to ensure consistent type comparison
+        if (Number(lastPlayedCards.seatIndex) === Number(mySeatId)) return false; // I played last biggest, everyone passed, my turn again.
         return true;
     }, [lastPlayedCards, mySeatId]);
 
 
     // Watch for backend hints
     useEffect(() => {
-        const onHintResult = (data: { cards: string[] }) => {
-            console.log('[GameBoard] Hint received:', data.cards);
+        const onHintResult = (data: { cards: string[], error?: string }) => {
+            console.log('[GameBoard] Hint received:', data.cards, 'error:', data.error);
+            if (data.error) {
+                console.warn('[GameBoard] Hint error:', data.error);
+                addToast({ message: `提示错误: ${data.error}`, type: 'error' });
+                return;
+            }
             if (data.cards && data.cards.length > 0) {
                 // Select these cards
                 // Map string back to values
                 const values = data.cards.map(s => parseCardString(s));
+                console.log('[GameBoard] Selecting hint cards:', values);
                 setSelectedCards(values);
+                addToast({ message: `建议出 ${data.cards.length} 张牌`, type: 'info', duration: 2000 });
             } else {
-                // Check if strict pass (empty list usually means no moves)
-                console.log('[GameBoard] Hint suggests PASS');
-                // toast({ message: "No suggestions available" });
+                // Hint suggests PASS - clear selection and show visual feedback
+                console.log('[GameBoard] Hint suggests PASS - clearing selection');
+                setSelectedCards([]);
+                addToast({ message: '无法压过，建议 Pass', type: 'info', duration: 2500 });
             }
         };
         SocketService.on('hint_result', onHintResult);
         return () => {
             SocketService.off('hint_result', onHintResult);
         };
-    }, []);
+    }, [addToast]);
 
     // Issue #31: Timer styling - Fix 15s bug by explicit duration
-    const { remainingTime } = useTurnTimer(currentTurn === mySeatId, currentTurn, { turnDuration: 30 });
+    // Issue #41: Add onTimeout callback for auto-action
+    const handleTimeout = useCallback(() => {
+        console.log('[GameBoard] Timeout! Phase:', phase, 'canPass:', canPass);
+        if (phase === 'BIDDING') {
+            handleBid(0); // 不叫
+        } else if (phase === 'PLAYING') {
+            if (canPass) {
+                handlePass();
+            } else {
+                // Cannot pass, must play - request hint for auto-play
+                handleHint();
+                // After 1 second, auto-play selected cards if hint provided
+                setTimeout(() => {
+                    // This is a fallback; ideally hint_result listener handles it
+                    console.log('[GameBoard] Auto-play timeout fallback');
+                }, 1000);
+            }
+        }
+    }, [phase, canPass, handleBid, handlePass, handleHint]);
+
+    const { remainingTime } = useTurnTimer(currentTurn === mySeatId, currentTurn, {
+        turnDuration: 15, // Issue #45: Changed from 30s to 15s
+        onTimeout: handleTimeout
+    });
 
     // Watch for Game End
     // No specific effect needed if we just render modal based on store state
@@ -269,18 +321,34 @@ export const GameBoard = () => {
     // If lastPlayedCards exists, determine its relative position to show visually on table
     const lastPlayedPosition = lastPlayedCards ? getRelativeSeat(lastPlayedCards.seatIndex) : null;
 
+    // Debug: Log lastPlayedCards state
+    useEffect(() => {
+        console.log('[GameBoard] Render check:', {
+            lastPlayedCards: lastPlayedCards ? { seatIndex: lastPlayedCards.seatIndex, cardCount: lastPlayedCards.cards.length } : null,
+            lastPlayedPosition,
+            mySeatId,
+            willRenderTop: lastPlayedPosition === 'top' && !!lastPlayedCards,
+            willRenderLeft: lastPlayedPosition === 'left' && !!lastPlayedCards,
+            willRenderRight: lastPlayedPosition === 'right' && !!lastPlayedCards,
+            willRenderBottom: lastPlayedPosition === 'bottom' && !!lastPlayedCards,
+        });
+    }, [lastPlayedCards, lastPlayedPosition, mySeatId]);
+
     // Helper to render played cards
     const renderPlayedCards = (cards: number[]) => (
-        <div className="flex -space-x-8 scale-75 origin-center">
+        <div className="flex -space-x-4 scale-90 origin-center">
             {cards.map((val, i) => {
                 const data = getCardData(val);
-                return <Card key={i} suit={data.suit as any} rank={data.rank} />;
+                return <Card key={i} suit={data.suit as any} rank={data.rank} scale={0.85} />;
             })}
         </div>
     );
 
     return (
         <div className="w-full h-screen bg-[rgb(50,85,66)] relative overflow-hidden flex flex-col items-center justify-center select-none font-sans">
+            {/* Issue #48: Enhanced Debug Panel */}
+            <DebugStatePanel selectedCards={selectedCards} canPass={canPass} />
+
             {/* --- Background --- */}
             {/* Table Cloth Texture (Green dots) */}
             <div className="absolute inset-0" style={{
@@ -447,7 +515,7 @@ export const GameBoard = () => {
 
             {/* Table Played Cards Area (4 Quadrants) */}
             <div className="absolute inset-0 pointer-events-none">
-                <AnimatePresence mode="wait">
+                <AnimatePresence> {/* Issue #47 Problem 4: Removed mode="wait" to prevent flickering */}
                     {/* Top Player's Turn */}
                     {lastPlayedPosition === 'top' && lastPlayedCards && (
                         <motion.div
@@ -456,7 +524,7 @@ export const GameBoard = () => {
                             animate={{ y: 0, opacity: 1, scale: 1 }}
                             exit={{ y: -20, opacity: 0, scale: 0.8 }}
                             transition={{ type: 'spring', stiffness: 300 }}
-                            className="absolute top-32 left-1/2 -translate-x-1/2"
+                            className="absolute top-40 left-1/2 -translate-x-1/2 z-30"
                         >
                             {renderPlayedCards(lastPlayedCards.cards)}
                         </motion.div>
@@ -470,7 +538,7 @@ export const GameBoard = () => {
                             animate={{ x: 0, opacity: 1, scale: 1 }}
                             exit={{ x: -20, opacity: 0, scale: 0.8 }}
                             transition={{ type: 'spring', stiffness: 300 }}
-                            className="absolute left-32 top-1/2 -translate-y-1/2"
+                            className="absolute left-40 top-1/2 -translate-y-1/2 z-30"
                         >
                             {renderPlayedCards(lastPlayedCards.cards)}
                         </motion.div>
@@ -484,7 +552,7 @@ export const GameBoard = () => {
                             animate={{ x: 0, opacity: 1, scale: 1 }}
                             exit={{ x: 20, opacity: 0, scale: 0.8 }}
                             transition={{ type: 'spring', stiffness: 300 }}
-                            className="absolute right-32 top-1/2 -translate-y-1/2"
+                            className="absolute right-40 top-1/2 -translate-y-1/2 z-30"
                         >
                             {renderPlayedCards(lastPlayedCards.cards)}
                         </motion.div>
@@ -498,7 +566,7 @@ export const GameBoard = () => {
                             animate={{ y: 0, opacity: 1, scale: 1 }}
                             exit={{ y: 20, opacity: 0, scale: 0.8 }}
                             transition={{ type: 'spring', stiffness: 300 }}
-                            className="absolute bottom-40 left-1/2 -translate-x-1/2"
+                            className="absolute bottom-48 left-1/2 -translate-x-1/2 z-30"
                         >
                             {renderPlayedCards(lastPlayedCards.cards)}
                         </motion.div>
@@ -581,8 +649,8 @@ export const GameBoard = () => {
                     )}
                 </div>
 
-                {/* 2. Hand Cards & Controls (Centered) */}
-                <div className="absolute left-1/2 -translate-x-1/2 bottom-0 flex flex-col items-center mb-4 w-full max-w-[900px] pointer-events-none">
+                {/* 2. Hand Cards & Controls (Centered) - Constrained width to avoid blocking sides */}
+                <div className="absolute left-1/2 -translate-x-1/2 bottom-0 flex flex-col items-center mb-4 pointer-events-none" style={{ maxWidth: 'calc(100% - 280px)' }}>
 
                     {/* Game Control Buttons (Above Hand) - Fix Z-Index issue */}
                     <div className="mb-6 flex gap-6 pointer-events-auto items-center min-h-[60px] relative z-50">
@@ -701,7 +769,7 @@ export const GameBoard = () => {
                             isHuman={true}
                             onCardClick={handleCardClick}
                             onSelectionChange={handleSelectionChange}
-                            className="origin-bottom scale-100"
+                            className="" // Issue #44: Removed scale transform to fix click area offset
                         />
                     </div>
                 </div>

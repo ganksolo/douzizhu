@@ -67,4 +67,7 @@ export interface RoomData {
     winnerId?: string;
     winnerSeatIndex?: number | null;
     isLandlordWin?: boolean;
+
+    // Issue #41: Turn Timeout
+    turnStartTime?: number; // Timestamp in ms when current turn started
 }

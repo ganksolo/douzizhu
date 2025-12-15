@@ -36,6 +36,9 @@ export class AIService {
             try {
                 const action = this.executeTurnLogic(context, playerId);
                 context.handleInput(action);
+
+                // Issue #42 Debug: Log lastPlayedCards after AI action
+                this.logger.log(`[Issue #42 Debug] AI ${playerId} action completed. lastPlayedCards: ${JSON.stringify(context.roomData.lastPlayedCards)}`);
             } catch (error) {
                 this.logger.error(`Error during AI execution: ${error.message}`);
                 // Fallback: Pass
@@ -44,10 +47,14 @@ export class AIService {
                 // Issue #33 Fix: AI 执行完后必须广播状态，否则 FE 不知道 AI 已行动
                 if (context.onStateChange && context.roomData.roomId) {
                     try {
+                        this.logger.log(`[Issue #42 Debug] Broadcasting state for room ${context.roomData.roomId} after AI action`);
                         await context.onStateChange(context.roomData.roomId);
                     } catch (e) {
                         this.logger.error(`Failed to broadcast state after AI action: ${e.message}`);
                     }
+                } else {
+                    // Issue #42: If onStateChange is not set, log a warning
+                    this.logger.warn(`[Issue #42] onStateChange is not set for room ${context.roomData.roomId}! AI action won't be broadcast.`);
                 }
             }
         }, delay);

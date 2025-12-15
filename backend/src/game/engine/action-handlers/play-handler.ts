@@ -30,10 +30,18 @@ export class PlayActionHandler implements ActionHandler {
         if (!player) throw new Error('Player not found');
 
         const handStrings = [...player.hand]; // Clone hand
+
+        // Issue #48 Debug: Log payload and hand for comparison
+        this.logger.log(`[Issue #48] Payload type check: ${typeof payload[0]}, payload sample: ${JSON.stringify(payload[0])}`);
+        this.logger.log(`[Issue #48] Hand sample: ${JSON.stringify(player.hand.slice(0, 3))}`);
+
         for (const card of payload) { // payload is Card[]
             const cardStr = CardConverter.toString(card);
             const idx = handStrings.indexOf(cardStr);
             if (idx === -1) {
+                // Issue #48: Enhanced error with more context
+                this.logger.error(`[Issue #48] Card not found! Looking for: "${cardStr}" (from Card: ${JSON.stringify(card)})`);
+                this.logger.error(`[Issue #48] Hand contains: ${JSON.stringify(handStrings.slice(0, 10))}...`);
                 throw new Error(`You do not have card ${cardStr}`);
             }
             handStrings.splice(idx, 1); // Remove to prevent double usage of same card

@@ -31,15 +31,27 @@ export class DecisionEngine {
         // 2. Detection (Generate all valid moves)
         const allMoves = this.generateAllPossibleMoves(hand);
 
+        // Issue #48 Debug: Log move generation results
+        this.logger.log(`[AI] Generated ${allMoves.length} possible moves from ${hand.length} cards`);
+
         // 3. Filter (Keep only moves that can beat lastMove)
         let validCandidates: Card[][] = [];
         if (lastMove) {
+            this.logger.log(`[AI] Filtering moves against lastMove: type=${lastMove.type}, rank=${lastMove.rank}, length=${lastMove.length}`);
             validCandidates = allMoves.filter(move => {
                 const moveAnalysis = this.rulesService.analyze(move);
-                return this.rulesService.compareMoves(lastMove, moveAnalysis) > 0;
+                const compResult = this.rulesService.compareMoves(lastMove, moveAnalysis);
+                // Log first few comparisons for debugging
+                if (allMoves.indexOf(move) < 5) {
+                    this.logger.debug(`[AI] Compare: move type=${moveAnalysis.type}, rank=${moveAnalysis.rank} vs lastMove rank=${lastMove.rank} => ${compResult}`);
+                }
+                return compResult > 0;
             });
+            this.logger.log(`[AI] After filtering against lastMove (${lastMove.type}), ${validCandidates.length} valid candidates`);
         } else {
+            // Free turn: all moves are valid
             validCandidates = allMoves;
+            this.logger.log(`[AI] Free turn, all ${validCandidates.length} moves are valid`);
         }
 
         // 4. Simulation & Rank
@@ -49,13 +61,12 @@ export class DecisionEngine {
             return { move, score, type: analysis.type as string };
         });
 
-        // Add Pass option if not free turn
+        // Add Pass option if not free turn (lastMove exists)
         if (lastMove) {
             const passScore = this.evaluateMove(hand, [], strategy, lastMove);
             rankedCandidates.push({ move: [], score: passScore, type: 'PASS' });
         }
 
-        // Sort by score descending
         // Sort by score descending, then by rank ascending (prefer smaller cards)
         rankedCandidates.sort((a, b) => {
             if (b.score !== a.score) {
@@ -68,7 +79,18 @@ export class DecisionEngine {
         });
 
         // 5. Selection
-        const bestCandidate = rankedCandidates.length > 0 ? rankedCandidates[0] : null;
+        let bestCandidate = rankedCandidates.length > 0 ? rankedCandidates[0] : null;
+
+        // Issue #48 Fix: On free turn, AI MUST play something (not pass)
+        // If bestCandidate is a pass on free turn, pick the first non-pass move
+        if (!lastMove && bestCandidate && bestCandidate.move.length === 0) {
+            const nonPassMoves = rankedCandidates.filter(c => c.move.length > 0);
+            if (nonPassMoves.length > 0) {
+                bestCandidate = nonPassMoves[0];
+                this.logger.log(`[AI] Free turn: forced to pick a move instead of pass`);
+            }
+        }
+
         const chosenMove = bestCandidate ? bestCandidate.move : null;
 
         // Construct Explain Object
@@ -78,7 +100,7 @@ export class DecisionEngine {
             candidates: rankedCandidates.slice(0, 3) // Top 3
         };
 
-        this.logger.debug(`AI Decision: ${JSON.stringify(explain.reason)}`);
+        this.logger.log(`[AI] Decision: ${chosenMove && chosenMove.length > 0 ? `Play ${chosenMove.length} cards (${bestCandidate?.type})` : 'PASS'}`);
 
         return { move: chosenMove && chosenMove.length > 0 ? chosenMove : null, explain };
     }
@@ -120,19 +142,96 @@ export class DecisionEngine {
             const cards = rankMap.get(rank)!;
             if (cards.length >= 4) {
                 moves.push(cards); // Full bomb
-                // Ideally we should also generate sub-bombs (e.g. 5 cards can be played as 4 cards)
-                // But for simplicity, we usually play max bomb power.
             }
         }
 
-        // 5. Rocket
+        // 5. Rocket (4 jokers)
         const smallJokers = rankMap.get(CardRank.SMALL_JOKER) || [];
         const bigJokers = rankMap.get(CardRank.BIG_JOKER) || [];
         if (smallJokers.length === 2 && bigJokers.length === 2) {
             moves.push([...smallJokers, ...bigJokers]);
         }
 
-        // TODO: Sequences, Trio+1, Trio+2, etc. (Complex generation omitted for brevity but structure allows adding them)
+        // 6. Sequences (顺子: 5+ consecutive singles, 3-A no 2)
+        const validRanks = Array.from(rankMap.keys())
+            .filter(r => r >= CardRank.THREE && r <= CardRank.ACE)
+            .sort((a, b) => a - b);
+
+        for (let len = 5; len <= 12; len++) {
+            for (let i = 0; i <= validRanks.length - len; i++) {
+                const sequence: Card[] = [];
+                let isConsecutive = true;
+                for (let j = 0; j < len; j++) {
+                    if (j > 0 && validRanks[i + j] !== validRanks[i + j - 1] + 1) {
+                        isConsecutive = false;
+                        break;
+                    }
+                    const card = getCards(validRanks[i + j], 1)[0];
+                    if (card) sequence.push(card);
+                }
+                if (isConsecutive && sequence.length === len) {
+                    moves.push(sequence);
+                }
+            }
+        }
+
+        // 7. Pair Sequences (连对: 3+ consecutive pairs)
+        for (let len = 3; len <= 10; len++) {
+            for (let i = 0; i <= validRanks.length - len; i++) {
+                const pairSeq: Card[] = [];
+                let isValid = true;
+                for (let j = 0; j < len; j++) {
+                    if (j > 0 && validRanks[i + j] !== validRanks[i + j - 1] + 1) {
+                        isValid = false;
+                        break;
+                    }
+                    const cards = getCards(validRanks[i + j], 2);
+                    if (cards.length === 2) {
+                        pairSeq.push(...cards);
+                    } else {
+                        isValid = false;
+                        break;
+                    }
+                }
+                if (isValid && pairSeq.length === len * 2) {
+                    moves.push(pairSeq);
+                }
+            }
+        }
+
+        // 8. Trio + 1 (三带一)
+        for (const rank of rankMap.keys()) {
+            const trio = getCards(rank, 3);
+            if (trio.length === 3) {
+                // Find a kicker (single card of different rank)
+                for (const kickerRank of rankMap.keys()) {
+                    if (kickerRank !== rank) {
+                        const kicker = getCards(kickerRank, 1);
+                        if (kicker.length >= 1) {
+                            moves.push([...trio, kicker[0]]);
+                            break; // Only add one trio+1 per trio
+                        }
+                    }
+                }
+            }
+        }
+
+        // 9. Trio + 2 (三带二)
+        for (const rank of rankMap.keys()) {
+            const trio = getCards(rank, 3);
+            if (trio.length === 3) {
+                // Find a pair kicker (different rank)
+                for (const kickerRank of rankMap.keys()) {
+                    if (kickerRank !== rank) {
+                        const kicker = getCards(kickerRank, 2);
+                        if (kicker.length === 2) {
+                            moves.push([...trio, ...kicker]);
+                            break; // Only add one trio+2 per trio
+                        }
+                    }
+                }
+            }
+        }
 
         return moves;
     }
@@ -171,6 +270,41 @@ export class DecisionEngine {
                     }
                 }
             }
+        }
+
+        // --- Free Turn Bonus: Prefer playing more cards at once ---
+        if (!lastMove && move.length > 0) {
+            // Bonus for playing multiple cards (to reduce hand faster)
+            const multiCardBonus = move.length * 5; // 5 points per card
+            score += multiCardBonus;
+
+            // Extra bonus for sequences and pair sequences (good structural plays)
+            if (moveAnalysis) {
+                const type = moveAnalysis.type;
+                // Sequences and pair sequences get extra bonus
+                if (type === PatternType.SEQUENCE || type === PatternType.SEQUENCE_PAIR) {
+                    score += 15;
+                }
+                // Trio combinations also good
+                if (type === PatternType.TRIO_WITH_ONE || type === PatternType.TRIO_WITH_PAIR) {
+                    score += 10;
+                }
+            }
+        }
+
+        // --- Responding to Opponent's Move: Reward playing, penalize pass ---
+        if (lastMove && move.length > 0) {
+            // Base reward for beating opponent's move
+            score += 30;
+
+            // Additional reward for playing small cards to beat (save big cards)
+            if (moveAnalysis && moveAnalysis.rank <= CardRank.TEN) {
+                score += 10; // Use small cards when possible
+            }
+        } else if (lastMove && move.length === 0) {
+            // Pass penalty when we could have played
+            // HeuristicEvaluator gives high score for keeping cards, but we need to reduce hand
+            score -= 15;
         }
 
         // --- Early Game Logic ---

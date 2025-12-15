@@ -624,3 +624,44 @@
   - [x] 更新 DebugOverlay 使用 game/Card <!-- id: 36.4 -->
   - [x] 更新 GameTable 使用 game/Card <!-- id: 36.5 -->
   - [x] 删除旧 components/Card.tsx <!-- id: 36.6 -->
+- [x] Fix 22: Issue #38 手牌排序逻辑错误 <!-- id: 38 -->
+  - [x] 实现 ddzCardValue 排序函数 <!-- id: 38.1 -->
+  - [x] 同牌面按花色排序 (♠ > ♥ > ♣ > ♦) <!-- id: 38.2 -->
+- [x] Fix 23: Issue #39 手牌交互问题 <!-- id: 39 -->
+  - [x] 减少卡牌重叠 (-space-x-10 → -space-x-6) <!-- id: 39.1 -->
+  - [x] 增大缩放比例 (scale-[0.85] → scale-[0.95]) <!-- id: 39.2 -->
+- [x] Fix 24: Issue #40 Pass 按钮异常禁用 <!-- id: 40 -->
+  - [x] 添加调试日志 <!-- id: 40.1 -->
+  - [x] 修复类型比较问题 (Number() 转换) <!-- id: 40.2 -->
+- [x] Fix 25: Issue #41 超时自动操作 (FE) <!-- id: 41 -->
+  - [x] 实现 handleTimeout 回调 <!-- id: 41.1 -->
+  - [x] 叫分阶段自动不叫 <!-- id: 41.2 -->
+  - [x] 出牌阶段可 Pass 则 Pass，否则请求提示 <!-- id: 41.3 -->
+- [x] Fix 26: Issue #42 AI 出牌不显示 (FE 诊断) <!-- id: 42 -->
+  - [x] 增强 lastPlayedCards 调试日志 <!-- id: 42.1 -->
+- [x] Fix 27: Issue #44 卡牌点击区域偏移 <!-- id: 44 -->
+  - [x] 移除 scale-[0.95] 变换 <!-- id: 44.1 -->
+- [x] Fix 28: Issue #45 倒计时改为 15s (FE) <!-- id: 45 -->
+  - [x] useTurnTimer.ts DEFAULT_TURN_TIME = 15 <!-- id: 45.1 -->
+  - [x] GameBoard.tsx turnDuration = 15 <!-- id: 45.2 -->
+- [x] Fix 29: Issue #46 AI 出牌不显示深入排查 (FE) <!-- id: 46 -->
+  - [x] getRelativeSeat 添加调试日志 <!-- id: 46.1 -->
+- [x] Fix 30: Issue #47 问题 2,3,4 (FE) <!-- id: 47 -->
+  - [x] 问题 2: 添加 useEffect 过滤不存在的选中牌 <!-- id: 47.2 -->
+  - [x] 问题 3: 已在 Issue #44 修复 (移除 scale) <!-- id: 47.3 -->
+  - [x] 问题 4A: 移除 AnimatePresence mode='wait' 防止闪烁 <!-- id: 47.4a -->
+  - [x] 问题 4B: 添加 z-10 防止出牌被头像遮挡 <!-- id: 47.4b -->
+- [x] Fix 31: Issue #48 问题 2,4 (FE) <!-- id: 48 -->
+  - [x] 问题 4: 增强 DebugStatePanel (Turn Player, Can Pass, Selected, My Hand, Landlord, Players) <!-- id: 48.4 -->
+- [x] Fix 32: 两幅牌手牌 key 重复导致少渲染 <!-- id: 49 -->
+  - [x] 使用 ${val}-${index} 生成唯一 id <!-- id: 49.1 -->
+
+
+
+
+
+
+
+
+
+

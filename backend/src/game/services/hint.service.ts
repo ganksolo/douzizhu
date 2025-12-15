@@ -46,22 +46,33 @@ export class HintService {
 
         // 解析玩家手牌为 Card 对象
         const hand: Card[] = player.hand.map(c => this.parseCard(c));
+        this.logger.log(`Hint: Player ${playerId} has ${hand.length} cards in hand`);
 
         // 获取上一手牌
+        // Fix: If lastPlayedCards is the player's own cards (everyone passed), treat as free turn
         let lastMove: AnalysisResult | null = null;
-        if (context.roomData.lastPlayedCards && context.roomData.lastPlayedCards.cards.length > 0) {
+        const lpc = context.roomData.lastPlayedCards;
+        this.logger.log(`Hint: lastPlayedCards = ${lpc ? JSON.stringify({ playerId: lpc.playerId, cardCount: lpc.cards?.length }) : 'null'}`);
+
+        if (lpc && lpc.cards && lpc.cards.length > 0 && lpc.playerId !== playerId) {
+            // Only consider lastPlayedCards if it's from another player (not free turn)
             // Issue #33 Fix: cards 可能是 Card 对象或字符串，需要兼容处理
-            const lastCards = context.roomData.lastPlayedCards.cards.map((c: any) => {
+            const lastCards = lpc.cards.map((c: any) => {
                 if (typeof c === 'object' && c.rank !== undefined) {
                     return c; // 已经是 Card 对象
                 }
                 return this.parseCard(c); // 字符串转 Card 对象
             });
             lastMove = this.rulesService.analyze(lastCards);
+            this.logger.log(`Hint: must beat ${JSON.stringify(lastMove)} from ${lpc.playerId}`);
+        } else {
+            // Free turn: lastPlayedCards is null, empty, or belongs to the requesting player
+            this.logger.log(`Hint: free turn for ${playerId} (lpc.playerId=${lpc?.playerId})`);
         }
 
         // 调用 DecisionEngine 获取建议
         const decision = this.decisionEngine.decideMove(hand, lastMove, context);
+        this.logger.log(`Hint: DecisionEngine returned move with ${decision.move?.length || 0} cards`);
 
         if (decision.move && decision.move.length > 0) {
             // 将 Card 对象转换回字符串
@@ -71,7 +82,7 @@ export class HintService {
         }
 
         // 建议 PASS
-        this.logger.log(`Hint for player ${playerId}: PASS`);
+        this.logger.log(`Hint for player ${playerId}: PASS (no valid moves found)`);
         return { suggestedCards: [] };
     }
 

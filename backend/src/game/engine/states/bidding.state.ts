@@ -5,6 +5,9 @@ import { PlayingState } from './playing.state';
 import { DealingState } from './dealing.state';
 import { UserAction, ActionType, Player } from '../../types/game.types';
 
+// Issue #41/#45: Turn timeout duration in milliseconds (15 seconds)
+const TURN_TIMEOUT_MS = 15 * 1000;
+
 /**
  * Phase 35: BiddingState - 叫分阶段状态机
  * 
@@ -32,6 +35,10 @@ export class BiddingState extends BaseState {
 
     enter(context: GameContext): void {
         this.logger.log('Entering BiddingState. Starting bid phase...');
+        this.logger.log(`BiddingState: players count = ${context.roomData.players.length}`);
+        context.roomData.players.forEach(p => {
+            this.logger.log(`  Player: ${p.name} (${p.id}), seat=${p.seatIndex}, isRobot=${p.isRobot}`);
+        });
 
         // Issue #23 Fix: 首叫优先人类玩家
         // 在 PVE 模式下，让人类玩家先叫分以改善 UX
@@ -50,8 +57,10 @@ export class BiddingState extends BaseState {
         context.roomData.highestBid = 0;
         context.roomData.landlordSeatIndex = null;
         context.roomData.isAIThinking = false;
+        // Issue #41: Record turn start time
+        context.roomData.turnStartTime = Date.now();
 
-        this.logger.log(`First bidder is Seat ${firstBidder} (${firstPlayer?.name || 'unknown'}, isHuman: ${!firstPlayer?.isRobot})`);
+        this.logger.log(`First bidder is Seat ${firstBidder} (${firstPlayer?.name || 'unknown'}, isHuman: ${!firstPlayer?.isRobot}), currentTurn=${context.roomData.currentTurn}`);
     }
 
     handleInput(context: GameContext, action: UserAction): void {
@@ -130,7 +139,28 @@ export class BiddingState extends BaseState {
 
     update(context: GameContext, deltaTime: number): void {
         // AI 叫分由 BotService 处理
-        // 这里不需要特殊处理，只需确保轮转正常
+        const currentPlayer = context.roomData.players.find(p => p.id === context.roomData.currentTurn);
+
+        // Skip timeout check for AI players (handled by BotService)
+        if (currentPlayer && currentPlayer.isRobot) {
+            return;
+        }
+
+        // Issue #41: Human player turn timeout detection
+        if (currentPlayer && !currentPlayer.isRobot) {
+            const turnStartTime = context.roomData.turnStartTime || Date.now();
+            const elapsed = Date.now() - turnStartTime;
+
+            if (elapsed >= TURN_TIMEOUT_MS) {
+                this.logger.warn(`Player ${currentPlayer.id} timed out during bidding after ${elapsed}ms. Auto-bid 0.`);
+                // Auto-bid 0 (不叫)
+                context.handleInput({
+                    playerId: currentPlayer.id,
+                    type: ActionType.BID,
+                    payload: { bid: 0 }
+                });
+            }
+        }
     }
 
     exit(context: GameContext): void {
@@ -169,6 +199,8 @@ export class BiddingState extends BaseState {
 
         // 设置地主的 currentTurn 开始出牌
         context.roomData.currentTurn = landlord.id;
+        // Issue #41: Reset turn time for playing phase
+        context.roomData.turnStartTime = Date.now();
 
         // 设置基础倍数
         context.roomData.multiplier = context.roomData.highestBid || 1;
@@ -191,6 +223,8 @@ export class BiddingState extends BaseState {
         if (nextPlayer) {
             context.roomData.currentTurn = nextPlayer.id;
             context.roomData.isAIThinking = false;
+            // Issue #41: Reset turn start time for new player
+            context.roomData.turnStartTime = Date.now();
             this.logger.log(`Turn advanced to ${nextPlayer.name} (Seat ${nextSeatIndex})`);
         }
     }

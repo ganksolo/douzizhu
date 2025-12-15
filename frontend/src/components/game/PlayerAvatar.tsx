@@ -174,7 +174,7 @@ export const PlayerAvatar = ({
                 </div>
             </div>
 
-            {/* --- 对手手牌展示 (水平扇形) --- */}
+            {/* --- 对手手牌展示 (水平扇形，仅 left/right) --- */}
             {handCount !== undefined && handCount > 0 && position !== 'bottom' && isHorizontal && (
                 <div
                     className="flex items-center"
@@ -216,6 +216,43 @@ export const PlayerAvatar = ({
                             </div>
                         ))}
                     </div>
+                </div>
+            )}
+
+            {/* --- 对手手牌展示 (仅 top 位置，显示在头像下方) --- */}
+            {handCount !== undefined && handCount > 0 && position === 'top' && (
+                <div className="flex -space-x-4 mt-2">
+                    {Array(Math.min(handCount, 10)).fill(0).map((_, i) => (
+                        <div
+                            key={i}
+                            className="w-8 h-12 rounded"
+                            style={{
+                                background: 'linear-gradient(135deg, #8b1a1a 0%, #5c1010 100%)',
+                                border: '1px solid #d4a574',
+                                boxShadow: '0 2px 4px rgba(0,0,0,0.3)',
+                                transform: `rotate(${(i - Math.min(handCount, 10) / 2) * 2}deg)`,
+                            }}
+                        >
+                            {/* 菱形纹路 */}
+                            <div
+                                className="w-full h-full flex items-center justify-center"
+                                style={{
+                                    backgroundImage: `
+                                        linear-gradient(45deg, transparent 40%, rgba(212, 165, 116, 0.3) 50%, transparent 60%),
+                                        linear-gradient(-45deg, transparent 40%, rgba(212, 165, 116, 0.3) 50%, transparent 60%)
+                                    `,
+                                    backgroundSize: '8px 8px',
+                                }}
+                            >
+                                <div
+                                    className="w-4 h-4 rotate-45"
+                                    style={{
+                                        border: '1px solid rgba(212, 165, 116, 0.5)',
+                                    }}
+                                />
+                            </div>
+                        </div>
+                    ))}
                 </div>
             )}
         </div>

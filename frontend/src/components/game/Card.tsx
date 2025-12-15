@@ -124,7 +124,7 @@ export const Card = (props: CardProps) => {
                 ${isSelected ? '-translate-y-4' : 'hover:-translate-y-2'} 
                 hover:brightness-105 hover:shadow-2xl
             `}
-            style={{ width: `${56 * scale}px`, height: `${80 * scale}px` }}
+            style={{ width: `${70 * scale}px`, height: `${100 * scale}px` }}
         >
             {/* Top-left corner: Rank */}
             <div
@@ -132,7 +132,7 @@ export const Card = (props: CardProps) => {
                 style={{
                     top: `${4 * scale}px`,
                     left: `${4 * scale}px`,
-                    fontSize: `${(isJoker ? 10 : 14) * scale}px`,
+                    fontSize: `${(isJoker ? 12 : 16) * scale}px`,
                     lineHeight: 1,
                 }}
             >
@@ -146,7 +146,7 @@ export const Card = (props: CardProps) => {
                     top: '50%',
                     left: '50%',
                     transform: 'translate(-50%, -50%)',
-                    fontSize: `${(isJoker ? 28 : 32) * scale}px`,
+                    fontSize: `${(isJoker ? 32 : 38) * scale}px`,
                     lineHeight: 1,
                 }}
             >
@@ -159,7 +159,7 @@ export const Card = (props: CardProps) => {
                 style={{
                     bottom: `${4 * scale}px`,
                     right: `${4 * scale}px`,
-                    fontSize: `${(isJoker ? 10 : 14) * scale}px`,
+                    fontSize: `${(isJoker ? 12 : 16) * scale}px`,
                     lineHeight: 1,
                     transform: 'rotate(180deg)',
                 }}

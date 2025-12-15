@@ -82,19 +82,58 @@ export const useGameStore = create<GameState>((set, get) => ({
         // Parse cards from strings to numbers
         // Fix Issue #26: 从 players 数组中提取自己的手牌 (只有自己能看到自己的 hand)
         const myPlayerData = data.players?.find((p: any) => p.hand && p.hand.length > 0);
-        const myHand = myPlayerData?.hand ? parseCardList(myPlayerData.hand).sort((a, b) => b - a) : [];
+
+        // Fix Issue #38: 斗地主标准排序
+        // 牌面大小: 大王(17) > 小王(16) > 2(15) > A(14) > K(13) > Q(12) > J(11) > 10(10) > ... > 3(3)
+        const ddzCardValue = (v: number): number => {
+            if (v === 53) return 17; // 大王
+            if (v === 52) return 16; // 小王
+            const rank = v % 13; // 0=3, 1=4, ..., 10=K, 11=A, 12=2
+            if (rank === 12) return 15; // 2
+            if (rank === 11) return 14; // A
+            return rank + 3; // 3(0+3=3) ~ K(10+3=13)
+        };
+        const myHand = myPlayerData?.hand
+            ? parseCardList(myPlayerData.hand).sort((a, b) => {
+                const diff = ddzCardValue(b) - ddzCardValue(a);
+                if (diff !== 0) return diff;
+                // 同牌面按花色排序 (♠ > ♥ > ♣ > ♦)
+                return Math.floor(b / 13) - Math.floor(a / 13);
+            })
+            : [];
         const bottomCards = data.bottomCards ? parseCardList(data.bottomCards) : [];
 
-        let lastPlayedCards = null;
+        // Fix: If new sync_state has no lastPlayedCards, preserve old value (don't overwrite with null)
+        let lastPlayedCards = get().lastPlayedCards; // Start with current value
+        const eventId = Date.now() % 10000; // Simple event ID for debugging
+
         if (data.lastPlayedCards) {
-            lastPlayedCards = {
-                seatIndex: data.lastPlayedCards.seatIndex,
-                cards: parseCardList(data.lastPlayedCards.cards)
-            };
+            console.log(`[GameStore #${eventId}] lastPlayedCards raw:`, JSON.stringify(data.lastPlayedCards));
+            if (data.lastPlayedCards.cards && data.lastPlayedCards.cards.length > 0) {
+                const parsedCards = parseCardList(data.lastPlayedCards.cards);
+                console.log(`[GameStore #${eventId}] Parsed cards:`, parsedCards, 'from:', data.lastPlayedCards.cards);
+                if (parsedCards.length > 0) {
+                    lastPlayedCards = {
+                        seatIndex: data.lastPlayedCards.seatIndex,
+                        cards: parsedCards
+                    };
+                } else {
+                    console.warn(`[GameStore #${eventId}] parseCardList returned empty array!`);
+                }
+            } else {
+                console.warn(`[GameStore #${eventId}] lastPlayedCards.cards is empty or undefined:`, data.lastPlayedCards.cards);
+            }
+        } else {
+            console.log(`[GameStore #${eventId}] No lastPlayedCards in sync_state, preserving:`, lastPlayedCards);
         }
 
         // Fix Issue #28: 自动从 myPlayerData 推断 mySeatId
         const inferredSeatId = myPlayerData?.seatIndex ?? get().mySeatId;
+        console.log('[GameStore] mySeatId debug:', {
+            myPlayerData: myPlayerData?.seatIndex,
+            currentMySeatId: get().mySeatId,
+            inferred: inferredSeatId
+        });
 
         // Issue #34: 从 BE 独立字段构造 gameEnd 对象
         // BE StateSerializer 发送 winnerId, winnerSeatIndex, isLandlordWin, multiplier 作为独立字段
@@ -104,6 +143,9 @@ export const useGameStore = create<GameState>((set, get) => ({
             isLandlordWin: data.isLandlordWin,
             multiplier: data.multiplier ?? 1,
         } : null;
+
+        // Debug: Log before set()
+        console.log('[GameStore] About to set lastPlayedCards:', lastPlayedCards);
 
         set({
             phase: data.phase || 'INIT',
@@ -120,6 +162,9 @@ export const useGameStore = create<GameState>((set, get) => ({
             // Fix Issue #28: 自动同步 mySeatId
             ...(inferredSeatId !== null && inferredSeatId !== undefined ? { mySeatId: inferredSeatId } : {}),
         });
+
+        // Debug: Log after set()
+        console.log('[GameStore] After set, state.lastPlayedCards:', get().lastPlayedCards);
     },
 
     setMySeatId: (seatId: number) => {
@@ -156,9 +201,12 @@ export const useGameStore = create<GameState>((set, get) => ({
 
         const diff = (targetSeatIndex - anchorSeat + 4) % 4;
 
-        if (diff === 0) return 'bottom';
-        if (diff === 1) return 'right';
-        if (diff === 2) return 'top';
-        return 'left'; // diff === 3
+        let result: 'bottom' | 'right' | 'top' | 'left';
+        if (diff === 0) result = 'bottom';
+        else if (diff === 1) result = 'right';
+        else if (diff === 2) result = 'top';
+        else result = 'left'; // diff === 3
+
+        return result;
     }
 }));

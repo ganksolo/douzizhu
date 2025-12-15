@@ -217,6 +217,13 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect, On
 
             const targetState = data.isReady !== undefined ? data.isReady : true; // Default to true?
 
+            // Issue #46 Fix: Ensure onStateChange is set BEFORE toggleReady
+            // because PVE auto-start in toggleReady may trigger tryStartGame() immediately
+            const gameContext = this.gameManager.getOrCreateRoom(roomId);
+            if (!gameContext.onStateChange) {
+                gameContext.onStateChange = (rid) => this.broadcastState(rid);
+            }
+
             const result = await this.roomService.toggleReady(roomId, playerId, targetState);
             const { players, addedBots } = result;
 
@@ -306,6 +313,7 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect, On
             const gameContext = this.gameManager.getOrCreateRoom(roomId);
             const result = this.hintService.getHint(gameContext, playerId);
 
+            this.logger.log(`Sending hint_result to ${playerId}: ${JSON.stringify(result.suggestedCards)}`);
             client.emit('hint_result', { cards: result.suggestedCards });
         } catch (error) {
             this.logger.error(`Error in request_hint: ${error.message}`);
@@ -358,6 +366,9 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect, On
                 currentStateName,
                 playerId
             );
+
+            // Debug: Check if lastPlayedCards is in serialized state
+            this.logger.debug(`[broadcastState] Serialized for ${playerId}: lastPlayedCards=${JSON.stringify(sanitizedState.lastPlayedCards)}`);
 
             socket.emit('sync_state', sanitizedState);
         }

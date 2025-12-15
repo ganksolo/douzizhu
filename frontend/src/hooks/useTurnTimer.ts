@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 
-const DEFAULT_TURN_TIME = 30; // seconds
+const DEFAULT_TURN_TIME = 15; // seconds (Issue #45: Changed from 30s to 15s)
 
 interface UseTurnTimerOptions {
     onTimeout?: () => void;
