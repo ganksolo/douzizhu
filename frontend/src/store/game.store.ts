@@ -113,10 +113,19 @@ export const useGameStore = create<GameState>((set, get) => ({
                 const parsedCards = parseCardList(data.lastPlayedCards.cards);
                 console.log(`[GameStore #${eventId}] Parsed cards:`, parsedCards, 'from:', data.lastPlayedCards.cards);
                 if (parsedCards.length > 0) {
-                    lastPlayedCards = {
-                        seatIndex: data.lastPlayedCards.seatIndex,
-                        cards: parsedCards
-                    };
+                    // Fix flicker: Only update if content actually changed
+                    const newCardsKey = `${data.lastPlayedCards.seatIndex}-${parsedCards.join('-')}`;
+                    const oldCardsKey = lastPlayedCards ? `${lastPlayedCards.seatIndex}-${lastPlayedCards.cards.join('-')}` : '';
+
+                    if (newCardsKey !== oldCardsKey) {
+                        lastPlayedCards = {
+                            seatIndex: data.lastPlayedCards.seatIndex,
+                            cards: parsedCards
+                        };
+                        console.log(`[GameStore #${eventId}] Updated lastPlayedCards (changed)`);
+                    } else {
+                        console.log(`[GameStore #${eventId}] lastPlayedCards unchanged, skipping update`);
+                    }
                 } else {
                     console.warn(`[GameStore #${eventId}] parseCardList returned empty array!`);
                 }

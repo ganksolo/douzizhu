@@ -1,15 +1,17 @@
 import { useGameStore } from '../../store/game.store';
 import { useRoomStore } from '../../store/room.store';
 import { useToastStore } from '../../store/toast.store';
+import { useSoundStore } from '../../store/sound.store';
 import { PlayerAvatar } from './PlayerAvatar';
 import { Card } from './Card';
 import { GameEndModal } from './GameEndModal';
 import { DebugStatePanel } from '../DebugStatePanel';
-import { useState, useMemo, useCallback, useEffect } from 'react';
+import { useState, useMemo, useCallback, useEffect, useRef } from 'react';
 import { PlayerHand } from '../PlayerHand';
 import type { Card as CardType } from '../../types';
 import { motion, AnimatePresence } from 'framer-motion';
 import { SocketService } from '../../services/socket';
+import { SoundService } from '../../services/sound.service';
 import { useTurnTimer } from '../../hooks/useTurnTimer';
 import { useNavigate } from 'react-router-dom';
 import { api } from '../../services/api';
@@ -197,6 +199,8 @@ export const GameBoard = () => {
     };
 
     const handlePass = () => {
+        // Clear any selected cards when passing
+        setSelectedCards([]);
         SocketService.emit('client_action', {
             type: 'PASS',
             roomId,
@@ -252,6 +256,58 @@ export const GameBoard = () => {
     }, [lastPlayedCards, mySeatId]);
 
 
+    // --- Sound Effects Logic ---
+    // 1. Initialize sounds
+    useEffect(() => {
+        SoundService.init();
+    }, []);
+
+    // 2. Phase Change Sounds (Shuffle/Deal)
+    useEffect(() => {
+        if (phase === 'DEALING') {
+            SoundService.play('shuffle');
+            // Slight delay for deal sound to sequence them
+            setTimeout(() => {
+                SoundService.play('deal');
+            }, 1500);
+        }
+    }, [phase]);
+
+    // 3. Play Sound (When cards are played)
+    // Use a ref to track execution to avoid duplicate sounds on re-renders
+    const lastPlayedRef = useRef<string>('');
+
+    useEffect(() => {
+        if (lastPlayedCards && lastPlayedCards.cards.length > 0) {
+            const key = `${lastPlayedCards.seatIndex}-${lastPlayedCards.cards.join(',')}`;
+            if (lastPlayedRef.current !== key) {
+                lastPlayedRef.current = key;
+                SoundService.play('play');
+            }
+        }
+    }, [lastPlayedCards]);
+
+    // 4. Game End Sound (Win/Lose)
+    useEffect(() => {
+        if (gameEnd) {
+            // Simplified logic: Landlord wins + I am landlord = Win
+            // Peasant wins + I am peasant = Win
+            let iWon = false;
+            // Need to know my role. gameEnd doesn't explicitly say 'myRole', but we have landlordSeatIndex
+            if (landlordSeatIndex !== null && mySeatId !== null) {
+                const amILandlord = mySeatId === landlordSeatIndex;
+                if (gameEnd.isLandlordWin && amILandlord) iWon = true;
+                if (!gameEnd.isLandlordWin && !amILandlord) iWon = true;
+            }
+
+            if (iWon) {
+                SoundService.play('win');
+            } else {
+                SoundService.play('lose');
+            }
+        }
+    }, [gameEnd, landlordSeatIndex, mySeatId]);
+
     // Watch for backend hints
     useEffect(() => {
         const onHintResult = (data: { cards: string[], error?: string }) => {
@@ -268,11 +324,13 @@ export const GameBoard = () => {
                 console.log('[GameBoard] Selecting hint cards:', values);
                 setSelectedCards(values);
                 addToast({ message: `建议出 ${data.cards.length} 张牌`, type: 'info', duration: 2000 });
+                SoundService.play('click'); // Feedback for hint
             } else {
                 // Hint suggests PASS - clear selection and show visual feedback
                 console.log('[GameBoard] Hint suggests PASS - clearing selection');
                 setSelectedCards([]);
                 addToast({ message: '无法压过，建议 Pass', type: 'info', duration: 2500 });
+                SoundService.play('click'); // Feedback for hint
             }
         };
         SocketService.on('hint_result', onHintResult);
@@ -385,8 +443,8 @@ export const GameBoard = () => {
                 )}
             </AnimatePresence>
 
-            {/* --- 左上角工具栏 (Debug/Settings) --- */}
-            <div className="absolute top-4 left-4 flex items-center gap-2 z-50">
+            {/* --- 右上角工具栏 (Settings/Sound/Exit) --- */}
+            <div className="absolute top-4 right-4 flex items-center gap-2 z-50">
                 {/* Icons... (Keep existing logic, just ensure colors contrast well) */}
                 <button
                     className="w-10 h-10 rounded-full flex items-center justify-center transition-all hover:opacity-80 bg-[#1f2937]/80 text-[#d4af37] border border-[#d4af37]/30"
@@ -395,9 +453,16 @@ export const GameBoard = () => {
                     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
                 </button>
                 <button
-                    className="w-10 h-10 rounded-full flex items-center justify-center transition-all hover:opacity-80 bg-[#1f2937]/80 text-[#d4af37] border border-[#d4af37]/30"
+                    onClick={() => {
+                        useSoundStore.getState().toggle();
+                    }}
+                    className={`w-10 h-10 rounded-full flex items-center justify-center transition-all hover:opacity-80 bg-[#1f2937]/80 border ${useSoundStore(s => s.enabled) ? 'text-[#d4af37] border-[#d4af37]/30' : 'text-gray-500 border-gray-500/30'}`}
                 >
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z" /></svg>
+                    {useSoundStore(s => s.enabled) ? (
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z" /></svg>
+                    ) : (
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15zM17 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2" /></svg>
+                    )}
                 </button>
                 <button
                     onClick={handleExit}
@@ -423,21 +488,19 @@ export const GameBoard = () => {
                     initial={{ scale: 0.8, opacity: 0 }}
                     animate={{ scale: 1, opacity: 1 }}
                     transition={{ duration: 0.5, type: 'spring' }}
-                    className="relative h-32 w-[500px] flex items-center justify-center pointer-events-none"
+                    className="relative flex items-center justify-center pointer-events-none"
                 >
                     {bottomCards.length > 0 ? (
                         bottomCards.map((val, i) => {
                             const data = getCardData(val);
                             const totalCards = bottomCards.length;
                             const centerIndex = (totalCards - 1) / 2;
-                            // Use pixel-based spacing (30px) instead of percentage to guarantee spread
-                            const xOffset = (i - centerIndex) * 30;
                             const rotation = (i - centerIndex) * 4; // Gentle fanning
                             const translateY = Math.abs(i - centerIndex) * 2; // Slight arch
 
                             return (
                                 <motion.div
-                                    key={i}
+                                    key={`bottom-card-${i}`}
                                     initial={{ y: -40, opacity: 0, rotate: 0 }}
                                     animate={{
                                         y: translateY,
@@ -445,10 +508,9 @@ export const GameBoard = () => {
                                         rotate: rotation
                                     }}
                                     transition={{ delay: i * 0.05, type: 'spring', stiffness: 200 }}
-                                    className="absolute origin-bottom"
+                                    className="flex-shrink-0"
                                     style={{
-                                        left: `calc(50% + ${xOffset}px)`,
-                                        transform: `translateX(-50%)`, // We handle rotation in animate, but this keeps center alignment
+                                        marginLeft: i === 0 ? '0' : '-20px',
                                         zIndex: i,
                                     }}
                                 >
@@ -464,18 +526,15 @@ export const GameBoard = () => {
                     ) : (
                         Array(8).fill(0).map((_, i) => {
                             const centerIndex = 3.5;
-                            const xOffset = (i - centerIndex) * 30;
                             const rotation = (i - centerIndex) * 4;
-                            const translateY = Math.abs(i - centerIndex) * 2;
 
                             return (
                                 <div
-                                    key={i}
-                                    className="absolute origin-bottom"
+                                    key={`placeholder-${i}`}
+                                    className="flex-shrink-0"
                                     style={{
-                                        left: `calc(50% + ${xOffset}px)`,
-                                        transform: `translateX(-50%) rotate(${rotation}deg)`,
-                                        top: `${translateY}px`,
+                                        marginLeft: i === 0 ? '0' : '-20px',
+                                        transform: `rotate(${rotation}deg)`,
                                         zIndex: i,
                                     }}
                                 >
@@ -513,65 +572,39 @@ export const GameBoard = () => {
                 )}
             </div>
 
-            {/* Table Played Cards Area (4 Quadrants) */}
-            <div className="absolute inset-0 pointer-events-none">
-                <AnimatePresence> {/* Issue #47 Problem 4: Removed mode="wait" to prevent flickering */}
-                    {/* Top Player's Turn */}
-                    {lastPlayedPosition === 'top' && lastPlayedCards && (
-                        <motion.div
-                            key="top-play"
-                            initial={{ y: -20, opacity: 0, scale: 0.8 }}
-                            animate={{ y: 0, opacity: 1, scale: 1 }}
-                            exit={{ y: -20, opacity: 0, scale: 0.8 }}
-                            transition={{ type: 'spring', stiffness: 300 }}
-                            className="absolute top-40 left-1/2 -translate-x-1/2 z-30"
-                        >
-                            {renderPlayedCards(lastPlayedCards.cards)}
-                        </motion.div>
-                    )}
+            {/* Table Played Cards Area - Four Independent Containers to prevent flicker */}
+            {/* Top Player's Played Cards */}
+            <div
+                className={`absolute top-40 left-1/2 -translate-x-1/2 z-20 pointer-events-none transition-opacity duration-200 ${lastPlayedPosition === 'top' && lastPlayedCards ? 'opacity-100' : 'opacity-0'
+                    }`}
+            >
+                {lastPlayedPosition === 'top' && lastPlayedCards && renderPlayedCards(lastPlayedCards.cards)}
+            </div>
 
-                    {/* Left Player's Turn */}
-                    {lastPlayedPosition === 'left' && lastPlayedCards && (
-                        <motion.div
-                            key="left-play"
-                            initial={{ x: -20, opacity: 0, scale: 0.8 }}
-                            animate={{ x: 0, opacity: 1, scale: 1 }}
-                            exit={{ x: -20, opacity: 0, scale: 0.8 }}
-                            transition={{ type: 'spring', stiffness: 300 }}
-                            className="absolute left-40 top-1/2 -translate-y-1/2 z-30"
-                        >
-                            {renderPlayedCards(lastPlayedCards.cards)}
-                        </motion.div>
-                    )}
+            {/* Left Player's Played Cards */}
+            <div
+                className={`absolute left-40 top-1/2 -translate-y-1/2 z-20 pointer-events-none transition-opacity duration-200 ${lastPlayedPosition === 'left' && lastPlayedCards ? 'opacity-100' : 'opacity-0'
+                    }`}
+            >
+                {lastPlayedPosition === 'left' && lastPlayedCards && renderPlayedCards(lastPlayedCards.cards)}
+            </div>
 
-                    {/* Right Player's Turn */}
-                    {lastPlayedPosition === 'right' && lastPlayedCards && (
-                        <motion.div
-                            key="right-play"
-                            initial={{ x: 20, opacity: 0, scale: 0.8 }}
-                            animate={{ x: 0, opacity: 1, scale: 1 }}
-                            exit={{ x: 20, opacity: 0, scale: 0.8 }}
-                            transition={{ type: 'spring', stiffness: 300 }}
-                            className="absolute right-40 top-1/2 -translate-y-1/2 z-30"
-                        >
-                            {renderPlayedCards(lastPlayedCards.cards)}
-                        </motion.div>
-                    )}
+            {/* Right Player's Played Cards */}
+            <div
+                className={`absolute right-40 top-1/2 -translate-y-1/2 z-20 pointer-events-none transition-opacity duration-200 ${lastPlayedPosition === 'right' && lastPlayedCards ? 'opacity-100' : 'opacity-0'
+                    }`}
+            >
+                {lastPlayedPosition === 'right' && lastPlayedCards && renderPlayedCards(lastPlayedCards.cards)}
+            </div>
 
-                    {/* Bottom Player's Turn */}
-                    {lastPlayedPosition === 'bottom' && lastPlayedCards && (
-                        <motion.div
-                            key="bottom-play"
-                            initial={{ y: 20, opacity: 0, scale: 0.8 }}
-                            animate={{ y: 0, opacity: 1, scale: 1 }}
-                            exit={{ y: 20, opacity: 0, scale: 0.8 }}
-                            transition={{ type: 'spring', stiffness: 300 }}
-                            className="absolute bottom-48 left-1/2 -translate-x-1/2 z-30"
-                        >
-                            {renderPlayedCards(lastPlayedCards.cards)}
-                        </motion.div>
-                    )}
-                </AnimatePresence>
+            {/* Bottom Player's Played Cards - Hide when it's player's turn (buttons visible) */}
+            <div
+                className={`absolute bottom-52 left-1/2 -translate-x-1/2 z-20 pointer-events-none transition-opacity duration-200 ${lastPlayedPosition === 'bottom' && lastPlayedCards && currentTurn !== bottomPlayer?.seatId
+                    ? 'opacity-100'
+                    : 'opacity-0'
+                    }`}
+            >
+                {lastPlayedPosition === 'bottom' && lastPlayedCards && renderPlayedCards(lastPlayedCards.cards)}
             </div>
 
 
@@ -652,8 +685,9 @@ export const GameBoard = () => {
                 {/* 2. Hand Cards & Controls (Centered) - Constrained width to avoid blocking sides */}
                 <div className="absolute left-1/2 -translate-x-1/2 bottom-0 flex flex-col items-center mb-4 pointer-events-none" style={{ maxWidth: 'calc(100% - 280px)' }}>
 
-                    {/* Game Control Buttons (Above Hand) - Fix Z-Index issue */}
-                    <div className="mb-6 flex gap-6 pointer-events-auto items-center min-h-[60px] relative z-50">
+                    {/* Game Control Buttons (Above Hand) - Shifted left for visual centering */}
+                    {/* Issue #56: Move container down by reducing bottom margin (mb-6 -> mb-1) */}
+                    <div className="mb-1 flex gap-6 pointer-events-auto items-center min-h-[60px] relative z-50 -ml-[92px]">
                         {/* BIDDING Phase Buttons */}
                         {phase === 'BIDDING' && currentTurn === bottomPlayer?.seatId && (
                             <AnimatePresence>
@@ -762,8 +796,8 @@ export const GameBoard = () => {
                         )}
                     </div>
 
-                    {/* Hand Cards */}
-                    <div className="w-full flex justify-center pointer-events-auto">
+                    {/* Hand Cards - constrained width to prevent overflow */}
+                    <div className="flex justify-center pointer-events-auto overflow-hidden" style={{ maxWidth: 'calc(100vw - 300px)', width: '100%' }}>
                         <PlayerHand
                             cards={handCards}
                             isHuman={true}
@@ -785,6 +819,6 @@ export const GameBoard = () => {
                 </div>
             </div>
 
-        </div>
+        </div >
     );
 };

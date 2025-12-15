@@ -43,7 +43,7 @@ export const DebugStatePanel = ({ selectedCards = [], canPass = false }: DebugSt
     const lastPlayStr = lastPlayedCards?.cards.map(cardValueToString).join(' ') || '-';
 
     return (
-        <div className="fixed top-4 right-4 z-50 bg-black/90 text-green-400 p-4 rounded-lg font-mono text-xs shadow-xl border border-green-900 pointer-events-none select-none min-w-[250px] max-w-[300px]">
+        <div className="fixed top-4 left-4 z-50 bg-black/90 text-green-400 p-4 rounded-lg font-mono text-xs shadow-xl border border-green-900 pointer-events-none select-none min-w-[250px] max-w-[300px]">
             <h3 className="text-white font-bold border-b border-gray-600 mb-2 pb-1">🐛 DEBUG PANEL</h3>
 
             <div className="grid grid-cols-2 gap-x-4 gap-y-1">

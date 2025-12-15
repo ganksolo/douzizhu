@@ -115,9 +115,15 @@ export class GameContext {
         this.logger.log(`Restored state to ${this.currentState.constructor.name} for room ${roomId}`);
     }
 
-    public handleInput(action: UserAction) {
+    public async handleInput(action: UserAction) {
         if (this.currentState) {
             this.currentState.handleInput(this, action);
+
+            // Save snapshot and notify listeners after any input handling
+            await this.saveSnapshot();
+            if (this.onStateChange && this.roomData.roomId) {
+                this.onStateChange(this.roomData.roomId);
+            }
         }
     }
 

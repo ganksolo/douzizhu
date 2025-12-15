@@ -150,6 +150,19 @@ export function PlayerHand({ cards, isHuman = false, onCardClick, onSelectionCha
     }
 
     // Human Player
+    // Calculate dynamic overlap based on card count and available width
+    // Use viewport width minus minimal gaps (40px each side)
+    const cardWidth = 80;
+    const availableWidth = typeof window !== 'undefined' ? window.innerWidth - 80 : 1200; // 80 = 40px gap each side
+    const minOverlap = 20; // Minimum overlap in pixels
+    const maxOverlap = 60; // Maximum overlap in pixels
+
+    // Calculate required overlap to fit all cards
+    const totalNaturalWidth = cards.length * cardWidth;
+    const requiredOverlap = cards.length > 1
+        ? Math.max(minOverlap, Math.min(maxOverlap, (totalNaturalWidth - availableWidth) / (cards.length - 1)))
+        : 0;
+
     return (
         <div
             ref={containerRef}
@@ -158,13 +171,14 @@ export function PlayerHand({ cards, isHuman = false, onCardClick, onSelectionCha
             onMouseMove={handleMouseMove}
             onMouseUp={handleMouseUp}
         >
-            <div className="flex -space-x-6 pointer-events-none"> {/* Issue #39: Reduced overlap for better click accuracy */}
+            <div className="flex pointer-events-none" style={{ marginLeft: 0 }}>
                 {/* Actually, if we want drag select, we should probably let events bubble up. */}
                 {cards.map((card, index) => (
                     <div
                         key={card.id}
                         ref={el => { cardRefs.current[index] = el; }}
                         className="transition-transform duration-200 pointer-events-auto" // Re-enable pointer events
+                        style={{ marginLeft: index === 0 ? 0 : `-${requiredOverlap}px` }}
                     >
                         <Card card={card} onClick={onCardClick} />
                     </div>

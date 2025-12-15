@@ -90,40 +90,54 @@ export class RoomService implements OnModuleInit, OnModuleDestroy {
     /**
      * Get rooms with pagination
      */
+    /**
+     * Get rooms with pagination (filtered by status='waiting')
+     */
     async getRooms(page: number = 1, limit: number = 20): Promise<{ rooms: any[], total: number }> {
         const client = this.getRedisClient();
         const allKeys = await this.getAllRoomIds();
-        this.logger.log(`Found ${allKeys.length} rooms in Redis`);
 
-        const total = allKeys.length;
+        // Optimization: Fetch all metas in parallel to filter
+        // In a production system with millions of rooms, we would use a Redis Set for 'waiting' rooms
+        // But for this scale, scanning is acceptable
+        const roomMetas = await Promise.all(allKeys.map(async (roomId) => {
+            const meta = await this.getRoomMeta(roomId);
+            if (!meta) return null;
 
-        // Simple memory pagination
+            // Filter: Only return WAITING rooms
+            if (meta.status !== 'waiting') return null;
+
+            return { roomId, meta };
+        }));
+
+        // Filter out nulls
+        const activeRooms = roomMetas.filter(item => item !== null) as { roomId: string, meta: any }[];
+        const total = activeRooms.length;
+
+        // Pagination
         const startIndex = (page - 1) * limit;
-        const endIndex = startIndex + limit;
-        const pageKeys = allKeys.slice(startIndex, endIndex);
+        const pageItems = activeRooms.slice(startIndex, startIndex + limit);
 
         const rooms: any[] = [];
-        for (const roomId of pageKeys) {
-            const meta = await this.getRoomMeta(roomId);
-            if (meta) {
-                const seatsKey = this.getSeatsKey(roomId);
-                const playerCount = await client.hlen(seatsKey);
-                const configObj = meta.config ? JSON.parse(meta.config) : {};
+        for (const item of pageItems) {
+            const { roomId, meta } = item;
+            const seatsKey = this.getSeatsKey(roomId);
+            const playerCount = await client.hlen(seatsKey);
+            const configObj = meta.config ? JSON.parse(meta.config) : {};
 
-                rooms.push({
-                    roomId,
-                    name: configObj.name || `Room ${roomId.substr(0, 6)}`,
-                    hostId: meta.ownerId,
-                    currentPlayers: playerCount,
-                    maxPlayers: configObj.maxPlayers || 4,
-                    status: meta.status,
-                    type: configObj.type || 'PVP',
-                    difficulty: configObj.difficulty || 'MEDIUM',
-                    isPrivate: configObj.isPrivate || false,
-                    botCount: configObj.botCount || 0,
-                    config: configObj
-                });
-            }
+            rooms.push({
+                roomId,
+                name: configObj.name || `Room ${roomId.substr(0, 6)}`,
+                hostId: meta.ownerId,
+                currentPlayers: playerCount,
+                maxPlayers: configObj.maxPlayers || 4,
+                status: meta.status,
+                type: configObj.type || 'PVP',
+                difficulty: configObj.difficulty || 'MEDIUM',
+                isPrivate: configObj.isPrivate || false,
+                botCount: configObj.botCount || 0,
+                config: configObj
+            });
         }
 
         return { rooms, total };

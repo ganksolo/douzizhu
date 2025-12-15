@@ -149,9 +149,13 @@ export const LobbyPage = () => {
                                                         <h3 className="text-base font-semibold text-gray-800">
                                                             {room.name}
                                                         </h3>
-                                                        {isPvE && (
-                                                            <span className="px-2 py-0.5 bg-blue-100 text-blue-700 text-xs rounded font-medium">
-                                                                AI
+                                                        {isPvE ? (
+                                                            <span className="px-2 py-0.5 bg-blue-100 text-blue-700 text-xs rounded font-medium border border-blue-200">
+                                                                PVE (人机)
+                                                            </span>
+                                                        ) : (
+                                                            <span className="px-2 py-0.5 bg-orange-100 text-orange-700 text-xs rounded font-medium border border-orange-200">
+                                                                PVP (对战)
                                                             </span>
                                                         )}
                                                     </div>
