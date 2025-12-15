@@ -2,7 +2,7 @@ import { WebSocketGateway, SubscribeMessage, MessageBody, ConnectedSocket, WebSo
 import { Server, Socket } from 'socket.io';
 import { Logger, UseGuards } from '@nestjs/common';
 import { RoomService } from './room.service';
-// import { JwtAuthGuard } from '../auth/jwt-auth.guard'; // Assuming we might use this later, but for now manual token check in Gateway is common or use Guard if global
+import { AuthService } from '../auth/auth.service';
 
 @WebSocketGateway({
     cors: { origin: '*' },
@@ -14,7 +14,10 @@ export class RoomGateway {
 
     private logger = new Logger(RoomGateway.name);
 
-    constructor(private readonly roomService: RoomService) { }
+    constructor(
+        private readonly roomService: RoomService,
+        private readonly authService: AuthService,
+    ) { }
 
     @SubscribeMessage('join_room')
     async handleJoinRoom(
@@ -22,24 +25,38 @@ export class RoomGateway {
         @ConnectedSocket() client: Socket,
     ) {
         try {
-            // Assuming Auth is handled by global adapter or client.data is populated
-            // For Phase 21.1, we rely on the client.data populated by previous Auth integration or passed params
-            // But wait, this is a NEW namespace 'room'. 
-            // We need to ensure Auth works here too. 
-            // For simplicity in this step, let's assume client.handshake.auth.token is valid or we trust client.data if shared (namespaces don't share socket instances usually).
+            // Authenticate from Token
+            const token = client.handshake.auth?.token || client.handshake.query?.token as string;
 
-            // Let's assume we extract user from handshake again or use a Guard.
-            // To keep it simple and consistent with Phase 20.3:
-            // We should probably use the same Auth mechanism. 
+            // If no token, check if we have mock userId (fallback for dev only? or remove?)
+            // We should enforce Token. The previous generic fix relied on Token.
+            // If token is missing, rely on previous logic? 
+            // Previous logic: userId = auth.userId. SocketService does NOT send userId directly.
+            // So we MUST use Token.
 
-            // MOCK for now: We assume client.data.userId is set (middleware needed) OR we extract it.
-            // Since we haven't set up a global Auth Adapter for all namespaces, let's just extract from handshake for now.
+            let userId = '';
+            let nickname = '';
+            let avatar = '';
 
-            const userId = client.handshake.auth?.userId || client.handshake.query?.userId; // Simple mock or real logic
-            const nickname = client.handshake.auth?.nickname || `User-${userId}`;
-            const avatar = '';
+            if (token) {
+                const payload = this.authService.verifyToken(token);
+                if (payload) {
+                    userId = payload.sub;
+                    // Fetch full profile for Avatar
+                    const user = await this.authService.validateUser(userId);
+                    nickname = user?.nickname || payload.username;
+                    avatar = user?.avatar || '';
+                }
+            }
+
+            // Fallback for mock/test clients that send userId directly (optional)
+            if (!userId) {
+                userId = client.handshake.auth?.userId || client.handshake.query?.userId;
+                nickname = client.handshake.auth?.nickname || `User-${userId}`;
+            }
 
             if (!userId) {
+                this.logger.warn(`Client ${client.id} tried to join room without valid auth`);
                 client.disconnect();
                 return;
             }
@@ -50,7 +67,7 @@ export class RoomGateway {
 
             // Broadcast to room
             this.server.to(data.roomId).emit('player_list_update', players);
-            this.server.to(data.roomId).emit('player_joined', { userId, nickname });
+            this.server.to(data.roomId).emit('player_joined', { userId, nickname, avatar });
 
             return { status: 'ok', players };
         } catch (error) {

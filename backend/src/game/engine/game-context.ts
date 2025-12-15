@@ -6,6 +6,7 @@ import { InitState } from './states/init.state';
 import { DealingState } from './states/dealing.state';
 import { PlayingState } from './states/playing.state';
 import { GameEndState } from './states/game-end.state';
+import { BiddingState } from './states/bidding.state';
 
 @Injectable()
 export class GameContext {
@@ -19,6 +20,7 @@ export class GameContext {
         private redisService: GameRedisService,
         @Inject(forwardRef(() => InitState)) private initState: InitState,
         @Inject(forwardRef(() => DealingState)) private dealingState: DealingState,
+        @Inject(forwardRef(() => BiddingState)) private biddingState: BiddingState,
         @Inject(forwardRef(() => PlayingState)) private playingState: PlayingState,
         @Inject(forwardRef(() => GameEndState)) private gameEndState: GameEndState,
     ) {
@@ -100,6 +102,9 @@ export class GameContext {
                 break;
             case 'DealingState':
                 this.currentState = this.dealingState;
+                break;
+            case 'BiddingState':
+                this.currentState = this.biddingState;
                 break;
             case 'PlayingState':
                 this.currentState = this.playingState;

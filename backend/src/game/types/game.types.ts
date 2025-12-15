@@ -39,6 +39,7 @@ export interface Player {
     handCount?: number;
     isRobot?: boolean;
     seatIndex: number; // 0-3
+    avatar?: string;
 }
 
 export interface RoomData {

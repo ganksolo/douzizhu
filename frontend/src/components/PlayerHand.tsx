@@ -152,10 +152,13 @@ export function PlayerHand({ cards, isHuman = false, onCardClick, onSelectionCha
     // Human Player
     // Calculate dynamic overlap based on card count and available width
     // Use viewport width minus minimal gaps (40px each side)
+    // Use viewport width minus sidebar/padding (approx 300px for sidebar + gaps)
+    // Issue #60: Adjust width to be consistent with GameBoard layout. User requested +200px.
+    // Previous: window.innerWidth - 360. New: window.innerWidth - 160.
     const cardWidth = 80;
-    const availableWidth = typeof window !== 'undefined' ? window.innerWidth - 80 : 1200; // 80 = 40px gap each side
+    const availableWidth = typeof window !== 'undefined' ? window.innerWidth - 160 : 1200; // Expanded width
     const minOverlap = 20; // Minimum overlap in pixels
-    const maxOverlap = 60; // Maximum overlap in pixels
+    const maxOverlap = 65; // Increased max overlap for better density on small hands
 
     // Calculate required overlap to fit all cards
     const totalNaturalWidth = cards.length * cardWidth;

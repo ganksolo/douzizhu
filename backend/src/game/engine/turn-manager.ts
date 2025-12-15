@@ -7,6 +7,31 @@ export class TurnManager {
     private logger = new Logger(TurnManager.name);
 
     /**
+     * Ensures currentTurn is defined. If missing, attempts to repair it.
+     */
+    public ensureCurrentTurn(context: GameContext): string {
+        if (context.roomData.currentTurn) {
+            return context.roomData.currentTurn;
+        }
+
+        this.logger.warn(`Current turn is undefined in room ${context.roomData.roomId}. Attempting to repair...`);
+
+        // Try landlord
+        if (context.roomData.landlordId) {
+            context.roomData.currentTurn = context.roomData.landlordId;
+        } else if (context.roomData.players.length > 0) {
+            context.roomData.currentTurn = context.roomData.players[0].id;
+        }
+
+        if (context.roomData.currentTurn) {
+            this.logger.log(`Repaired current turn to: ${context.roomData.currentTurn}`);
+            return context.roomData.currentTurn;
+        }
+
+        throw new Error('Failed to repair current turn: No players found');
+    }
+
+    /**
      * Advances the turn to the next player.
      * @param context Game context
      * @returns The ID of the next player

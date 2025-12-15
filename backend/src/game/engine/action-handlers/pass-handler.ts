@@ -16,8 +16,11 @@ export class PassActionHandler implements ActionHandler {
         const { playerId } = action;
 
         // 1. Check Turn
-        if (context.roomData.currentTurn !== playerId) {
-            throw new Error(`Not your turn! Current turn: ${context.roomData.currentTurn}`);
+        // Issue #58: Ensure currentTurn is defined (repair if needed)
+        const currentTurn = this.turnManager.ensureCurrentTurn(context);
+
+        if (currentTurn !== playerId) {
+            throw new Error(`Not your turn! Current turn: ${currentTurn}`);
         }
 
         // 2. Check Rule (Cannot pass on free turn)

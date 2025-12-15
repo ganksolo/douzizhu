@@ -43,8 +43,25 @@ export class AuthController {
      */
     @UseGuards(AuthGuard('jwt'))
     @Get('me')
-    getProfile(@Request() req) {
-        return req.user;
+    async getProfile(@Request() req) {
+        // req.user has { userId, username } from JwtStrategy
+        // Fetch full profile from DB to get avatar, stats, etc.
+        const user = await this.authService.validateUser(req.user.userId);
+        if (!user) {
+            throw new UnauthorizedException('User not found');
+        }
+
+        // Map to response format
+        return {
+            success: true,
+            data: {
+                userId: user.id,
+                username: user.nickname,
+                avatar: user.avatar,
+                email: user.email,
+                createdAt: user.createdAt,
+            }
+        };
     }
 
 }

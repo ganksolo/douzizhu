@@ -9,6 +9,7 @@ export interface UserEntity {
     userId: string;
     username: string;
     email?: string;
+    avatar?: string; // Phase 22.4 User Avatar
     stats?: {
         totalGames: number;
         wins: number;
@@ -165,7 +166,7 @@ export const api = {
          * Endpoint: GET /users/me
          */
         getMe: async (): Promise<UserEntity> => {
-            const response = await apiClient.get<ApiResponse<UserEntity>>('/users/me');
+            const response = await apiClient.get<ApiResponse<UserEntity>>('/auth/me');
             return response.data.data;
         },
     },

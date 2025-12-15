@@ -16,7 +16,7 @@ interface AuthState {
     login: (username: string, password: string) => Promise<void>;
     register: (username: string, password: string) => Promise<void>;
     logout: () => void;
-    restoreSession: () => void;
+    restoreSession: () => Promise<void>;
     clearError: () => void;
 }
 
@@ -98,12 +98,22 @@ export const useAuthStore = create<AuthState>((set) => ({
             const response = await api.auth.login(username, password);
             console.log('[Auth] Login successful:', response.username);
 
-            const user: UserEntity = {
+            // Fetch full profile to get avatar
+            let user: UserEntity = {
                 userId: response.userId,
                 username: response.username,
             };
 
+            // Set token temporarily for the request
             localStorage.setItem('auth_token', response.token);
+
+            try {
+                const profile = await api.auth.getMe();
+                user = profile;
+            } catch (err) {
+                console.warn('[Auth] Failed to fetch profile after login, using basic info', err);
+            }
+
             localStorage.setItem('auth_user', JSON.stringify(user));
 
             set({
@@ -176,38 +186,56 @@ export const useAuthStore = create<AuthState>((set) => ({
      * Restore Session - Called on app mount
      * Checks localStorage for existing token and user
      */
-    restoreSession: () => {
+    restoreSession: async () => {
         console.log('[Auth] Attempting to restore session...');
 
         const token = localStorage.getItem('auth_token');
-        const userJson = localStorage.getItem('auth_user');
 
-        if (token && userJson) {
-            try {
-                const user = JSON.parse(userJson) as UserEntity;
-
-                console.log('[Auth] Session restored:', user);
-
-                set({
-                    user,
-                    token,
-                    isAuthenticated: true,
-                    isInitialized: true,
-                });
-
-                // Reconnect socket
-                SocketService.connect(token);
-
-            } catch (error) {
-                console.error('[Auth] Failed to restore session:', error);
-                // Clear invalid data
-                localStorage.removeItem('auth_token');
-                localStorage.removeItem('auth_user');
-                set({ isInitialized: true });
-            }
-        } else {
+        if (!token) {
             console.log('[Auth] No existing session found');
             set({ isInitialized: true });
+            return;
+        }
+
+        try {
+            // Optimistic fast load from local storage
+            const cachedUser = localStorage.getItem('auth_user');
+            if (cachedUser) {
+                const user = JSON.parse(cachedUser);
+                set({ user, token, isAuthenticated: true });
+            }
+
+            // Verify with backend and get fresh data (including avatar)
+            console.log('[Auth] Verifying session with backend...');
+            const user = await api.auth.getMe();
+
+            console.log('[Auth] Session restored & validated:', user);
+
+            // Update storage
+            localStorage.setItem('auth_user', JSON.stringify(user));
+
+            set({
+                user,
+                token,
+                isAuthenticated: true,
+                isInitialized: true,
+            });
+
+            // Reconnect socket
+            SocketService.connect(token);
+
+        } catch (error) {
+            console.error('[Auth] Failed to restore session:', error);
+            // Clear invalid data
+            localStorage.removeItem('auth_token');
+            localStorage.removeItem('auth_user');
+
+            set({
+                user: null,
+                token: null,
+                isAuthenticated: false,
+                isInitialized: true
+            });
         }
     },
 

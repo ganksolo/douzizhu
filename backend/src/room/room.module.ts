@@ -7,11 +7,13 @@ import { GameModule } from '../game/game.module';
 import { ReconnectService } from './services/reconnect.service';
 import { AFKService } from './services/afk.service';
 import { RoomCleanerService } from './services/room-cleaner.service';
+import { AuthModule } from '../auth/auth.module';
 
 @Module({
     imports: [
         CacheModule.register(),
         forwardRef(() => GameModule),
+        AuthModule,
     ],
     controllers: [RoomController],
     providers: [

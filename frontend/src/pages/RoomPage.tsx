@@ -187,13 +187,20 @@ export const RoomPage = () => {
     const renderSeatWrapper = (pos: 'bottom' | 'right' | 'top' | 'left') => {
         const player = getPlayerByRelativePos(pos);
 
+        // Issue #61: Use authStore avatar for current user to ensure consistency
+        // If it's me, merge/override avatar from authStore (which has latest 'real' data)
+        const isMe = player?.userId === currentUser?.userId;
+        const displayPlayer = isMe && player && currentUser
+            ? { ...player, avatar: currentUser.avatar || player.avatar }
+            : player;
+
         // Show "Sit Here" button is no longer needed since we auto-sit
         // but keep the structure for future manual seat selection if needed
         const showSit = false;
 
         return (
             <PlayerSeat
-                player={player}
+                player={displayPlayer}
                 position={pos}
                 isCurrentUser={player?.userId === currentUser?.userId}
                 onSit={() => { }} // No-op since we auto-sit

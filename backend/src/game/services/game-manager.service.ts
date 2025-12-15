@@ -6,6 +6,8 @@ import { DealingState } from '../engine/states/dealing.state';
 import { PlayingState } from '../engine/states/playing.state';
 import { GameEndState } from '../engine/states/game-end.state';
 
+import { BiddingState } from '../engine/states/bidding.state';
+
 @Injectable()
 export class GameManagerService {
     private rooms = new Map<string, GameContext>();
@@ -15,6 +17,7 @@ export class GameManagerService {
         private redisService: GameRedisService,
         private initState: InitState,
         private dealingState: DealingState,
+        private biddingState: BiddingState,
         private playingState: PlayingState,
         private gameEndState: GameEndState,
     ) { }
@@ -26,6 +29,7 @@ export class GameManagerService {
                 this.redisService,
                 this.initState,
                 this.dealingState,
+                this.biddingState,
                 this.playingState,
                 this.gameEndState,
             );

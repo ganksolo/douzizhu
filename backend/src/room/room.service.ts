@@ -334,7 +334,8 @@ export class RoomService implements OnModuleInit, OnModuleDestroy {
             role: undefined,
             handCount: 0,
             isRobot: p.isBot || false,
-            seatIndex: p.seat
+            seatIndex: p.seat,
+            avatar: p.avatar, // Issue #59: Pass avatar to GameContext
         }));
 
         // Trigger Init State

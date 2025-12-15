@@ -3,6 +3,7 @@ import { useRoomStore } from '../../store/room.store';
 import { useToastStore } from '../../store/toast.store';
 import { useSoundStore } from '../../store/sound.store';
 import { PlayerAvatar } from './PlayerAvatar';
+import { useAuthStore } from '../../store/auth.store';
 import { Card } from './Card';
 import { GameEndModal } from './GameEndModal';
 import { DebugStatePanel } from '../DebugStatePanel';
@@ -115,6 +116,7 @@ export const GameBoard = () => {
     const navigate = useNavigate();
 
     const [selectedCards, setSelectedCards] = useState<number[]>([]);
+    const [showDebug, setShowDebug] = useState(false); // Issue #57: Debug panel toggle
 
     // Helper to get UI player
     const getUIPlayer = (position: 'bottom' | 'right' | 'top' | 'left') => {
@@ -404,10 +406,10 @@ export const GameBoard = () => {
 
     return (
         <div className="w-full h-screen bg-[rgb(50,85,66)] relative overflow-hidden flex flex-col items-center justify-center select-none font-sans">
-            {/* Issue #48: Enhanced Debug Panel */}
-            <DebugStatePanel selectedCards={selectedCards} canPass={canPass} />
+            {/* --- Debug Info --- */}
+            {showDebug && <DebugStatePanel selectedCards={selectedCards} canPass={canPass} />}
 
-            {/* --- Background --- */}
+            {/* Issue #34: Game End Modal */}
             {/* Table Cloth Texture (Green dots) */}
             <div className="absolute inset-0" style={{
                 backgroundImage: 'radial-gradient(rgb(26, 77, 51) 1px, transparent 1px)',
@@ -451,6 +453,14 @@ export const GameBoard = () => {
                     onClick={() => { }}
                 >
                     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
+                </button>
+                {/* Debug Toggle */}
+                <button
+                    onClick={() => setShowDebug(!showDebug)}
+                    className={`w-10 h-10 rounded-full flex items-center justify-center transition-all hover:opacity-80 bg-[#1f2937]/80 border ${showDebug ? 'text-green-400 border-green-400/30' : 'text-gray-500 border-gray-500/30'}`}
+                    title="Toggle Debug Panel"
+                >
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" /></svg>
                 </button>
                 <button
                     onClick={() => {
@@ -545,11 +555,11 @@ export const GameBoard = () => {
                     )}
                 </motion.div>
 
-                {/* Bidding Prompt - Moved up 40px (mb-10 or -translate-y) */}
+                {/* Bidding Prompt - Moved down 40px (y: -40 -> y: 0) */}
                 {phase === 'BIDDING' && (
                     <motion.div
-                        initial={{ opacity: 0, y: 10 }}
-                        animate={{ opacity: 1, y: -40 }}
+                        initial={{ opacity: 0, y: 50 }}
+                        animate={{ opacity: 1, y: 0 }}
                         className="text-white text-lg font-bold bg-black/40 px-6 py-2 rounded-full backdrop-blur-sm flex flex-col items-center gap-1 border border-white/10"
                     >
                         <div className="flex items-center gap-2 text-[#ffd700]">
@@ -669,8 +679,8 @@ export const GameBoard = () => {
                 <div className="pointer-events-auto flex-shrink-0 mb-10 relative z-50">
                     {bottomPlayer && (
                         <PlayerAvatar
-                            username={bottomPlayer.username || 'Me'}
-                            avatar={bottomPlayer.avatar}
+                            username={bottomPlayer.username || useAuthStore.getState().user?.username || 'Me'}
+                            avatar={bottomPlayer.avatar || useAuthStore.getState().user?.avatar}
                             position="bottom"
                             isBot={bottomPlayer.isBot}
                             isTurn={currentTurn === bottomPlayer.seatId}
