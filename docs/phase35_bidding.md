@@ -51,7 +51,7 @@ handleInput(BID)
 [叫分结束条件]
     - bid=3 → 立即成为地主
     - 4人都叫完 → 最高分者成为地主
-    - 全部不叫 → 回到 DealingState 重新发牌
+    - 全部不叫 → 随机指定地主 (bid=1)
     ↓
 setLandlord()
     - 将 8 张底牌加入地主手牌

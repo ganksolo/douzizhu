@@ -14,20 +14,23 @@ export class RoomCleanerService {
         for (const roomId of roomIds) {
             const players = await this.roomService.getPlayers(roomId);
 
-            // If empty, destroy immediately
-            if (players.length === 0) {
+            // If empty or ONLY bots, destroy immediately
+            const realPlayers = players.filter(p => !p.isBot);
+            if (realPlayers.length === 0) {
+                this.logger.log(`Cleaning empty/bot-only room ${roomId}`);
                 await this.roomService.destroyRoom(roomId);
                 continue;
             }
 
-            // Check if all offline for > 10 mins
-            const allOffline = players.every(p => !p.online);
-            if (allOffline) {
+            // Check if all REAL players are offline for > 10 mins
+            const allHumansOffline = realPlayers.every(p => !p.online);
+            if (allHumansOffline) {
                 const tenMinutesAgo = Date.now() - 600000;
-                const allAbandoned = players.every(p => p.lastActive < tenMinutesAgo);
+                // Only act if ALL humans are abandoned
+                const allAbandoned = realPlayers.every(p => p.lastActive < tenMinutesAgo);
 
                 if (allAbandoned) {
-                    this.logger.log(`Cleaning abandoned room ${roomId}`);
+                    this.logger.log(`Cleaning abandoned room ${roomId} (All humans offline > 10m)`);
                     await this.roomService.destroyRoom(roomId);
                 }
             }

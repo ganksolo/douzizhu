@@ -117,9 +117,14 @@ export class BiddingState extends BaseState {
         if (context.roomData.bidHistory!.length >= 4) {
             // 所有人都叫完一轮
             if (context.roomData.highestBid === 0) {
-                // 所有人都不叫 → 重新发牌
-                this.logger.log('All players passed. Restarting dealing...');
-                context.transitionTo(this.dealingState);
+                // 所有人都不叫 → 随机指定地主
+                this.logger.log('All players passed. Randomly assigning landlord...');
+                const randomSeat = Math.floor(Math.random() * 4);
+
+                // 设置基础分数为 1 
+                context.roomData.highestBid = 1;
+
+                this.setLandlord(context, randomSeat);
                 return;
             } else {
                 // 最高分者成为地主
