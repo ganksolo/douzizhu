@@ -46,6 +46,7 @@ export class RoomController {
                 roomId: id,
                 name: configObj.name || `Room ${id.substr(0, 6)}`,
                 hostId: meta.ownerId,
+                hostName: (meta as any).ownerName || 'Unknown', // Return hostName
                 currentPlayers: players.length,
                 maxPlayers: configObj.maxPlayers || 4,
                 status: meta.status,
@@ -77,7 +78,7 @@ export class RoomController {
             maxPlayers: body.maxPlayers || 4
         };
 
-        const createdRoomId = await this.roomService.createRoom(roomId, userId, config);
+        const createdRoomId = await this.roomService.createRoom(roomId, userId, req.user.username, config);
 
         return {
             success: true,
@@ -85,6 +86,7 @@ export class RoomController {
                 roomId: createdRoomId,
                 ...config,
                 hostId: userId,
+                hostName: req.user.username, // Return hostName
                 status: 'waiting',
                 currentPlayers: 0  // No players seated yet
             }

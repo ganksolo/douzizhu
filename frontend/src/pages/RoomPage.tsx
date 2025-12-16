@@ -191,7 +191,11 @@ export const RoomPage = () => {
         // If it's me, merge/override avatar from authStore (which has latest 'real' data)
         const isMe = player?.userId === currentUser?.userId;
         const displayPlayer = isMe && player && currentUser
-            ? { ...player, avatar: currentUser.avatar || player.avatar }
+            ? {
+                ...player,
+                avatar: currentUser.avatar || player.avatar,
+                username: player.username || currentUser.username // Fallback using normalized username
+            }
             : player;
 
         // Show "Sit Here" button is no longer needed since we auto-sit

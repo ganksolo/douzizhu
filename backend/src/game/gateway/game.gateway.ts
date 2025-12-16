@@ -120,10 +120,16 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect, On
                 players = await this.roomService.getPlayers(roomId);
             } else {
                 // Play mode: auto-sit (default behavior)
+                // Fetch User Details (Coins & Avatar)
+                const user = await this.authService.validateUser(playerId);
+                const coins = user?.coins !== undefined ? user.coins : 1000;
+                const userAvatar = user?.avatar || '';
+
                 players = await this.roomService.joinRoom(roomId, {
                     id: playerId,
                     nickname: username,
-                    avatar: ''
+                    avatar: userAvatar,
+                    coins: coins
                 });
             }
 

@@ -32,25 +32,32 @@ export class RoomGateway {
             // We should enforce Token. The previous generic fix relied on Token.
             // If token is missing, rely on previous logic? 
             // Previous logic: userId = auth.userId. SocketService does NOT send userId directly.
-            // So we MUST use Token.
-
-            let userId = '';
-            let nickname = '';
-            let avatar = '';
-
+            // Check if user authenticated
+            let userId = client.id;
+            let nickname = `Guest-${client.id.substr(0, 4)}`;
+            let avatar: string | undefined = undefined;
+            let coins = 1000; // Default (Guest)
+            let userProfileFetched = false; // Flag to indicate if user profile was fetched from DB
             if (token) {
                 const payload = this.authService.verifyToken(token);
                 if (payload) {
                     userId = payload.sub;
-                    // Fetch full profile for Avatar
+                    // Get user from DB to get Coins
                     const user = await this.authService.validateUser(userId);
+
+                    console.log(`[RoomGateway] DEBUG USER OBJ: ${JSON.stringify(user)}`);
+
                     nickname = user?.nickname || payload.username;
-                    avatar = user?.avatar || '';
+                    avatar = user?.avatar || undefined;
+                    if (user?.coins !== undefined) {
+                        coins = user.coins;
+                        userProfileFetched = true;
+                    }
                 }
             }
 
             // Fallback for mock/test clients that send userId directly (optional)
-            if (!userId) {
+            if (!token && !userId) { // Only fallback if no token and userId not set by token
                 userId = client.handshake.auth?.userId || client.handshake.query?.userId;
                 nickname = client.handshake.auth?.nickname || `User-${userId}`;
             }
@@ -61,7 +68,14 @@ export class RoomGateway {
                 return;
             }
 
-            const players = await this.roomService.joinRoom(data.roomId, { id: userId, nickname, avatar });
+            if (userProfileFetched) {
+                console.log(`[RoomGateway] User ${userId} has ${coins} coins (from DB)`);
+            } else {
+                console.log(`[RoomGateway] User ${userId} coins undefined or no token, using default ${coins}`);
+            }
+
+            console.log(`[RoomGateway] Joining room ${data.roomId} with coins: ${coins}`);
+            const players = await this.roomService.joinRoom(data.roomId, { id: userId, nickname, avatar, coins });
 
             client.join(data.roomId);
 

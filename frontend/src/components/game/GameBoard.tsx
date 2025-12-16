@@ -132,6 +132,10 @@ export const GameBoard = () => {
 
     // Helper to get last bid for a player
     const getLastBid = (seatId: number | undefined): number | null => {
+        // Issue #58: Only show bids during BIDDING phase.
+        // Once bottom cards are taken (PLAYING phase), hide previous bids.
+        if (phase !== 'BIDDING') return null;
+
         if (seatId === undefined) return null;
         // bidHistory is array of { seatIndex, bid }
         const playerBids = bidHistory.filter(b => b.seatIndex === seatId);
@@ -647,6 +651,7 @@ export const GameBoard = () => {
                         isLandlord={topPlayer.seatId === landlordSeatIndex}
                         lastBid={getLastBid(topPlayer.seatId)}
                         isThinking={topPlayer.isBot && currentTurn === topPlayer.seatId}
+                        coins={topPlayer.coins}
                     />
                 )}
             </div>
@@ -664,6 +669,7 @@ export const GameBoard = () => {
                         isLandlord={leftPlayer.seatId === landlordSeatIndex}
                         lastBid={getLastBid(leftPlayer.seatId)}
                         isThinking={leftPlayer.isBot && currentTurn === leftPlayer.seatId}
+                        coins={leftPlayer.coins}
                     />
                 )}
             </div>
@@ -681,6 +687,7 @@ export const GameBoard = () => {
                         isLandlord={rightPlayer.seatId === landlordSeatIndex}
                         lastBid={getLastBid(rightPlayer.seatId)}
                         isThinking={rightPlayer.isBot && currentTurn === rightPlayer.seatId}
+                        coins={rightPlayer.coins}
                     />
                 )}
             </div>
@@ -700,7 +707,7 @@ export const GameBoard = () => {
                             isTurn={currentTurn === bottomPlayer.seatId}
                             isLandlord={bottomPlayer.seatId === landlordSeatIndex}
                             lastBid={getLastBid(bottomPlayer.seatId)}
-                            coins={1000}
+                            coins={bottomPlayer.coins}
                             isThinking={bottomPlayer.isBot && currentTurn === bottomPlayer.seatId}
                         />
                     )}

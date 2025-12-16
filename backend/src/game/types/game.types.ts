@@ -40,6 +40,7 @@ export interface Player {
     isRobot?: boolean;
     seatIndex: number; // 0-3
     avatar?: string;
+    coins?: number; // Phase 21.3 Game Currency
 }
 
 export interface RoomData {

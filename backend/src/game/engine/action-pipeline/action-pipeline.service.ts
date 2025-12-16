@@ -60,6 +60,19 @@ export class ActionPipelineService {
         const roomId = context.roomData.roomId;
         let lockAcquired = false;
 
+        // Step 0: Ensure Context is Loaded (Fix for Server Restart)
+        if (!context.currentState) {
+            this.logger.log(`[Pipeline] Context state is empty for room ${roomId}, attempting to load from Redis`);
+            await context.loadSnapshot(roomId);
+            if (!context.currentState) {
+                // If still empty, it means no snapshot exists (Game really not started?)
+                this.logger.warn(`[Pipeline] Failed to restore state for room ${roomId}. Game might not be started.`);
+                if (rawInput.type !== 'JOIN') { // Allow JOIN to proceed? Usually JOIN handled separately.
+                    // But here we are in handleClientAction.
+                }
+            }
+        }
+
         try {
             // Step 1: Input Normalization & Sanitization
             this.logger.debug(`[Pipeline] Step 1: Normalizing input for player ${playerId}`);

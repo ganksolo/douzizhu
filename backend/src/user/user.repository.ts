@@ -21,7 +21,12 @@ export class UserRepository {
     }
 
     async findById(id: string): Promise<User | null> {
-        return await this.repository.findOne({ where: { id } });
+        // Force raw query to bypass TypeORM mapping issues
+        const rows = await this.repository.query('SELECT * FROM user WHERE id = ? LIMIT 1', [id]);
+        if (rows && rows.length > 0) {
+            return rows[0] as User;
+        }
+        return null;
     }
 
     async findByNickname(nickname: string): Promise<User | null> {

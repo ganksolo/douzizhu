@@ -1,10 +1,16 @@
-import { Injectable, NotFoundException, ConflictException } from '@nestjs/common';
+import { Injectable, NotFoundException, ConflictException, OnModuleInit, Logger } from '@nestjs/common';
 import { UserRepository } from './user.repository';
 import { User, AuthType } from './user.entity';
 import { MatchRepository } from '../game/match/match.repository';
 
 @Injectable()
-export class UserService {
+export class UserService implements OnModuleInit {
+    private logger = new Logger(UserService.name);
+
+    onModuleInit() {
+        this.logger.log(`[UserService] DB CONFIG CHECK: Host=${process.env.DATABASE_HOST}, Port=${process.env.DATABASE_PORT}, DB=${process.env.DATABASE_NAME}, User=${process.env.DATABASE_USER}`);
+    }
+
     constructor(
         private readonly userRepository: UserRepository,
         private readonly matchRepository: MatchRepository,
@@ -42,6 +48,7 @@ export class UserService {
             email: email,
             avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=' + username,
             lastLogin: new Date(),
+            coins: 10000, // Registered User Default
         });
     }
 
@@ -98,6 +105,7 @@ export class UserService {
                 id: user.id,
                 nickname: user.nickname,
                 avatar: user.avatar,
+                coins: user.coins, // Return coins
             },
             stats: {
                 totalMatches: stats.totalMatches,

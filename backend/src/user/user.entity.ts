@@ -21,6 +21,9 @@ export class User {
     @Column({ length: 255, default: 'https://via.placeholder.com/150' })
     avatar: string;
 
+    @Column({ type: 'int', default: 1000 })
+    coins: number; // Phase 21.3: Game Currency (Score)
+
     @Column({ length: 255, nullable: true })
     email: string;
 

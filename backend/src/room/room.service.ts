@@ -8,11 +8,13 @@ import { Socket } from 'socket.io';
 // Let's look at `game.module.ts` exports or `game.gateway.ts` location.
 // Actually, `RoomService` had `GameManagerService` import before.
 import { GameManagerService } from '../game/services/game-manager.service';
+import { AuthService } from '../auth/auth.service'; // Import AuthService
 import { ConfigService } from '@nestjs/config';
 import Redis from 'ioredis';
 
 export interface RoomMeta {
     ownerId: string;
+    ownerName?: string; // Added ownerName
     status: 'waiting' | 'playing';
     config: string; // JSON string
 }
@@ -26,6 +28,7 @@ export interface RoomPlayer {
     isReady: boolean;
     lastActive: number;
     isBot?: boolean;
+    coins?: number; // Phase 21.3
 }
 
 @Injectable()
@@ -37,6 +40,7 @@ export class RoomService implements OnModuleInit, OnModuleDestroy {
         @Inject(CACHE_MANAGER) private cacheManager: Cache,
         // private gameGateway: GameGateway, // Temporarily remove if not used or path invalid
         private gameManager: GameManagerService,
+        private authService: AuthService, // Inject AuthService
         private configService: ConfigService,
     ) { }
 
@@ -125,10 +129,58 @@ export class RoomService implements OnModuleInit, OnModuleDestroy {
             const playerCount = await client.hlen(seatsKey);
             const configObj = meta.config ? JSON.parse(meta.config) : {};
 
+            let hostName = meta.ownerName;
+
+            // Lazy Update Logic: Retry if missing OR 'Unknown'
+            if ((!hostName || hostName === 'Unknown') && meta.ownerId) {
+                // Strategy 1: Check if Owner is currently seated (Redis) - Fastest & handles DB resets
+                try {
+                    const allSeats = await client.hgetall(seatsKey);
+                    // DEBUG LOG
+                    // this.logger.debug(`[Debug] Room ${roomId} Owner ${meta.ownerId}. Seats: ${Object.keys(allSeats).length}`);
+                    for (const playerJson of Object.values(allSeats)) {
+                        const p = JSON.parse(playerJson);
+                        // this.logger.debug(`[Debug] Seat Check: ${p.userId} (${typeof p.userId}) vs owner ${meta.ownerId} (${typeof meta.ownerId})`);
+                        if (String(p.userId) === String(meta.ownerId)) { // Ensure string comparison
+                            hostName = p.nickname || p.username;
+                            this.logger.log(`[Recovery] Found host name '${hostName}' in seats for room ${roomId}`);
+                            break;
+                        }
+                    }
+                } catch (e) {
+                    this.logger.error(`[Recovery] Seat check failed: ${e.message}`);
+                }
+
+                // Strategy 2: Check DB (AuthService)
+                if (!hostName) {
+                    try {
+                        this.logger.debug(`[Debug] Checking DB for owner ${meta.ownerId}`);
+                        const user = await this.authService.validateUser(meta.ownerId);
+                        if (user) {
+                            hostName = user.nickname;
+                            this.logger.log(`[Recovery] Found host name '${hostName}' in DB for room ${roomId}`);
+                        } else {
+                            this.logger.warn(`[Recovery] Owner ${meta.ownerId} not found in DB`);
+                        }
+                    } catch (e) {
+                        this.logger.error(`[Recovery] DB check failed: ${e.message}`);
+                    }
+                }
+
+                // Persist if found
+                if (hostName) {
+                    await client.hset(this.getMetaKey(roomId), 'ownerName', hostName);
+                } else {
+                    hostName = 'Unknown';
+                    this.logger.warn(`[Recovery] Failed to recover host name for room ${roomId} (Owner: ${meta.ownerId})`);
+                }
+            }
+
             rooms.push({
                 roomId,
                 name: configObj.name || `Room ${roomId.substr(0, 6)}`,
                 hostId: meta.ownerId,
+                hostName: hostName || 'Unknown',
                 currentPlayers: playerCount,
                 maxPlayers: configObj.maxPlayers || 4,
                 status: meta.status,
@@ -146,7 +198,7 @@ export class RoomService implements OnModuleInit, OnModuleDestroy {
     /**
      * Join a room
      */
-    async joinRoom(roomId: string, user: { id: string; nickname: string; avatar?: string }, seatIndex?: number): Promise<RoomPlayer[]> {
+    async joinRoom(roomId: string, user: { id: string; nickname: string; avatar?: string; coins?: number }, seatIndex?: number): Promise<RoomPlayer[]> {
         const client = this.getRedisClient();
         if (!client) throw new Error('Redis client not available');
 
@@ -167,11 +219,17 @@ export class RoomService implements OnModuleInit, OnModuleDestroy {
         for (const [seatIndex, playerData] of Object.entries(currentSeats)) {
             const p = JSON.parse(playerData);
             if (p.userId === user.id) {
-                // Update online status
+                // REFRESH DATA (Fix for Stale Coins/Avatar)
+                console.log(`[RoomService] Refreshing existing player ${user.id} in room ${roomId}. Input coins: ${user.coins} / Current: ${p.coins}`);
+                p.nickname = user.nickname;
+                p.avatar = user.avatar;
+                if (user.coins !== undefined) {
+                    p.coins = user.coins;
+                }
                 p.online = true;
                 p.lastActive = Date.now();
                 await client.hset(seatsKey, seatIndex, JSON.stringify(p));
-                return await this.getPlayers(roomId);
+                return this.getPlayers(roomId);
             }
         }
 
@@ -211,8 +269,11 @@ export class RoomService implements OnModuleInit, OnModuleDestroy {
             online: true,
             isReady: false, // RENAMED from ready
             lastActive: Date.now(),
-            isBot: false
+            isBot: false,
+            coins: user.coins || 1000 // Phase 21.3: Default or passed from DB
         };
+
+        console.log(`[RoomService] Creating new player ${user.id}, coins: ${newPlayer.coins}`);
 
         await client.hset(seatsKey, targetSeat.toString(), JSON.stringify(newPlayer));
         this.logger.log(`Player ${user.id} joined room ${roomId} at seat ${targetSeat}`);
@@ -254,7 +315,8 @@ export class RoomService implements OnModuleInit, OnModuleDestroy {
             online: true,
             isReady: true, // Bots are always ready
             lastActive: Date.now(),
-            isBot: true
+            isBot: true,
+            coins: 10000 // Bots get 10000 coins
         };
 
         await client.hset(seatsKey, targetSeat.toString(), JSON.stringify(bot));
@@ -336,6 +398,7 @@ export class RoomService implements OnModuleInit, OnModuleDestroy {
             isRobot: p.isBot || false,
             seatIndex: p.seat,
             avatar: p.avatar, // Issue #59: Pass avatar to GameContext
+            coins: p.coins, // Phase 21.3
         }));
 
         // Trigger Init State
@@ -384,11 +447,21 @@ export class RoomService implements OnModuleInit, OnModuleDestroy {
 
         // 3. Handle Owner Transfer
         const ownerId = await client.hget(metaKey, 'ownerId');
+
+        // 3.1 Check if remaining players are only bots
+        const remainingPlayers = await this.getPlayers(roomId);
+        const realPlayers = remainingPlayers.filter(p => !p.isBot);
+
+        if (realPlayers.length === 0) {
+            this.logger.log(`Room ${roomId} has only bots left. Destroying room.`);
+            await this.destroyRoom(roomId);
+            return;
+        }
+
         if (ownerId === userId) {
-            // Get updated list to pick new owner
-            const players = await this.getPlayers(roomId);
-            if (players.length > 0) {
-                const newOwner = players[0];
+            // Get updated list to pick new owner (First Real Player)
+            const newOwner = realPlayers[0];
+            if (newOwner) {
                 await client.hset(metaKey, 'ownerId', newOwner.userId);
                 this.logger.log(`Room ${roomId} owner transferred to ${newOwner.userId}`);
             }
@@ -499,7 +572,7 @@ export class RoomService implements OnModuleInit, OnModuleDestroy {
     /**
      * Helper: Create Room
      */
-    async createRoom(roomId: string, ownerId: string, config: any = {}): Promise<string> {
+    async createRoom(roomId: string, ownerId: string, ownerName: string, config: any = {}): Promise<string> {
         const client = this.getRedisClient();
         if (!client) throw new Error('Redis client not available');
 
@@ -508,6 +581,7 @@ export class RoomService implements OnModuleInit, OnModuleDestroy {
 
         // Use field-value pairs format
         await client.hset(metaKey, 'ownerId', ownerId);
+        await client.hset(metaKey, 'ownerName', ownerName); // Store Host Name
         await client.hset(metaKey, 'status', 'waiting');
         await client.hset(metaKey, 'config', JSON.stringify(config));
 
@@ -515,7 +589,7 @@ export class RoomService implements OnModuleInit, OnModuleDestroy {
         await client.expire(metaKey, 86400);
         await client.expire(seatsKey, 86400);
 
-        this.logger.log(`Room ${roomId} created by ${ownerId}`);
+        this.logger.log(`Room ${roomId} created by ${ownerId} (${ownerName})`);
         return roomId;
     }
 

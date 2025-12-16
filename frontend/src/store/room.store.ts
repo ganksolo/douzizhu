@@ -14,6 +14,7 @@ export interface RoomPlayer {
     lastActive?: number;
     seatId?: number; // Frontend normalized alias for 'seat'
     isBot?: boolean; // Phase 22.4 AI support
+    coins?: number; // Phase 21.3 Game Currency
 }
 
 /**
@@ -65,9 +66,10 @@ export const useRoomStore = create<RoomState>((set, get) => ({
     setRoomData: (data) => {
         console.log('[Room] Setting room data:', data);
 
-        // Normalize seat -> seatId for all players
+        // Normalize seat -> seatId AND nickname -> username for all players
         const players = data.players.map(p => ({
             ...p,
+            username: (p as any).nickname || p.username || 'Guest', // Fix Issue: Backend sends nickname, FE wants username
             seatId: p.seat !== undefined ? p.seat : p.seatId
         }));
 
@@ -107,25 +109,26 @@ export const useRoomStore = create<RoomState>((set, get) => ({
             // Check if player already exists
             const exists = state.players.some((p) => p.userId === player.userId);
 
+            const normalizedPlayer = {
+                ...player,
+                username: (player as any).nickname || player.username || 'Guest',
+                seatId: player.seat !== undefined ? player.seat : player.seatId
+            };
+
             if (exists) {
                 console.warn('[Room] Player already exists, updating data');
                 // Update existing player with potentially new seat info
                 return {
                     players: state.players.map(p => p.userId === player.userId ? {
                         ...p,
-                        ...player,
+                        ...normalizedPlayer,
                         seatId: player.seat !== undefined ? player.seat : (player.seatId ?? p.seatId)
                     } : p)
                 };
             }
 
-            const newPlayer = {
-                ...player,
-                seatId: player.seat !== undefined ? player.seat : player.seatId
-            };
-
             return {
-                players: [...state.players, newPlayer],
+                players: [...state.players, normalizedPlayer],
             };
         });
     },

@@ -93,6 +93,13 @@ export const PlayerSeat = ({ player, position, isCurrentUser, onSit, showSitButt
                     <span className="max-w-[80px] truncate">{player.username}</span>
                     {player.isBot && <span className="text-[10px] bg-blue-500 px-1 rounded uppercase">AI</span>}
                 </div>
+                {/* Coins Display */}
+                {player.coins !== undefined && (
+                    <div className="mt-1 bg-black/50 backdrop-blur-sm px-2 py-0.5 rounded-full border border-yellow-500/30 flex items-center gap-1">
+                        <span className="text-yellow-400 text-xs">💰</span>
+                        <span className="text-yellow-200 text-xs font-mono font-bold">{player.coins.toLocaleString()}</span>
+                    </div>
+                )}
             </div>
         </div>
     );

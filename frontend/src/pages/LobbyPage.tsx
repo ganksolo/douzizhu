@@ -160,7 +160,7 @@ export const LobbyPage = () => {
                                                         )}
                                                     </div>
                                                     <p className="text-sm text-gray-500">
-                                                        房主: {(room.hostId || 'Unknown').substring(0, 8)}...
+                                                        房主: <span className="font-semibold text-gray-700">{room.hostName || 'Unknown'}</span> <span className="text-xs text-gray-400">({(room.hostId || '').substring(0, 6)})</span>
                                                     </p>
                                                 </div>
                                                 <div className="flex items-center gap-3">

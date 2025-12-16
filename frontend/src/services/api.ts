@@ -58,6 +58,7 @@ export interface Room {
     roomId: string;
     name: string;
     hostId: string;
+    hostName?: string; // Phase 22.5 Host Name
     currentPlayers: number;
     maxPlayers: number;
     isPrivate: boolean;
