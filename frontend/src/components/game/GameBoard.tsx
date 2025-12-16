@@ -348,17 +348,9 @@ export const GameBoard = () => {
         if (phase === 'BIDDING') {
             handleBid(0); // 不叫
         } else if (phase === 'PLAYING') {
-            if (canPass) {
-                handlePass();
-            } else {
-                // Cannot pass, must play - request hint for auto-play
-                handleHint();
-                // After 1 second, auto-play selected cards if hint provided
-                setTimeout(() => {
-                    // This is a fallback; ideally hint_result listener handles it
-                    console.log('[GameBoard] Auto-play timeout fallback');
-                }, 1000);
-            }
+            // User requested Pass logic on timeout (regardless of canPass state? Try pass)
+            console.log('[GameBoard] Timeout - Executing Pass logic');
+            handlePass();
         }
     }, [phase, canPass, handleBid, handlePass, handleHint]);
 
@@ -508,6 +500,7 @@ export const GameBoard = () => {
                             const rotation = (i - centerIndex) * 4; // Gentle fanning
                             const translateY = Math.abs(i - centerIndex) * 2; // Slight arch
 
+                            // Draw bottom cards normally without layoutId/hiding
                             return (
                                 <motion.div
                                     key={`bottom-card-${i}`}
@@ -583,39 +576,60 @@ export const GameBoard = () => {
             </div>
 
             {/* Table Played Cards Area - Four Independent Containers to prevent flicker */}
-            {/* Top Player's Played Cards */}
-            <div
-                className={`absolute top-40 left-1/2 -translate-x-1/2 z-20 pointer-events-none transition-opacity duration-200 ${lastPlayedPosition === 'top' && lastPlayedCards ? 'opacity-100' : 'opacity-0'
-                    }`}
-            >
-                {lastPlayedPosition === 'top' && lastPlayedCards && renderPlayedCards(lastPlayedCards.cards)}
-            </div>
+            {/* Table Played Cards Area */}
+            <AnimatePresence>
+                {/* Top Player's Played Cards */}
+                {lastPlayedPosition === 'top' && lastPlayedCards && (
+                    <motion.div
+                        key="played-top"
+                        className="absolute top-40 left-1/2 -translate-x-1/2 z-20 pointer-events-none"
+                        initial={{ y: -50, opacity: 0, scale: 0.9 }}
+                        animate={{ y: 0, opacity: 1, scale: 1 }}
+                        exit={{ opacity: 0, scale: 0.9, transition: { duration: 0.1 } }}
+                    >
+                        {renderPlayedCards(lastPlayedCards.cards)}
+                    </motion.div>
+                )}
 
-            {/* Left Player's Played Cards */}
-            <div
-                className={`absolute left-40 top-1/2 -translate-y-1/2 z-20 pointer-events-none transition-opacity duration-200 ${lastPlayedPosition === 'left' && lastPlayedCards ? 'opacity-100' : 'opacity-0'
-                    }`}
-            >
-                {lastPlayedPosition === 'left' && lastPlayedCards && renderPlayedCards(lastPlayedCards.cards)}
-            </div>
+                {/* Left Player's Played Cards */}
+                {lastPlayedPosition === 'left' && lastPlayedCards && (
+                    <motion.div
+                        key="played-left"
+                        className="absolute left-40 top-1/2 -translate-y-1/2 z-20 pointer-events-none"
+                        initial={{ x: -100, opacity: 0, scale: 0.9 }}
+                        animate={{ x: 0, opacity: 1, scale: 1 }}
+                        exit={{ opacity: 0, scale: 0.9, transition: { duration: 0.1 } }}
+                    >
+                        {renderPlayedCards(lastPlayedCards.cards)}
+                    </motion.div>
+                )}
 
-            {/* Right Player's Played Cards */}
-            <div
-                className={`absolute right-40 top-1/2 -translate-y-1/2 z-20 pointer-events-none transition-opacity duration-200 ${lastPlayedPosition === 'right' && lastPlayedCards ? 'opacity-100' : 'opacity-0'
-                    }`}
-            >
-                {lastPlayedPosition === 'right' && lastPlayedCards && renderPlayedCards(lastPlayedCards.cards)}
-            </div>
+                {/* Right Player's Played Cards */}
+                {lastPlayedPosition === 'right' && lastPlayedCards && (
+                    <motion.div
+                        key="played-right"
+                        className="absolute right-40 top-1/2 -translate-y-1/2 z-20 pointer-events-none"
+                        initial={{ x: 100, opacity: 0, scale: 0.9 }}
+                        animate={{ x: 0, opacity: 1, scale: 1 }}
+                        exit={{ opacity: 0, scale: 0.9, transition: { duration: 0.1 } }}
+                    >
+                        {renderPlayedCards(lastPlayedCards.cards)}
+                    </motion.div>
+                )}
 
-            {/* Bottom Player's Played Cards - Hide when it's player's turn (buttons visible) */}
-            <div
-                className={`absolute bottom-52 left-1/2 -translate-x-1/2 z-20 pointer-events-none transition-opacity duration-200 ${lastPlayedPosition === 'bottom' && lastPlayedCards && currentTurn !== bottomPlayer?.seatId
-                    ? 'opacity-100'
-                    : 'opacity-0'
-                    }`}
-            >
-                {lastPlayedPosition === 'bottom' && lastPlayedCards && renderPlayedCards(lastPlayedCards.cards)}
-            </div>
+                {/* Bottom Player's Played Cards */}
+                {lastPlayedPosition === 'bottom' && lastPlayedCards && currentTurn !== bottomPlayer?.seatId && (
+                    <motion.div
+                        key="played-bottom"
+                        className="absolute bottom-52 left-1/2 -translate-x-1/2 z-20 pointer-events-none"
+                        initial={{ y: 50, opacity: 0, scale: 0.9 }}
+                        animate={{ y: 0, opacity: 1, scale: 1 }}
+                        exit={{ opacity: 0, scale: 0.9, transition: { duration: 0.1 } }}
+                    >
+                        {renderPlayedCards(lastPlayedCards.cards)}
+                    </motion.div>
+                )}
+            </AnimatePresence>
 
 
             {/* --- Players --- */}

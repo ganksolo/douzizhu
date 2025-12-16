@@ -1,8 +1,19 @@
 import axios, { type AxiosInstance, type InternalAxiosRequestConfig } from 'axios';
 import type { RoomPlayer } from '../store/room.store';
 
-// API Base URL - can be configured via environment variables
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+// API Base URL - can be configured via environment variables or auto-detected
+const getApiBaseUrl = () => {
+    // If VITE_API_URL is explicitly set (like in production build), use it
+    if (import.meta.env.VITE_API_URL) return import.meta.env.VITE_API_URL;
+
+    // Fallback: Construct IP based URL dynamically (for LAN dev)
+    // If running on localhost, location.hostname is 'localhost'.
+    // If running on 192.168.x.x, location.hostname is '192.168.x.x'.
+    // We assume backend is on port 3001 of the SAME HOST.
+    return `http://${window.location.hostname}:3001`;
+};
+
+const API_BASE_URL = getApiBaseUrl();
 
 // Type definitions based on backend API contracts (Swagger)
 export interface UserEntity {

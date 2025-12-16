@@ -426,6 +426,7 @@ export class RoomService implements OnModuleInit, OnModuleDestroy {
             const p = JSON.parse(data);
             if (p.userId === userId) {
                 p.isReady = isReady; // Use isReady
+                p.lastActive = Date.now(); // Update activity to prevent AFK kick
                 // Remove legacy 'ready' if exists to be clean? Or keep for safety?
                 delete p.ready;
 

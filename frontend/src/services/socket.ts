@@ -1,7 +1,12 @@
 import { io, Socket } from 'socket.io-client';
 
 // WebSocket URL - can be configured via environment variables
-const SOCKET_URL = import.meta.env.VITE_SOCKET_URL || 'http://localhost:3001';
+const getSocketUrl = () => {
+    if (import.meta.env.VITE_SOCKET_URL) return import.meta.env.VITE_SOCKET_URL;
+    return `http://${window.location.hostname}:3001`;
+};
+
+const SOCKET_URL = getSocketUrl();
 const SOCKET_NAMESPACE = '/game'; // Based on phase15_game_engine_core.md
 
 // Type definitions for WebSocket events

@@ -27,8 +27,8 @@ export class AFKService {
 
                 const inactiveTime = Date.now() - player.lastActive;
 
-                // 90s -> Kick
-                if (inactiveTime > 90000) {
+                // 10 mins -> Kick (600000ms)
+                if (inactiveTime > 600000) {
                     this.logger.log(`Kicking AFK player ${player.userId} from room ${roomId}`);
                     try {
                         await this.roomService.kickPlayer(roomId, 'system', player.userId);
@@ -40,8 +40,8 @@ export class AFKService {
                         this.logger.error(`Failed to kick AFK player: ${e.message}`);
                     }
                 }
-                // 30s -> Warn
-                else if (inactiveTime > 30000) {
+                // 5 mins -> Warn (300000ms)
+                else if (inactiveTime > 300000) {
                     this.roomGateway.server.to(roomId).emit('player_afk', { userId: player.userId });
                 }
             }

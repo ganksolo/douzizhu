@@ -1,6 +1,7 @@
 import { useRef, useState, useEffect } from 'react';
 import type { Card as CardType } from '../types';
 import { Card } from './game/Card';  // Issue #36: 使用统一的 Card 组件
+import { motion } from 'framer-motion';
 
 interface PlayerHandProps {
     cards: CardType[];
@@ -177,14 +178,17 @@ export function PlayerHand({ cards, isHuman = false, onCardClick, onSelectionCha
             <div className="flex pointer-events-none" style={{ marginLeft: 0 }}>
                 {/* Actually, if we want drag select, we should probably let events bubble up. */}
                 {cards.map((card, index) => (
-                    <div
+                    <motion.div
                         key={card.id}
-                        ref={el => { cardRefs.current[index] = el; }}
-                        className="transition-transform duration-200 pointer-events-auto" // Re-enable pointer events
+                        ref={el => { cardRefs.current[index] = el as HTMLDivElement; }}
+                        className="pointer-events-auto origin-bottom" // removed transition-transform as motion handles it, kept pointer events
                         style={{ marginLeft: index === 0 ? 0 : `-${requiredOverlap}px` }}
+                        layout // Enable layout animation for sorting
+                        initial={false} // Don't animate on first mount unless layoutId matches
+                        transition={{ type: "spring", stiffness: 300, damping: 30 }}
                     >
                         <Card card={card} onClick={onCardClick} />
-                    </div>
+                    </motion.div>
                 ))}
             </div>
 
