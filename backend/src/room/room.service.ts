@@ -399,7 +399,11 @@ export class RoomService implements OnModuleInit, OnModuleDestroy {
             seatIndex: p.seat,
             avatar: p.avatar, // Issue #59: Pass avatar to GameContext
             coins: p.coins, // Phase 21.3
+            online: p.online, // Sync online status
         }));
+
+        // Set Game Type
+        gameContext.roomData.gameType = config.type || 'PVP';
 
         // Trigger Init State
         gameContext.initialize();

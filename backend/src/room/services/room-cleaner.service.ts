@@ -22,15 +22,15 @@ export class RoomCleanerService {
                 continue;
             }
 
-            // Check if all REAL players are offline for > 10 mins
+            // Check if all REAL players are offline for > 1 min
             const allHumansOffline = realPlayers.every(p => !p.online);
             if (allHumansOffline) {
-                const tenMinutesAgo = Date.now() - 600000;
+                const oneMinuteAgo = Date.now() - 60000;
                 // Only act if ALL humans are abandoned
-                const allAbandoned = realPlayers.every(p => p.lastActive < tenMinutesAgo);
+                const allAbandoned = realPlayers.every(p => p.lastActive < oneMinuteAgo);
 
                 if (allAbandoned) {
-                    this.logger.log(`Cleaning abandoned room ${roomId} (All humans offline > 10m)`);
+                    this.logger.log(`Cleaning abandoned room ${roomId} (All humans offline > 1m)`);
                     await this.roomService.destroyRoom(roomId);
                 }
             }

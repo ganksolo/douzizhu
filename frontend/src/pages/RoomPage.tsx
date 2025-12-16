@@ -113,6 +113,11 @@ export const RoomPage = () => {
         SocketService.emit('join_room', { roomId });
 
         return () => {
+            // Issue #PVE-Cleanup: Notify backend when leaving (browser back, navigation, etc.)
+            if (roomId) {
+                SocketService.emit('leave_room', { roomId });
+            }
+
             SocketService.off('player_list_update', handlePlayerList);
             SocketService.off('player_joined', handlePlayerJoined);
             SocketService.off('player_left', handlePlayerLeft);

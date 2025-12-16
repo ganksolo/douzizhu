@@ -52,6 +52,33 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect, On
             const rooms = this.gameManager.getAllRooms();
             for (const roomId of rooms) {
                 const context = this.gameManager.getOrCreateRoom(roomId);
+
+                // Issue #PVE-Cleanup: Pause PVE rooms if no human players are online
+                // Only applies to PVE rooms to avoid affecting PVP flows
+                // Debug logging to verify values
+                // this.logger.debug(`Room ${roomId}: type=${context.roomData.gameType}, players=${context.roomData.players.length}`);
+
+                if (context.roomData.gameType === 'PVE') {
+                    const hasOnlineHumans = context.roomData.players.some(p => !p.isRobot && p.online);
+                    if (!hasOnlineHumans && context.roomData.players.length > 0) {
+                        // Skip update for this room -> effectively pauses AI
+                        this.logger.debug(`PVE Room ${roomId} paused (no online humans)`);
+                        continue;
+                    }
+                } else {
+                    // Fallback: If not marked PVE but has bots?
+                    // Some users might create PVP room and add bots.
+                    // If ONLY bots are in the room (or human is offline), we should probably pause too.
+                    const botCount = context.roomData.players.filter(p => p.isRobot).length;
+                    if (botCount > 0) {
+                        const hasOnlineHumans = context.roomData.players.some(p => !p.isRobot && p.online);
+                        if (!hasOnlineHumans) {
+                            this.logger.debug(`Hybrid/PVP Room ${roomId} with bots paused (no online humans)`);
+                            continue;
+                        }
+                    }
+                }
+
                 context.update(0.1);
             }
         }, 100);
@@ -91,7 +118,46 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect, On
 
         if (userId && roomId) {
             await this.reconnectService.handleDisconnect(roomId, userId);
+
+            // Mark offline in Game Context
+            const context = this.gameManager.getOrCreateRoom(roomId);
+            const player = context.roomData.players.find(p => p.id === userId);
+            if (player) {
+                player.online = false;
+                this.logger.log(`Player ${userId} marked offline in GameContext ${roomId}`);
+            }
         }
+    }
+
+    @SubscribeMessage('join_game')
+    async handleJoinGame(client: Socket, payload: { roomId: string }) {
+        const { roomId } = payload;
+        const userId = client.data.userId;
+
+        // Join Socket Room
+        client.join(roomId);
+        client.data.roomId = roomId;
+
+        this.logger.log(`Player ${userId} joined game channel ${roomId}`);
+
+        // Initialize Game Context if needed for state syncing
+        const gameContext = this.gameManager.getOrCreateRoom(roomId);
+        if (!gameContext.onStateChange) {
+            gameContext.onStateChange = (rid) => this.broadcastState(rid);
+        }
+
+        // Mark online in Game Context
+        const player = gameContext.roomData.players.find(p => p.id === userId);
+        if (player) {
+            player.online = true;
+            this.logger.log(`Player ${userId} marked online in GameContext ${roomId}`);
+        }
+
+        // Sync GameState
+        await this.broadcastState(roomId);
+
+        // Return success
+        return { status: 'ok', roomId };
     }
 
     @SubscribeMessage('join_room')
@@ -356,6 +422,50 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect, On
         }
     }
 
+    /**
+     * Issue #PVE-Cleanup: Handle explicit leave_room event from frontend
+     * This is triggered when user navigates away (browser back, etc.)
+     */
+    @SubscribeMessage('leave_room')
+    async handleLeaveRoom(
+        @MessageBody() data: { roomId: string },
+        @ConnectedSocket() client: Socket,
+    ) {
+        try {
+            const { roomId } = data;
+            const userId = client.data.userId;
+
+            if (!userId || !roomId) {
+                return;
+            }
+
+            this.logger.log(`Player ${userId} leaving room ${roomId} (explicit leave_room event)`);
+
+            // Leave socket room
+            client.leave(roomId);
+            client.data.roomId = undefined;
+
+            // Mark offline in Room Service (Redis)
+            await this.roomService.setPlayerOnline(roomId, userId, false);
+
+            // Mark offline in Game Context (memory)
+            const context = this.gameManager.getOrCreateRoom(roomId);
+            const player = context.roomData.players.find(p => p.id === userId);
+            if (player) {
+                player.online = false;
+                this.logger.log(`Player ${userId} marked offline in GameContext ${roomId}`);
+            }
+
+            // Broadcast updated player list
+            const players = await this.roomService.getPlayers(roomId);
+            this.server.to(roomId).emit('player_list_update', { roomId, players });
+            this.server.to(roomId).emit('player_left', { userId });
+
+        } catch (error) {
+            this.logger.error(`Error in leave_room: ${error.message}`);
+        }
+    }
+
     private async broadcastState(roomId: string) {
         const gameContext = this.gameManager.getOrCreateRoom(roomId);
         const sockets = await this.server.in(roomId).fetchSockets();
@@ -377,6 +487,14 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect, On
             this.logger.debug(`[broadcastState] Serialized for ${playerId}: lastPlayedCards=${JSON.stringify(sanitizedState.lastPlayedCards)}`);
 
             socket.emit('sync_state', sanitizedState);
+        }
+
+        // Issue #PVE-Cleanup: Skip bot actions if no human players are online
+        // This mirrors the game loop pause logic to prevent AI from acting when humans disconnect
+        const hasOnlineHumans = rawData.players.some(p => !p.isRobot && p.online);
+        if (!hasOnlineHumans && rawData.players.length > 0) {
+            this.logger.debug(`PVE Room ${roomId}: Skipping bot actions in broadcastState (no online humans)`);
+            return;
         }
 
         // Check if it's a bot's turn (Phase 35: includes BiddingState)

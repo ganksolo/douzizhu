@@ -27,6 +27,14 @@ export class AIService {
         this.logger.log(`AI ${playerId} is thinking... (Delay: ${delay}ms)`);
 
         setTimeout(async () => {
+            // Issue #PVE-Cleanup: Skip AI action if no human players are online
+            const hasOnlineHumans = context.roomData.players.some(p => !p.isRobot && p.online);
+            if (!hasOnlineHumans && context.roomData.players.length > 0) {
+                this.logger.debug(`AI ${playerId}: Skipping action (no online humans)`);
+                context.roomData.isAIThinking = false;
+                return;
+            }
+
             // Check if context is still valid and it's still this player's turn
             if (context.roomData.currentTurn !== playerId) {
                 this.logger.warn(`AI ${playerId} finished thinking but it's no longer their turn.`);

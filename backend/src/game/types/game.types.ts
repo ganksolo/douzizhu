@@ -41,10 +41,12 @@ export interface Player {
     seatIndex: number; // 0-3
     avatar?: string;
     coins?: number; // Phase 21.3 Game Currency
+    online?: boolean; // Track online status
 }
 
 export interface RoomData {
     roomId: string;
+    gameType?: 'PVP' | 'PVE'; // Add gameType
     players: Player[];
     deck: string[];
     bottomCards: string[]; // Phase 22.6: 8 Cards
