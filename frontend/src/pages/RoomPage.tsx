@@ -7,6 +7,7 @@ import { useAuthStore } from '../store/auth.store';
 import { useToast } from '../components/ui/useToast';
 import { GamePage } from './GamePage';
 import { PlayerSeat } from '../components/game/PlayerSeat';
+import { ChatPanel } from '../components/chat/ChatPanel';
 
 export const RoomPage = () => {
     const { roomId } = useParams<{ roomId: string }>();
@@ -308,6 +309,9 @@ export const RoomPage = () => {
                     )}
                 </div>
             </div>
+
+            {/* Chat Panel - Only in PVP rooms */}
+            {roomId && !isPve && <ChatPanel roomId={roomId} />}
         </div>
     );
 };

@@ -838,17 +838,8 @@ export const GameBoard = () => {
                         />
                     </div>
                 </div>
-
-                {/* 3. Chat Button (Far Right) */}
-                <div className="pointer-events-auto flex-shrink-0 mb-6">
-                    <button
-                        className="flex items-center gap-2 bg-[#1f2937]/90 hover:bg-[#374151] text-[#9ca3af] px-5 py-2 rounded-full border border-gray-600 transition-all shadow-lg"
-                    >
-                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" /></svg>
-                        <span className="text-sm font-medium">Chat</span>
-                    </button>
-                </div>
             </div>
+
 
         </div >
     );

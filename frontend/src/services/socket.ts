@@ -185,6 +185,10 @@ class SocketManager {
             'action_result',
             'action_error',
             'error',
+            'chat_message',
+            'chat_error',
+            'hint_result',
+            'player_ready_update',
         ];
 
         knownEvents.forEach((event) => {

@@ -2060,6 +2060,47 @@ AI 出牌后，牌桌上不显示 AI 打出的牌。
 
 **Status**: ✅ FE Diagnosis Added
 
+---
 
+## Phase 36-FE: Room Chat UI
 
+### Date: 2025-12-16
 
+### Overview
+实现房间内聊天 UI，与后端 `chat_send`/`chat_message`/`chat_error` Socket 事件对接。
+
+### Components Created
+
+#### 1. ChatMessage
+**File**: `frontend/src/components/chat/ChatMessage.tsx`
+- 单条消息展示组件
+- 区分自己/他人消息样式 (蓝色/灰色)
+- 显示昵称、时间 (HH:mm)、文本
+
+#### 2. EmojiPicker
+**File**: `frontend/src/components/chat/EmojiPicker.tsx`
+- 24 个常用 Emoji 面板
+- 点击外部自动关闭
+
+#### 3. ChatPanel
+**File**: `frontend/src/components/chat/ChatPanel.tsx`
+- 可折叠/展开浮层面板 (右下角)
+- 未读消息红点计数
+- 消息列表 (最多 50 条)
+- 输入框 + 发送按钮 + Emoji 选择
+- Socket 事件对接:
+  - 发送: `chat_send`
+  - 监听: `chat_message`, `chat_error`
+
+### Integration
+**File**: `frontend/src/pages/RoomPage.tsx`
+- 在页面底部添加 `<ChatPanel roomId={roomId} />`
+
+### Verification
+```bash
+npm run build
+# ✓ 2199 modules transformed
+# ✓ built in 1.69s
+```
+
+**Status**: ✅ Complete & Build Verified

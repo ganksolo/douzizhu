@@ -161,6 +161,35 @@ This document defines all WebSocket events used for real-time communication betw
 
 ---
 
+### 7. `chat_send`
+**Purpose**: Send a chat message to the room
+
+**Payload**:
+```typescript
+{
+  roomId: string,
+  text: string  // 1-200 characters
+}
+```
+
+**Example**:
+```json
+{
+  "roomId": "room-1",
+  "text": "Hello everyone!"
+}
+```
+
+**Backend Behavior**:
+- Validates user is in the room
+- Validates text length (1-200 chars)
+- Broadcasts `chat_message` to all room members
+- No persistence (messages are ephemeral)
+
+**Error Response**: `chat_error` event with `{ message: string }`
+
+---
+
 ## Server → Client Events
 
 ### 1. `sync_state`
@@ -428,6 +457,40 @@ This document defines all WebSocket events used for real-time communication betw
 **Frontend Behavior**:
 - Show error notification
 - If auth error, redirect to login
+
+---
+
+### 13. `chat_message`
+**Purpose**: Broadcast chat message to room members
+
+**Payload**:
+```typescript
+{
+  senderId: string,
+  senderName: string,
+  text: string,
+  timestamp: number  // Unix timestamp (ms)
+}
+```
+
+**Frontend Behavior**:
+- Display message in chat UI
+- Show sender name and timestamp
+
+---
+
+### 14. `chat_error`
+**Purpose**: Chat action failed
+
+**Payload**:
+```typescript
+{
+  message: string
+}
+```
+
+**Frontend Behavior**:
+- Show error toast
 
 ---
 

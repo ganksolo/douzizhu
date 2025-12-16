@@ -655,6 +655,16 @@
   - [x] 问题 4: 增强 DebugStatePanel (Turn Player, Can Pass, Selected, My Hand, Landlord, Players) <!-- id: 48.4 -->
 - [x] Fix 32: 两幅牌手牌 key 重复导致少渲染 <!-- id: 49 -->
   - [x] 使用 ${val}-${index} 生成唯一 id <!-- id: 49.1 -->
+- [x] Phase 36: Room Chat Socket <!-- id: 36.chat -->
+  - [x] BE: 实现 `chat_send` 事件处理器 (game.gateway.ts) <!-- id: 36.chat.1 -->
+  - [x] 更新 `ws_events.md` 文档 <!-- id: 36.chat.2 -->
+- [x] Phase 36-FE: Room Chat UI <!-- id: 36.fe -->
+  - [x] 创建 ChatMessage 组件 <!-- id: 36.fe.1 -->
+  - [x] 创建 EmojiPicker 组件 <!-- id: 36.fe.2 -->
+  - [x] 创建 ChatPanel 组件 <!-- id: 36.fe.3 -->
+  - [x] 集成到 RoomPage <!-- id: 36.fe.4 -->
+  - [x] 更新 frontend_walkthrough.md <!-- id: 36.fe.5 -->
+  - [x] 编译验证 <!-- id: 36.fe.6 -->
 
 
 

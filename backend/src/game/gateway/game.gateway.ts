@@ -423,6 +423,65 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect, On
     }
 
     /**
+     * Room Chat: Handle chat message from player
+     */
+    @SubscribeMessage('chat_send')
+    async handleChatSend(
+        @MessageBody() data: { roomId: string; text: string },
+        @ConnectedSocket() client: Socket,
+    ) {
+        try {
+            const { roomId: payloadRoomId, text } = data;
+            const userId = client.data.userId;
+            const username = client.data.username;
+
+            // Use stored roomId if available, otherwise use payload roomId
+            // This makes chat more robust when client.data.roomId wasn't set properly
+            const roomId = client.data.roomId || payloadRoomId;
+
+            this.logger.log(`[Chat] Received chat_send from ${username} (${userId}). Payload roomId: ${payloadRoomId}, client.data.roomId: ${client.data.roomId}, using: ${roomId}`);
+
+            // Validate roomId exists
+            if (!roomId) {
+                this.logger.warn(`[Chat] Rejected: No room ID available`);
+                client.emit('chat_error', { message: 'Room ID required' });
+                return;
+            }
+
+            // Validate text length (1-200)
+            if (!text || text.length < 1 || text.length > 200) {
+                this.logger.warn(`[Chat] Rejected: Invalid message length (${text?.length})`);
+                client.emit('chat_error', { message: 'Message must be 1-200 characters' });
+                return;
+            }
+
+            // Ensure client is in the socket room (join if not already)
+            const rooms = Array.from(client.rooms);
+            this.logger.log(`[Chat] Client ${client.id} current rooms: ${JSON.stringify(rooms)}`);
+
+            if (!rooms.includes(roomId)) {
+                this.logger.warn(`[Chat] Client not in socket room, joining: ${roomId}`);
+                client.join(roomId);
+                client.data.roomId = roomId;
+            }
+
+            // Broadcast to room
+            this.logger.log(`[Chat] Broadcasting chat_message to room ${roomId}`);
+            this.server.to(roomId).emit('chat_message', {
+                senderId: userId,
+                senderName: username,
+                text: text,
+                timestamp: Date.now()
+            });
+
+            this.logger.log(`[Chat] ✅ Broadcast complete for "${text.substring(0, 20)}..."`);
+        } catch (error) {
+            this.logger.error(`Error in chat_send: ${error.message}`);
+            client.emit('chat_error', { message: 'Failed to send message' });
+        }
+    }
+
+    /**
      * Issue #PVE-Cleanup: Handle explicit leave_room event from frontend
      * This is triggered when user navigates away (browser back, etc.)
      */
