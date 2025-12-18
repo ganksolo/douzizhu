@@ -1,0 +1,36 @@
+action: "do_dod"
+version: 2.0
+
+description: >
+  执行 DoD (Definition of Done) 检查，不产生任何写入行为。
+
+load_role:
+  - "{project}.role.fe"
+  - "{project}.role.be"
+
+must_read:
+  - "project_rules.md"
+  - "task.md"
+  - "docs/changelog/**"
+  - "docs/contract/api_spec.md"
+
+rules:
+  - "不得写入任何文件"
+  - "只能输出 JSON 格式的 DoD 报告"
+
+dod_checklist:
+  - "task.md 对应条目已标记 [x]"
+  - "changelog 已创建（Feature 类型）"
+  - "代码已编译通过"
+  - "契约已同步（如有变更）"
+  - "测试已通过"
+
+output_format:
+  dod_status: "<Pass 或 Fail>"
+  missing_items: "<缺少的 DoD 项>"
+  checklist:
+    task_updated: true/false
+    changelog_created: true/false
+    code_compiled: true/false
+    contract_synced: true/false
+    tests_passed: true/false

@@ -1,0 +1,23 @@
+action: "fix_fe_bug"
+version: 1.0
+
+description: >
+  修复 FE Bug 的 Action Prompt。
+  禁止写入任何 changelog。仅修复代码。
+
+load_role: "{project}.role.fe"
+
+must_read:
+  - "project_rules.md"
+  - "task.md"
+  - "docs/contract/api_spec.md"
+
+rules:
+  - "禁止创建 docs/changelog/**"
+  - "禁止修改 docs/contract/**"
+  - "只允许写 frontend/**"
+  - "修复后更新 GitHub Issue 状态"
+
+output_format:
+  code_changes: "<修复后的代码>"
+  issue_update: "Fixed"

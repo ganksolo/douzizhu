@@ -1,0 +1,31 @@
+action: "qa_verify"
+version: 2.0
+
+description: >
+  QA 验证 Action Prompt，不允许写产品代码。
+
+load_role: "{project}.role.qa"
+
+must_read:
+  - "project_rules.md"
+  - "docs/changelog/**"
+  - "docs/contract/api_spec.md"
+  - "docs/contract/ws_events.md"
+  - "task.md"
+
+rules:
+  - "禁止写 frontend/**"
+  - "禁止写 backend/**"
+  - "禁止写 docs/changelog/**"
+  - "验证必须可复现"
+  - "Bug 必须按 bug_routing 分发"
+
+required_behavior:
+  - "依据 changelog 验证功能实现"
+  - "依据 contract/* 验证 API 行为"
+  - "发现问题创建 GitHub Issue"
+  - "更新 docs/test_registry.md"
+
+output_format:
+  test_report: "<结构化 QA 报告>"
+  issues_created: "<如有>"

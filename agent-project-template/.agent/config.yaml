@@ -1,0 +1,62 @@
+# Agent Configuration
+# 定义 Agent 行为规范和 prompt 来源
+
+version: 1.0
+
+# Langfuse 配置（可选，如使用本地 prompts 则忽略）
+langfuse:
+  enabled: true
+  project_prefix: "{project}"  # 替换为实际项目名，如 "ddz"
+
+# Prompt 命名约定
+naming:
+  roles: "{project}.role.{fe|be|qa}"
+  loaders: "{project}.orch.{fe|be|qa}_loader"
+  actions: "{project}.action.{action_name}"
+
+# Agent 类型定义
+agents:
+  FE:
+    role: "role.fe"
+    loader: "orch.fe_loader"
+    actions:
+      - "action.dev_feature_fe"
+      - "action.fix_fe_bug"
+      - "action.do_dod"
+    outputs:
+      changelog: "docs/changelog/FE-*.md"
+      code: "frontend/**"
+
+  BE:
+    role: "role.be"
+    loader: "orch.be_loader"
+    actions:
+      - "action.dev_feature_be"
+      - "action.fix_be_bug"
+      - "action.fix_contract_bug"
+      - "action.do_dod"
+    outputs:
+      changelog: "docs/changelog/BE-*.md"
+      code: "backend/**"
+      contract: "docs/contract/**"
+
+  QA:
+    role: "role.qa"
+    loader: "orch.qa_loader"
+    actions:
+      - "action.qa_verify"
+      - "action.do_dod"
+    outputs:
+      test_registry: "docs/test_registry.md"
+
+# 契约配置
+contract:
+  ssot: "docs/contract/openapi.yaml"
+  generated: "docs/contract/api_spec.md"
+  gen_command: "npm run gen:spec"
+
+# 文档配置
+documentation:
+  roadmap: "docs/roadmap.md"
+  changelog_dir: "docs/changelog/"
+  changelog_format: "{FE|BE}-{序号}_{模块名}.md"

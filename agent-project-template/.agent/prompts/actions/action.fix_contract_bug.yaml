@@ -1,0 +1,30 @@
+action: "fix_contract_bug"
+version: 2.0
+
+description: >
+  修复 API 字段不一致问题（Contract Bug）。
+  可改契约，禁止写 changelog。
+
+load_role: "{project}.role.be"
+
+must_read:
+  - "project_rules.md"
+  - "docs/contract/openapi.yaml"
+  - "docs/contract/api_spec.md"
+
+rules:
+  - "只允许写 backend/**"
+  - "允许更新 docs/contract/openapi.yaml"
+  - "更新后必须运行 npm run gen:spec"
+  - "禁止创建 docs/changelog/**"
+
+required_behavior:
+  - "修复后端代码使其符合契约"
+  - "或修改契约使其符合实际行为"
+  - "运行 npm run gen:spec 同步 api_spec.md"
+  - "更新 GitHub Issue 状态"
+
+output_format:
+  openapi_diff: "<契约更新>"
+  code_changes: "<后台代码>"
+  issue_update: "Ready for FE Sync"
