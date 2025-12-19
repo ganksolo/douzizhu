@@ -1,0 +1,59 @@
+action: "dispatch_tasks"
+version: 1.0
+
+description: >
+  PM Agent 专用：基于 Spec 文档分配任务给 FE/BE Agent。
+  生成明确的执行指令和顺序。
+
+load_role: "{project}.role.pm"
+
+must_read:
+  - "docs/specs/SPEC-*.md"
+  - "task.md"
+
+rules:
+  - "必须基于已有的 Spec 文档"
+  - "明确指定执行顺序（通常 BE 先于 FE）"
+  - "更新 task.md 状态"
+
+required_behavior:
+  - "读取指定 Spec 文档"
+  - "提取 FE 和 BE 任务列表"
+  - "生成分配指令"
+  - "建议执行顺序"
+
+output_format:
+  dispatch_instruction: |
+    ## 任务分配 (基于 SPEC-{id})
+
+    ### 执行顺序
+    1. **BE Agent** 先实现后端接口
+    2. **FE Agent** 对接前端调用
+    3. **QA Agent** 验证集成
+
+    ---
+
+    ### BE Agent 任务
+    启动命令: `>>> START AS: BE`
+    关联 Spec: `docs/specs/SPEC-{id}.md`
+
+    任务列表:
+    - [ ] {BE 任务 1}
+    - [ ] {BE 任务 2}
+
+    ---
+
+    ### FE Agent 任务
+    启动命令: `>>> START AS: FE`
+    关联 Spec: `docs/specs/SPEC-{id}.md`
+
+    任务列表:
+    - [ ] {FE 任务 1}
+    - [ ] {FE 任务 2}
+
+    ---
+
+    ### 集成验证
+    BE 和 FE 都完成后，启动 QA Agent:
+    `>>> START AS: QA`
+    执行 `verify_integration` action

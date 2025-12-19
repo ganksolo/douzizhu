@@ -1,0 +1,75 @@
+action: "verify_integration"
+version: 1.0
+
+description: >
+  QA Agent 专用：验证 FE-BE 集成是否符合 Spec 定义。
+  检查接口字段、数据格式、功能行为是否一致。
+
+load_role: "{project}.role.qa"
+
+must_read:
+  - "docs/specs/SPEC-*.md"
+  - "docs/contract/openapi.yaml"
+  - "docs/contract/ws_events.md"
+  - "frontend/src/services/**"
+  - "backend/src/**/controller.ts"
+  - "backend/src/**/gateway.ts"
+
+rules:
+  - "必须基于 Spec 文档验证"
+  - "检查 FE 调用与 Spec 定义一致"
+  - "检查 BE 实现与 Spec 定义一致"
+  - "发现问题必须明确归类（FE Bug / BE Bug / Contract Bug）"
+
+verification_checklist:
+  contract_consistency:
+    - "FE 发送的字段名与 Spec 一致"
+    - "BE 返回的字段名与 Spec 一致"
+    - "数据类型匹配（string/number/boolean）"
+
+  functional_behavior:
+    - "Spec 中的验证标准全部满足"
+    - "错误处理正确（如 Spec 有定义）"
+
+  edge_cases:
+    - "空值/边界值处理"
+    - "异常情况处理"
+
+required_behavior:
+  - "读取指定 Spec 文档"
+  - "对比 FE 代码实现"
+  - "对比 BE 代码实现"
+  - "执行验证标准检查"
+  - "生成验证报告"
+
+output_format:
+  verification_report: |
+    ## 集成验证报告
+
+    ### Spec 信息
+    - **Spec ID**: SPEC-{id}
+    - **功能名称**: {name}
+    - **验证时间**: {timestamp}
+
+    ### 验证结果
+
+    #### 契约一致性
+    | 检查项 | FE | BE | 结果 |
+    |--------|----|----|------|
+    | 字段名 `xxx` | ✅ | ✅ | Pass |
+    | 字段名 `yyy` | ✅ | ❌ | Fail |
+
+    #### 功能行为
+    | 验证标准 | 结果 | 备注 |
+    |----------|------|------|
+    | {标准 1} | ✅ Pass | - |
+    | {标准 2} | ❌ Fail | {原因} |
+
+    ### 发现的问题
+    | 问题 | 类型 | 归属 | 建议 |
+    |------|------|------|------|
+    | {问题描述} | Contract Bug | BE | 修改 xxx |
+
+    ### 总体结论
+    - **状态**: ✅ 通过 / ❌ 未通过
+    - **需要修复**: {列表}

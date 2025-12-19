@@ -26,6 +26,7 @@ context:
   required:
     - "task.md"
     - "docs/roadmap.md"
+    - "docs/specs/"                    # Spec 文档（FE-BE 联动任务定义）
     - "docs/contract/api_spec.md"
     - "docs/contract/ws_events.md"
     - "docs/changelog/"

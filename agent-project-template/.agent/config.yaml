@@ -1,7 +1,7 @@
 # Agent Configuration
 # 定义 Agent 行为规范和 prompt 来源
 
-version: 1.0
+version: 2.0
 
 # Langfuse 配置（可选，如使用本地 prompts 则忽略）
 langfuse:
@@ -10,12 +10,23 @@ langfuse:
 
 # Prompt 命名约定
 naming:
-  roles: "{project}.role.{fe|be|qa}"
-  loaders: "{project}.orch.{fe|be|qa}_loader"
+  roles: "{project}.role.{pm|fe|be|qa}"
+  loaders: "{project}.orch.{pm|fe|be|qa}_loader"
   actions: "{project}.action.{action_name}"
 
 # Agent 类型定义
 agents:
+  PM:
+    role: "role.pm"
+    loader: "orch.pm_loader"
+    actions:
+      - "action.write_spec"
+      - "action.dispatch_tasks"
+      - "action.do_dod"
+    outputs:
+      specs: "docs/specs/SPEC-*.md"
+      contract: "docs/contract/**"
+
   FE:
     role: "role.fe"
     loader: "orch.fe_loader"
@@ -45,6 +56,7 @@ agents:
     loader: "orch.qa_loader"
     actions:
       - "action.qa_verify"
+      - "action.verify_integration"
       - "action.do_dod"
     outputs:
       test_registry: "docs/test_registry.md"
@@ -58,5 +70,16 @@ contract:
 # 文档配置
 documentation:
   roadmap: "docs/roadmap.md"
+  specs_dir: "docs/specs/"
+  specs_format: "SPEC-{序号}_{功能名称}.md"
   changelog_dir: "docs/changelog/"
   changelog_format: "{FE|BE}-{序号}_{模块名}.md"
+
+# 工作流配置
+workflow:
+  new_feature:
+    - "PM Agent: 分析需求，生成 Spec（如需要）"
+    - "BE Agent: 实现后端（如 Spec 定义）"
+    - "FE Agent: 实现前端（如 Spec 定义）"
+    - "QA Agent: 验证集成"
+

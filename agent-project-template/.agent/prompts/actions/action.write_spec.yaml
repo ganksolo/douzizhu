@@ -1,0 +1,85 @@
+action: "write_spec"
+version: 1.0
+
+description: >
+  PM Agent 专用：分析需求，生成 Spec 文档。
+  Spec 定义 FE/BE 各自的任务和接口契约。
+
+load_role: "{project}.role.pm"
+
+must_read:
+  - "project_rules.md"
+  - "task.md"
+  - "docs/roadmap.md"
+  - "docs/contract/openapi.yaml"
+  - "docs/contract/ws_events.md"
+  - "docs/specs/"                      # 避免重复编号
+
+rules:
+  - "只有涉及 FE-BE 联动的需求才生成 Spec"
+  - "Spec 编号必须递增（SPEC-{next}）"
+  - "必须明确定义接口字段和格式"
+  - "必须拆分 FE 和 BE 的具体任务"
+  - "同步更新 docs/contract/* 中的接口定义"
+
+required_behavior:
+  - "分析需求，判断是否需要 Spec"
+  - "确定 Spec 编号（基于已有文件）"
+  - "定义接口契约（REST / WebSocket）"
+  - "拆分 FE 任务列表"
+  - "拆分 BE 任务列表"
+  - "定义验证标准"
+  - "更新 task.md 添加对应任务"
+
+output_format:
+  spec_file: "docs/specs/SPEC-{number}_{feature_name}.md"
+  task_update: "task.md 中添加对应条目"
+  contract_update: "docs/contract/* (如有新接口)"
+
+spec_template: |
+  # SPEC-{序号}: {功能名称}
+
+  ## 需求来源
+  {用户原始需求描述}
+
+  ## 接口定义
+
+  ### REST API (如有)
+  ```
+  POST /api/xxx
+  Request: { ... }
+  Response: { ... }
+  ```
+
+  ### WebSocket 事件 (如有)
+
+  **Client → Server: `event_name`**
+  ```json
+  {
+    "field": "type (description)"
+  }
+  ```
+
+  **Server → Client: `event_name`**
+  ```json
+  {
+    "field": "type (description)"
+  }
+  ```
+
+  ## FE 任务
+  - [ ] {具体任务 1}
+  - [ ] {具体任务 2}
+
+  ## BE 任务
+  - [ ] {具体任务 1}
+  - [ ] {具体任务 2}
+
+  ## 验证标准
+  - [ ] {验证条件 1}
+  - [ ] {验证条件 2}
+
+  ## 执行顺序
+  1. BE Agent 实现接口
+  2. FE Agent 对接接口
+  3. QA Agent 验证集成

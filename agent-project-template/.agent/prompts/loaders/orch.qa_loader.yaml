@@ -27,6 +27,7 @@ context:
     - "task.md"
     - "docs/test_registry.md"
     - "docs/roadmap.md"
+    - "docs/specs/"                    # Spec 文档（用于集成验证）
     - "docs/contract/api_spec.md"
     - "docs/contract/ws_events.md"
     - "docs/changelog/"

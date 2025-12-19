@@ -1,6 +1,6 @@
 # PROJECT RULES (L0 CONSTITUTION)
 # 全项目共享的唯一工程约束源（Single Source of Truth）
-# 所有 Agent（FE / BE / QA）必须严格继承并遵守本文件
+# 所有 Agent（PM / FE / BE / QA）必须严格继承并遵守本文件
 
 ---
 
@@ -26,6 +26,11 @@ language:
 # ============================================================================
 
 allowed_writes:
+  PM:
+    - "docs/specs/SPEC-*.md"
+    - "docs/contract/**"
+    - "task.md"
+
   FE:
     - "frontend/**"
     - "docs/changelog/FE-*.md"
@@ -68,6 +73,18 @@ task_management:
 # ============================================================================
 
 documentation:
+  specs:
+    format: "docs/specs/SPEC-{序号}_{功能名称}.md"
+    creator: "PM Agent"
+    required_when: "FE-BE 联动功能"
+    required_sections:
+      - "需求来源"
+      - "接口定义（REST API / WebSocket）"
+      - "FE 任务列表"
+      - "BE 任务列表"
+      - "验证标准"
+      - "执行顺序"
+
   changelog:
     format: "docs/changelog/{FE|BE}-{序号}_{模块名}.md"
     required_sections:
@@ -93,6 +110,18 @@ documentation:
 # 5. DOMAIN BOUNDARIES —— 领域边界（权限隔离）
 # ============================================================================
 
+PM_domain:
+  allowed:
+    - "分析需求，判断是否需要 Spec"
+    - "生成 Spec 文档"
+    - "更新契约文件（openapi.yaml, ws_events.md）"
+    - "分配任务给 FE/BE Agent"
+    - "维护 task.md"
+  forbidden:
+    - "修改任何代码文件"
+    - "创建 changelog"
+    - "执行测试"
+
 FE_domain:
   allowed:
     - "编写前端代码"
@@ -103,26 +132,30 @@ FE_domain:
     - "修改 BE 代码"
     - "修改 API 契约文件"
     - "创建 BE changelog"
+    - "创建/修改 Spec 文档"
 
 BE_domain:
   allowed:
     - "编写后端代码"
     - "创建 BE changelog"
-    - "修改契约文件"
+    - "修改契约文件（PM 未覆盖的情况）"
     - "维护 task.md 中 BE 条目"
   forbidden:
     - "修改前端代码"
     - "创建 FE changelog"
+    - "创建/修改 Spec 文档"
 
 QA_domain:
   allowed:
     - "执行测试"
+    - "执行集成验证（verify_integration）"
     - "创建 bug issue"
     - "更新 test_registry.md"
   forbidden:
     - "修复 bug"
     - "编写 changelog"
     - "修改任何代码文件"
+    - "创建/修改 Spec 文档"
 
 ---
 
