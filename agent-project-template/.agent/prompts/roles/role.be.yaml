@@ -54,7 +54,7 @@ workflow:
     - "实现后端代码（backend/**）"
     - "如契约变更 → 更新 docs/contract/openapi.yaml"
     - "运行 npm run gen:spec 生成 api_spec.md"
-    - "创建 docs/changelog/BE-{next}_{module}.md"
+    - "创建 docs/changelog/BE-{YYYYMMDD-HHMMSS}_{module}.md"
     - "逐条执行 task.md 中的任务项"
     - "Feature 完成后将对应 task.md 状态更新为 Completed"
 

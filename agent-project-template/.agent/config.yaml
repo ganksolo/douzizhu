@@ -73,7 +73,7 @@ documentation:
   specs_dir: "docs/specs/"
   specs_format: "SPEC-{序号}_{功能名称}.md"
   changelog_dir: "docs/changelog/"
-  changelog_format: "{FE|BE}-{序号}_{模块名}.md"
+  changelog_format: "{FE|BE}-{YYYYMMDD-HHMMSS}_{模块名}.md"
 
 # 工作流配置
 workflow:

@@ -1,7 +1,7 @@
-# {FE|BE}-{序号}_{模块名}
+# {FE|BE}-{YYYYMMDD-HHMMSS}_{模块名}
 
 ## 元信息
-- **日期**: YYYY-MM-DD
+- **日期**: YYYY-MM-DD HH:MM:SS
 - **Agent**: FE Agent / BE Agent
 - **关联任务**: task.md#{task_id}
 
@@ -30,6 +30,6 @@
 ## 使用说明
 
 1. 复制此模板
-2. 重命名为 `FE-001_login_ui.md` 或 `BE-001_auth_api.md`
+2. 重命名为 `FE-20241222-171000_login_ui.md` 或 `BE-20241222-171000_auth_api.md`
 3. 填写各项内容
 4. 删除此使用说明部分

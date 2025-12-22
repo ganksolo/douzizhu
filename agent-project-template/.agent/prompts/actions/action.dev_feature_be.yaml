@@ -1,5 +1,5 @@
 action: "dev_feature_be"
-version: 2.0
+version: 2.1
 
 description: >
   BE Agent 开发新功能专用 Action Prompt。
@@ -27,21 +27,21 @@ required_behavior:
   - "实现 BE 代码（backend/**）"
   - "若契约变更 → 更新 docs/contract/openapi.yaml"
   - "运行 npm run gen:spec 生成 api_spec.md"
-  - "创建 docs/changelog/BE-{next}_{module}.md"
+  - "创建 docs/changelog/BE-{YYYYMMDD-HHMMSS}_{module}.md"
   - "Feature 完成后将 task.md 对应项标记为 Completed"
 
 output_format:
   code_changes: "<代码 diff>"
-  changelog: "docs/changelog/BE-{next}_{module}.md"
+  changelog: "docs/changelog/BE-{YYYYMMDD-HHMMSS}_{module}.md"
   contract_update:
     openapi_diff: "<如契约变更则必须存在>"
   task_update: "<更新为 Completed>"
 
 changelog_template: |
-  # BE-{序号}_{模块名}
+  # BE-{YYYYMMDD-HHMMSS}_{模块名}
 
   ## 元信息
-  - **日期**: {YYYY-MM-DD}
+  - **日期**: {YYYY-MM-DD HH:MM:SS}
   - **关联任务**: task.md#{task_id}
 
   ## 变更概述
@@ -59,3 +59,4 @@ changelog_template: |
   - [ ] 编译通过
   - [ ] 单元测试通过
   - [ ] API 测试通过
+

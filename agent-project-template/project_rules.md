@@ -86,7 +86,9 @@ documentation:
       - "执行顺序"
 
   changelog:
-    format: "docs/changelog/{FE|BE}-{序号}_{模块名}.md"
+    format: "docs/changelog/{FE|BE}-{YYYYMMDD-HHMMSS}_{模块名}.md"
+    naming_example: "FE-20241222-171000_room_chat.md"
+    naming_rule: "使用时间戳避免多人协作时的编号冲突"
     required_sections:
       - "元信息（日期、关联任务）"
       - "变更概述"

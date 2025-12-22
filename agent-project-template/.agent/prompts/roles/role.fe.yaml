@@ -53,7 +53,7 @@ workflow:
     - "将 TODO 列表内容追加写入 task.md"
     - "根据 docs/contract/* 理解后端能力"
     - "实现 FE 代码（frontend/**）"
-    - "创建 docs/changelog/FE-{next}_{module}.md"
+    - "创建 docs/changelog/FE-{YYYYMMDD-HHMMSS}_{module}.md"
     - "逐条执行 task.md 中属于本次 Feature 的任务项"
     - "Feature 完成后将 task.md 对应条目标记为 Completed"
 
